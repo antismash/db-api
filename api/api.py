@@ -84,8 +84,6 @@ SELECT bgc_id, cluster_number, acc, term, description
 @app.route('/api/v1.0/tree/taxa')
 def get_taxon_tree():
     '''Get the jsTree structure for all taxa'''
-    keys = ['superkingdom', 'phylum', 'class', 'taxonomic_order', 'family', 'genus']
-
     tree = []
 
     cur = get_db().cursor()
