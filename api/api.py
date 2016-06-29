@@ -79,3 +79,72 @@ SELECT bgc_id, cluster_number, acc, term, description
 
     tree = clusters
     return jsonify(tree)
+
+
+@app.route('/api/v1.0/tree/taxa')
+def get_taxon_tree():
+    '''Get the jsTree structure for all taxa'''
+    keys = ['superkingdom', 'phylum', 'class', 'taxonomic_order', 'family', 'genus']
+
+    tree = []
+
+    cur = get_db().cursor()
+    cur.execute("SELECT superkingdom FROM antismash.taxa GROUP BY superkingdom ORDER BY superkingdom")
+    kingdoms = cur.fetchall()
+    for kingdom in kingdoms:
+        tree.append(_create_tree_node('superkingdom_{}'.format(kingdom[0].lower()),
+                                      '#', kingdom[0]))
+        cur.execute("SELECT phylum FROM antismash.taxa WHERE superkingdom = %s ORDER BY phylum", (kingdom[0],))
+        phyla = cur.fetchall()
+        for phylum in phyla:
+            tree.append(_create_tree_node('phylum_{}'.format(phylum[0].lower()),
+                                          'superkingdom_{}'.format(kingdom[0].lower()),
+                                          phylum[0]))
+            cur.execute("SELECT class AS cls FROM antismash.taxa WHERE phylum = %s ORDER BY class", (phylum[0], ))
+            classes = cur.fetchall()
+            for cls in classes:
+                tree.append(_create_tree_node('class_{}'.format(cls[0].lower()), 'phylum_{}'.format(phylum[0].lower()),
+                                              cls[0]))
+                cur.execute("SELECT taxonomic_order FROM antismash.taxa WHERE class = %s ORDER BY taxonomic_order",
+                            (cls[0], ))
+                orders = cur.fetchall()
+                for order in orders:
+                    tree.append(_create_tree_node('order_{}'.format(order[0].lower()), 'class_{}'.format(cls[0].lower()),
+                                                  order[0]))
+                    cur.execute("SELECT family FROM antismash.taxa WHERE taxonomic_order = %s ORDER BY family",
+                                (order[0], ))
+                    families = cur.fetchall()
+                    for family in families:
+                        tree.append(_create_tree_node('family_{}'.format(family[0].lower()), 'order_{}'.format(order[0].lower()),
+                                                      family[0]))
+                        cur.execute("SELECT genus FROM antismash.taxa WHERE family = %s", (family[0],))
+                        genera = cur.fetchall()
+                        for genus in genera:
+                            tree.append(_create_tree_node('genus_{}'.format(genus[0].lower()), 'family_{}'.format(family[0].lower()),
+                                                          genus[0]))
+                            cur.execute("""
+SELECT tax_id, species, acc, version FROM antismash.taxa t
+    JOIN antismash.genomes g ON t.tax_id = g.taxon
+    JOIN antismash.dna_sequences s ON s.genome = g.genome_id
+    WHERE genus = %s""", (genus[0], ))
+                            strains = cur.fetchall()
+                            for strain in strains:
+                                tree.append(_create_tree_node('{}'.format(strain.acc.lower()),
+                                                              'genus_{}'.format(genus[0].lower()),
+                                                              '{} {}.{}'.format(strain.species, strain.acc, strain.version),
+                                                              disabled=False, leaf=True))
+
+    return jsonify(tree)
+
+
+def _create_tree_node(node_id, parent, text, disabled=True, leaf=False):
+    '''create a jsTree node structure'''
+    ret = {}
+    ret['id'] = node_id
+    ret['parent'] = parent
+    ret['text'] = text
+    if disabled:
+        ret['state'] = {'disabled': True}
+    if leaf:
+        ret['type'] = 'strain'
+    return ret
