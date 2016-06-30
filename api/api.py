@@ -1,8 +1,12 @@
 '''The API calls'''
 
-from flask import jsonify
+from flask import (
+    jsonify,
+    request,
+)
 from . import app
 from .helpers import get_db
+from .search import search_bgcs
 
 
 @app.route('/api/v1.0/version')
@@ -133,6 +137,15 @@ SELECT tax_id, species, acc, version FROM antismash.taxa t
                                                               disabled=False, leaf=True))
 
     return jsonify(tree)
+
+
+@app.route('/api/v1.0/search', methods=['POST'])
+def search():
+    '''Handle searching the database'''
+    search_string = request.json.get('search_string', '')
+    found_bgcs = search_bgcs(search_string)
+
+    return jsonify(found_bgcs)
 
 
 def _create_tree_node(node_id, parent, text, disabled=True, leaf=False):
