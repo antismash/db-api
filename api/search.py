@@ -11,8 +11,6 @@ def search_bgcs(search_string):
     else:
         parsed_query = parse_simple_search(search_string)
 
-    print parsed_query
-
     collected_sets = []
     all_clusters = set()
     for entry in parsed_query:
