@@ -5,6 +5,10 @@ from flask import g
 from api import app
 
 
+###################
+# Database access #
+###################
+
 def connect_db():
     '''Connect to the database'''
     connection = psycopg2.connect(app.config['DB_CONNECTION'], cursor_factory=psycopg2.extras.NamedTupleCursor)
