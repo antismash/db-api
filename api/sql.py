@@ -80,3 +80,31 @@ SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.genomes g ON seq.genome = g.genome_id
     JOIN antismash.taxa t ON g.taxon = t.tax_id
     WHERE lower(t.superkingdom) LIKE lower(%s)"""
+
+CLUSTER_INFO = """
+SELECT * FROM
+    (SELECT
+        bgc_id,
+        start_pos,
+        end_pos,
+        cluster_number,
+        seq.acc,
+        version,
+        t.term,
+        t.description
+    FROM antismash.biosynthetic_gene_clusters bgc
+        JOIN antismash.loci l ON bgc.locus = l.locus_id
+        JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
+        JOIN antismash.rel_clusters_types USING (bgc_id)
+        JOIN antismash.bgc_types t USING (bgc_type_id)
+            WHERE bgc_id = %s) bgc
+LEFT OUTER JOIN
+    (SELECT
+        bgc_id,
+        acc AS cbh_acc,
+        description AS cbh_description,
+        similarity
+    FROM antismash.clusterblast_hits
+        WHERE bgc_id = %s AND rank = 1 AND
+            algorithm_id = (SELECT algorithm_id FROM antismash.clusterblast_algorithms WHERE name = 'knownclusterblast')) cbh
+USING (bgc_id)"""

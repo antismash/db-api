@@ -21,7 +21,21 @@ def search_bgcs(search_string):
     final = all_clusters.copy()
     for result in collected_sets:
         final = final.intersection(result)
-    return list(final)
+    bgc_list = list(final)
+    bgc_list.sort()
+
+    return map(create_cluster_json, bgc_list)
+
+
+def create_cluster_json(bgc_id):
+    '''Create the JSONifiable record for a given cluster'''
+    cur = get_db().cursor()
+    cur.execute(sql.CLUSTER_INFO, (bgc_id, bgc_id))
+    ret = cur.fetchone()
+    cluster_json = {}
+    for i, name in enumerate(ret._fields):
+        cluster_json[name] = ret[i]
+    return cluster_json
 
 
 def parse_search_string(search_string):
