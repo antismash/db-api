@@ -45,7 +45,7 @@ def parse_simple_search(search_string):
     cur = get_db().cursor()
 
     parsed = []
-    cleaned_terms = [_sanitise_string(t) for t in search_string.split()]
+    cleaned_terms = [sanitise_string(t) for t in search_string.split()]
 
     for term in cleaned_terms:
         cur.execute("SELECT term FROM antismash.bgc_types WHERE lower(term) = lower(%s)", (term, ))
@@ -92,7 +92,7 @@ def clusters_by_category(category, term):
     search_term = "%{}%".format(term)
 
     try:
-        sql_expression = _get_sql_by_category(category)
+        sql_expression = get_sql_by_category(category)
     except AttributeError:
         return found_clusters
 
@@ -104,7 +104,7 @@ def clusters_by_category(category, term):
     return found_clusters
 
 
-def _get_sql_by_category(category):
+def get_sql_by_category(category):
     '''Get the appropriate SQL expression'''
     attr = 'CLUSTER_BY_{}'.format(category.upper())
     return getattr(sql, attr)
@@ -119,12 +119,12 @@ WHITELIST.add('_')
 WHITELIST.add('-')
 
 
-def _sanitise_string(search_string):
+def sanitise_string(search_string):
     '''Remove all non-whitelisted characters from the search string
 
-    >>> _sanitise_string('fOo')
+    >>> sanitise_string('fOo')
     'fOo'
-    >>> _sanitise_string('%bar')
+    >>> sanitise_string('%bar')
     'bar'
 
     '''
