@@ -149,6 +149,15 @@ def search():
     return jsonify(found_bgcs)
 
 
+@app.route('/api/v1.0/genome/<identifier>')
+def show_genome(identifier):
+    '''show information for a genome by identifier'''
+    search_string = '[acc]{}'.format(identifier)
+    found_bgcs = search_bgcs(search_string)
+
+    return jsonify(found_bgcs)
+
+
 def _create_tree_node(node_id, parent, text, disabled=True, leaf=False):
     '''create a jsTree node structure'''
     ret = {}
