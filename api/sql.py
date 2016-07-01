@@ -108,3 +108,58 @@ LEFT OUTER JOIN
         WHERE bgc_id = %s AND rank = 1 AND
             algorithm_id = (SELECT algorithm_id FROM antismash.clusterblast_algorithms WHERE name = 'knownclusterblast')) cbh
 USING (bgc_id)"""
+
+TAXTREE_SUPERKINGOM = """
+SELECT superkingdom FROM antismash.taxa GROUP BY superkingdom ORDER BY superkingdom"""
+
+TAXTREE_PHYLUM = """
+SELECT phylum FROM antismash.taxa
+    WHERE superkingdom = %s
+    GROUP BY phylum
+    ORDER BY phylum"""
+
+TAXTREE_CLASS = """
+SELECT class AS cls FROM antismash.taxa
+    WHERE superkingdom = %s
+    AND phylum = %s
+    GROUP BY class
+    ORDER BY class"""
+
+TAXTREE_ORDER = """
+SELECT taxonomic_order FROM antismash.taxa
+    WHERE superkingdom = %s
+    AND phylum = %s
+    AND class = %s
+    GROUP BY taxonomic_order
+    ORDER BY taxonomic_order"""
+
+TAXTREE_FAMILY = """
+SELECT family FROM antismash.taxa
+    WHERE superkingdom = %s
+    AND phylum = %s
+    AND class = %s
+    AND taxonomic_order = %s
+    GROUP BY family
+    ORDER BY family"""
+
+TAXTREE_GENUS = """
+SELECT genus FROM antismash.taxa
+    WHERE superkingdom = %s
+    AND phylum = %s
+    AND class = %s
+    AND taxonomic_order = %s
+    AND family = %s
+    GROUP BY genus
+    ORDER BY genus"""
+
+TAXTREE_SPECIES = """
+SELECT tax_id, species, acc, version FROM antismash.taxa t
+    JOIN antismash.genomes g ON t.tax_id = g.taxon
+    JOIN antismash.dna_sequences s ON s.genome = g.genome_id
+    WHERE superkingdom = %s
+    AND phylum = %s
+    AND class = %s
+    AND taxonomic_order = %s
+    AND family = %s
+    AND genus = %s
+    ORDER BY species"""

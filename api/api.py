@@ -7,6 +7,7 @@ from flask import (
 from . import app
 from .helpers import get_db
 from .search import search_bgcs
+import sql
 
 
 @app.route('/api/v1.0/version')
@@ -91,44 +92,45 @@ def get_taxon_tree():
     tree = []
 
     cur = get_db().cursor()
-    cur.execute("SELECT superkingdom FROM antismash.taxa GROUP BY superkingdom ORDER BY superkingdom")
+    cur.execute(sql.TAXTREE_SUPERKINGOM)
     kingdoms = cur.fetchall()
     for kingdom in kingdoms:
+        kingdom_list = [kingdom[0]]
         tree.append(_create_tree_node('superkingdom_{}'.format(kingdom[0].lower()),
                                       '#', kingdom[0]))
-        cur.execute("SELECT phylum FROM antismash.taxa WHERE superkingdom = %s ORDER BY phylum", (kingdom[0],))
+        cur.execute(sql.TAXTREE_PHYLUM, kingdom_list)
         phyla = cur.fetchall()
         for phylum in phyla:
+            phylum_list = kingdom_list + [phylum[0]]
+            print phylum_list
             tree.append(_create_tree_node('phylum_{}'.format(phylum[0].lower()),
                                           'superkingdom_{}'.format(kingdom[0].lower()),
                                           phylum[0]))
-            cur.execute("SELECT class AS cls FROM antismash.taxa WHERE phylum = %s ORDER BY class", (phylum[0], ))
+            cur.execute(sql.TAXTREE_CLASS, phylum_list)
             classes = cur.fetchall()
             for cls in classes:
+                cls_list = phylum_list + [cls[0]]
                 tree.append(_create_tree_node('class_{}'.format(cls[0].lower()), 'phylum_{}'.format(phylum[0].lower()),
                                               cls[0]))
-                cur.execute("SELECT taxonomic_order FROM antismash.taxa WHERE class = %s ORDER BY taxonomic_order",
-                            (cls[0], ))
+                cur.execute(sql.TAXTREE_ORDER, cls_list)
                 orders = cur.fetchall()
                 for order in orders:
+                    order_list = cls_list + [order[0]]
                     tree.append(_create_tree_node('order_{}'.format(order[0].lower()), 'class_{}'.format(cls[0].lower()),
                                                   order[0]))
-                    cur.execute("SELECT family FROM antismash.taxa WHERE taxonomic_order = %s ORDER BY family",
-                                (order[0], ))
+                    cur.execute(sql.TAXTREE_FAMILY, order_list)
                     families = cur.fetchall()
                     for family in families:
+                        family_list = order_list + [family[0]]
                         tree.append(_create_tree_node('family_{}'.format(family[0].lower()), 'order_{}'.format(order[0].lower()),
                                                       family[0]))
-                        cur.execute("SELECT genus FROM antismash.taxa WHERE family = %s", (family[0],))
+                        cur.execute(sql.TAXTREE_GENUS, family_list)
                         genera = cur.fetchall()
                         for genus in genera:
+                            genus_list = family_list + [genus[0]]
                             tree.append(_create_tree_node('genus_{}'.format(genus[0].lower()), 'family_{}'.format(family[0].lower()),
                                                           genus[0]))
-                            cur.execute("""
-SELECT tax_id, species, acc, version FROM antismash.taxa t
-    JOIN antismash.genomes g ON t.tax_id = g.taxon
-    JOIN antismash.dna_sequences s ON s.genome = g.genome_id
-    WHERE genus = %s""", (genus[0], ))
+                            cur.execute(sql.TAXTREE_SPECIES, genus_list)
                             strains = cur.fetchall()
                             for strain in strains:
                                 tree.append(_create_tree_node('{}'.format(strain.acc.lower()),
