@@ -102,7 +102,6 @@ def get_taxon_tree():
         phyla = cur.fetchall()
         for phylum in phyla:
             phylum_list = kingdom_list + [phylum[0]]
-            print phylum_list
             tree.append(_create_tree_node('phylum_{}'.format(phylum[0].lower()),
                                           'superkingdom_{}'.format(kingdom[0].lower()),
                                           phylum[0]))
