@@ -89,55 +89,123 @@ SELECT bgc_id, cluster_number, acc, term, description
 @app.route('/api/v1.0/tree/taxa')
 def get_taxon_tree():
     '''Get the jsTree structure for all taxa'''
-    tree = []
+    tree_id = request.args.get('id', '1')
+    print tree_id
 
     cur = get_db().cursor()
+
+    HANDLERS = {
+        'superkingdom': get_phylum,
+        'phylum': get_class,
+        'class': get_order,
+        'order': get_family,
+        'family': get_genus,
+        'genus': get_species,
+    }
+
+    if tree_id == '1':
+        tree = get_superkingdom(cur)
+    else:
+        params = tree_id.split('_')
+        taxlevel = params[0]
+        params = params[1:]
+        handler = HANDLERS.get(taxlevel, lambda x, y: [])
+        tree = handler(cur, params)
+
+    print tree
+    return jsonify(tree)
+
+
+def get_superkingdom(cur):
+    '''Get list of superkingdoms'''
+    tree = []
     cur.execute(sql.TAXTREE_SUPERKINGOM)
     kingdoms = cur.fetchall()
     for kingdom in kingdoms:
-        kingdom_list = [kingdom[0]]
         tree.append(_create_tree_node('superkingdom_{}'.format(kingdom[0].lower()),
                                       '#', kingdom[0]))
-        cur.execute(sql.TAXTREE_PHYLUM, kingdom_list)
-        phyla = cur.fetchall()
-        for phylum in phyla:
-            phylum_list = kingdom_list + [phylum[0]]
-            tree.append(_create_tree_node('phylum_{}'.format(phylum[0].lower()),
-                                          'superkingdom_{}'.format(kingdom[0].lower()),
-                                          phylum[0]))
-            cur.execute(sql.TAXTREE_CLASS, phylum_list)
-            classes = cur.fetchall()
-            for cls in classes:
-                cls_list = phylum_list + [cls[0]]
-                tree.append(_create_tree_node('class_{}'.format(cls[0].lower()), 'phylum_{}'.format(phylum[0].lower()),
-                                              cls[0]))
-                cur.execute(sql.TAXTREE_ORDER, cls_list)
-                orders = cur.fetchall()
-                for order in orders:
-                    order_list = cls_list + [order[0]]
-                    tree.append(_create_tree_node('order_{}'.format(order[0].lower()), 'class_{}'.format(cls[0].lower()),
-                                                  order[0]))
-                    cur.execute(sql.TAXTREE_FAMILY, order_list)
-                    families = cur.fetchall()
-                    for family in families:
-                        family_list = order_list + [family[0]]
-                        tree.append(_create_tree_node('family_{}'.format(family[0].lower()), 'order_{}'.format(order[0].lower()),
-                                                      family[0]))
-                        cur.execute(sql.TAXTREE_GENUS, family_list)
-                        genera = cur.fetchall()
-                        for genus in genera:
-                            genus_list = family_list + [genus[0]]
-                            tree.append(_create_tree_node('genus_{}'.format(genus[0].lower()), 'family_{}'.format(family[0].lower()),
-                                                          genus[0]))
-                            cur.execute(sql.TAXTREE_SPECIES, genus_list)
-                            strains = cur.fetchall()
-                            for strain in strains:
-                                tree.append(_create_tree_node('{}'.format(strain.acc.lower()),
-                                                              'genus_{}'.format(genus[0].lower()),
-                                                              '{} {}.{}'.format(strain.species, strain.acc, strain.version),
-                                                              disabled=False, leaf=True))
 
-    return jsonify(tree)
+    return tree
+
+
+def get_phylum(cur, params):
+    '''Get list of phyla per kingdom'''
+    tree = []
+    cur.execute(sql.TAXTREE_PHYLUM, params)
+    phyla = cur.fetchall()
+    for phylum in phyla:
+        id_list = params + [phylum[0].lower()]
+        tree.append(_create_tree_node('phylum_{}'.format('_'.join(id_list)),
+                                      'superkingdom_{}'.format('_'.join(params)),
+                                      phylum[0]))
+
+    return tree
+
+
+def get_class(cur, params):
+    '''Get list of classes per kingdom/phylum'''
+    tree = []
+    cur.execute(sql.TAXTREE_CLASS, params)
+    classes = cur.fetchall()
+    for cls in classes:
+        id_list = params + [cls[0].lower()]
+        tree.append(_create_tree_node('class_{}'.format('_'.join(id_list)),
+                                      'phylum_{}'.format('_'.join(params)),
+                                      cls[0]))
+    return tree
+
+
+def get_order(cur, params):
+    '''Get list of oders per kingdom/phylum/class'''
+    tree = []
+    cur.execute(sql.TAXTREE_ORDER, params)
+    orders = cur.fetchall()
+    for order in orders:
+        id_list = params + [order[0].lower()]
+        tree.append(_create_tree_node('order_{}'.format('_'.join(id_list)),
+                                      'class_{}'.format('_'.join(params)),
+                                      order[0]))
+    return tree
+
+
+def get_family(cur, params):
+    '''Get list of families per kingdom/phylum/class/order'''
+    tree = []
+    cur.execute(sql.TAXTREE_FAMILY, params)
+    families = cur.fetchall()
+    for family in families:
+        id_list = params + [family[0].lower()]
+        tree.append(_create_tree_node('family_{}'.format('_'.join(id_list)),
+                                      'order_{}'.format('_'.join(params)),
+                                      family[0]))
+    return tree
+
+
+def get_genus(cur, params):
+    '''Get list of genera per kingdom/phylum/class/order/family'''
+    tree = []
+    cur.execute(sql.TAXTREE_GENUS, params)
+    genera = cur.fetchall()
+    for genus in genera:
+        id_list = params + [genus[0].lower()]
+        tree.append(_create_tree_node('genus_{}'.format('_'.join(id_list)),
+                                      'family_{}'.format('_'.join(params)),
+                                      genus[0]))
+    return tree
+
+
+def get_species(cur, params):
+    '''Get list of species per kingdom/phylum/class/order/family/genus'''
+    tree = []
+    cur.execute(sql.TAXTREE_SPECIES, params)
+    strains = cur.fetchall()
+    for strain in strains:
+        tree.append(_create_tree_node('{}'.format(strain.acc.lower()),
+                                      'genus_{}'.format('_'.join(params)),
+                                      '{} {}.{}'.format(strain.species, strain.acc, strain.version),
+                                      disabled=False, leaf=True))
+
+    return tree
 
 
 @app.route('/api/v1.0/search', methods=['POST'])
@@ -168,4 +236,6 @@ def _create_tree_node(node_id, parent, text, disabled=True, leaf=False):
         ret['state'] = {'disabled': True}
     if leaf:
         ret['type'] = 'strain'
+    else:
+        ret['children'] = True
     return ret

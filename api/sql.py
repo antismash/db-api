@@ -114,41 +114,41 @@ SELECT superkingdom FROM antismash.taxa GROUP BY superkingdom ORDER BY superking
 
 TAXTREE_PHYLUM = """
 SELECT phylum FROM antismash.taxa
-    WHERE superkingdom = %s
+    WHERE lower(superkingdom) = lower(%s)
     GROUP BY phylum
     ORDER BY phylum"""
 
 TAXTREE_CLASS = """
 SELECT class AS cls FROM antismash.taxa
-    WHERE superkingdom = %s
-    AND phylum = %s
+    WHERE lower(superkingdom) = lower(%s)
+    AND lower(phylum) = lower(%s)
     GROUP BY class
     ORDER BY class"""
 
 TAXTREE_ORDER = """
 SELECT taxonomic_order FROM antismash.taxa
-    WHERE superkingdom = %s
-    AND phylum = %s
-    AND class = %s
+    WHERE lower(superkingdom) = lower(%s)
+    AND lower(phylum) = lower(%s)
+    AND lower(class) = lower(%s)
     GROUP BY taxonomic_order
     ORDER BY taxonomic_order"""
 
 TAXTREE_FAMILY = """
 SELECT family FROM antismash.taxa
-    WHERE superkingdom = %s
-    AND phylum = %s
-    AND class = %s
-    AND taxonomic_order = %s
+    WHERE lower(superkingdom) = lower(%s)
+    AND lower(phylum) = lower(%s)
+    AND lower(class) = lower(%s)
+    AND lower(taxonomic_order) = lower(%s)
     GROUP BY family
     ORDER BY family"""
 
 TAXTREE_GENUS = """
 SELECT genus FROM antismash.taxa
-    WHERE superkingdom = %s
-    AND phylum = %s
-    AND class = %s
-    AND taxonomic_order = %s
-    AND family = %s
+    WHERE lower(superkingdom) = lower(%s)
+    AND lower(phylum) = lower(%s)
+    AND lower(class) = lower(%s)
+    AND lower(taxonomic_order) = lower(%s)
+    AND lower(family) = lower(%s)
     GROUP BY genus
     ORDER BY genus"""
 
@@ -156,10 +156,10 @@ TAXTREE_SPECIES = """
 SELECT tax_id, species, acc, version FROM antismash.taxa t
     JOIN antismash.genomes g ON t.tax_id = g.taxon
     JOIN antismash.dna_sequences s ON s.genome = g.genome_id
-    WHERE superkingdom = %s
-    AND phylum = %s
-    AND class = %s
-    AND taxonomic_order = %s
-    AND family = %s
-    AND genus = %s
+    WHERE lower(superkingdom) = lower(%s)
+    AND lower(phylum) = lower(%s)
+    AND lower(class) = lower(%s)
+    AND lower(taxonomic_order) = lower(%s)
+    AND lower(family) = lower(%s)
+    AND lower(genus) = lower(%s)
     ORDER BY species"""
