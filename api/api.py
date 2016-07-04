@@ -59,6 +59,7 @@ SELECT bgc_id, cluster_number, acc, term, description, species
     JOIN antismash.bgc_types USING (bgc_type_id)
     JOIN antismash.genomes g ON seq.genome = g.genome_id
     JOIN antismash.taxa t ON g.taxon = t.tax_id
+    ORDER BY species, acc, cluster_number
 """)
     ret = cur.fetchall()
 
