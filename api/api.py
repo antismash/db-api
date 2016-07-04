@@ -90,7 +90,6 @@ SELECT bgc_id, cluster_number, acc, term, description
 def get_taxon_tree():
     '''Get the jsTree structure for all taxa'''
     tree_id = request.args.get('id', '1')
-    print tree_id
 
     cur = get_db().cursor()
 
@@ -112,7 +111,6 @@ def get_taxon_tree():
         handler = HANDLERS.get(taxlevel, lambda x, y: [])
         tree = handler(cur, params)
 
-    print tree
     return jsonify(tree)
 
 
