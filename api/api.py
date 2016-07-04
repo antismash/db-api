@@ -51,12 +51,14 @@ def get_sec_met_tree():
     '''Get the jsTree structure for secondary metabolite clusters'''
     cur = get_db().cursor()
     cur.execute("""
-SELECT bgc_id, cluster_number, acc, term, description
+SELECT bgc_id, cluster_number, acc, term, description, species
     FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
     JOIN antismash.rel_clusters_types USING (bgc_id)
     JOIN antismash.bgc_types USING (bgc_type_id)
+    JOIN antismash.genomes g ON seq.genome = g.genome_id
+    JOIN antismash.taxa t ON g.taxon = t.tax_id
 """)
     ret = cur.fetchall()
 
@@ -68,7 +70,7 @@ SELECT bgc_id, cluster_number, acc, term, description
         clusters.append({
             "id": "{}_c{}_{}".format(entry.acc, entry.cluster_number, entry.term),
             "parent": entry.term,
-            "text": "{} Cluster {}".format(entry.acc, entry.cluster_number),
+            "text": "{} {} Cluster {}".format(entry.species, entry.acc, entry.cluster_number),
             "type": "cluster",
         })
 
