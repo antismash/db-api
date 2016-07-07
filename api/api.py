@@ -213,16 +213,33 @@ def get_species(cur, params):
 def search():
     '''Handle searching the database'''
     search_string = request.json.get('search_string', '')
-    found_bgcs = search_bgcs(search_string)
+    try:
+        offset = int(request.json.get('offset'))
+    except TypeError:
+        offset = 0
 
-    return jsonify(found_bgcs)
+    try:
+        paginate = int(request.json.get('paginate'))
+    except TypeError:
+        paginate = 50
+
+    total_count, found_bgcs = search_bgcs(search_string, offset=offset, paginate=paginate)
+
+    result = {
+        'total': total_count,
+        'clusters': found_bgcs,
+        'offset': offset,
+        'paginate': paginate,
+    }
+
+    return jsonify(result)
 
 
 @app.route('/api/v1.0/genome/<identifier>')
 def show_genome(identifier):
     '''show information for a genome by identifier'''
     search_string = '[acc]{}'.format(identifier)
-    found_bgcs = search_bgcs(search_string)
+    _, found_bgcs = search_bgcs(search_string)
 
     return jsonify(found_bgcs)
 

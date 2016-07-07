@@ -4,7 +4,7 @@ from .helpers import get_db
 import sql
 
 
-def search_bgcs(search_string):
+def search_bgcs(search_string, offset=0, paginate=0):
     '''search for BGCs specified by the given search string, returning a list of found bgcs'''
     if '[' in search_string:
         parsed_query = parse_search_string(search_string)
@@ -23,8 +23,12 @@ def search_bgcs(search_string):
         final = final.intersection(result)
     bgc_list = list(final)
     bgc_list.sort()
-
-    return map(create_cluster_json, bgc_list)
+    total = len(bgc_list)
+    if paginate > 0:
+        end = min(offset + paginate, total)
+    else:
+        end = total
+    return total, map(create_cluster_json, bgc_list[offset:end])
 
 
 def create_cluster_json(bgc_id):
