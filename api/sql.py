@@ -91,12 +91,15 @@ SELECT * FROM
         seq.acc,
         version,
         t.term,
-        t.description
+        t.description,
+        taxa.species
     FROM antismash.biosynthetic_gene_clusters bgc
         JOIN antismash.loci l ON bgc.locus = l.locus_id
         JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
         JOIN antismash.rel_clusters_types USING (bgc_id)
         JOIN antismash.bgc_types t USING (bgc_type_id)
+        JOIN antismash.genomes genomes ON seq.genome = genomes.genome_id
+        JOIN antismash.taxa taxa ON genomes.taxon = taxa.tax_id
             WHERE bgc_id = %s) bgc
 LEFT OUTER JOIN
     (SELECT
