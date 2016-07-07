@@ -31,10 +31,16 @@ def create_cluster_json(bgc_id):
     '''Create the JSONifiable record for a given cluster'''
     cur = get_db().cursor()
     cur.execute(sql.CLUSTER_INFO, (bgc_id, bgc_id))
-    ret = cur.fetchone()
+    ret = cur.fetchall()
     cluster_json = {}
-    for i, name in enumerate(ret._fields):
-        cluster_json[name] = ret[i]
+    for i, name in enumerate(ret[0]._fields):
+        cluster_json[name] = ret[0][i]
+    if len(ret) > 1:
+        cluster_json['description'] = 'Hybrid cluster: '
+        for i in range(1, len(ret)):
+            cluster_json['term'] += '-{}'.format(ret[i].term)
+        cluster_json['description'] += cluster_json['term']
+        cluster_json['term'] += ' hybrid'
     return cluster_json
 
 
