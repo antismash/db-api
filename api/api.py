@@ -30,6 +30,9 @@ def get_stats():
     cur.execute("SELECT COUNT(genome_id) FROM antismash.genomes")
     num_genomes = cur.fetchone()[0]
 
+    cur.execute("SELECT COUNT(sequence_id) FROM antismash.dna_sequences")
+    num_sequences = cur.fetchone()[0]
+
     clusters = []
 
     cur.execute("SELECT term, description, count FROM antismash.bgc_types JOIN (SELECT bgc_type_id, COUNT(1) FROM antismash.rel_clusters_types GROUP BY bgc_type_id) foo USING (bgc_type_id) ORDER BY count DESC")
@@ -37,9 +40,48 @@ def get_stats():
     for cluster in ret:
         clusters.append({'name': cluster.term, 'description': cluster.description, 'count': cluster.count})
 
+
+    cur.execute("""
+SELECT tax_id, genus, species, COUNT(acc) as tax_count
+    FROM antismash.dna_sequences
+    JOIN antismash.genomes ON genome=genome_id
+    JOIN antismash.taxa ON taxon=tax_id
+    GROUP BY tax_id
+    ORDER BY tax_count DESC""")
+    ret = cur.fetchone()
+    top_seq_taxon = ret.tax_id
+    top_seq_taxon_count = ret.tax_count
+
+
+    cur.execute("""
+SELECT
+        tax_id,
+        species,
+        COUNT(DISTINCT bgc_id) AS bgc_count,
+        COUNT(DISTINCT acc) AS seq_count,
+        (COUNT(DISTINCT bgc_id)::float / COUNT(DISTINCT acc)) AS clusters_per_seq
+    FROM antismash.biosynthetic_gene_clusters c
+    JOIN antismash.loci l ON c.locus = l.locus_id
+    JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
+    JOIN antismash.genomes g ON seq.genome=g.genome_id
+    JOIN antismash.taxa t ON g.taxon=t.tax_id
+    GROUP BY tax_id
+    ORDER BY clusters_per_seq DESC
+    LIMIT 1""")
+    ret = cur.fetchone()
+    top_secmet_taxon = ret.tax_id
+    top_secmet_species = ret.species
+    top_secmet_taxon_count = ret.clusters_per_seq
+
     stats = {
         'num_clusters': num_clusters,
         'num_genomes': num_genomes,
+        'num_sequences': num_sequences,
+        'top_seq_taxon': top_seq_taxon,
+        'top_seq_taxon_count': top_seq_taxon_count,
+        'top_secmet_taxon': top_secmet_taxon,
+        'top_secmet_taxon_count': top_secmet_taxon_count,
+        'top_secmet_species': top_secmet_species,
         'clusters': clusters,
     }
 
