@@ -24,50 +24,30 @@ def get_version():
 def get_stats():
     '''contents for the stats page'''
     cur = get_db().cursor()
-    cur.execute("SELECT COUNT(bgc_id) FROM antismash.biosynthetic_gene_clusters")
+    cur.execute(sql.STATS_CLUSTER_COUNT)
     num_clusters = cur.fetchone()[0]
 
-    cur.execute("SELECT COUNT(genome_id) FROM antismash.genomes")
+    cur.execute(sql.STATS_GENOME_COUNT)
     num_genomes = cur.fetchone()[0]
 
-    cur.execute("SELECT COUNT(sequence_id) FROM antismash.dna_sequences")
+    cur.execute(sql.STATS_SEQUENCE_COUNT)
     num_sequences = cur.fetchone()[0]
 
     clusters = []
 
-    cur.execute("SELECT term, description, count FROM antismash.bgc_types JOIN (SELECT bgc_type_id, COUNT(1) FROM antismash.rel_clusters_types GROUP BY bgc_type_id) foo USING (bgc_type_id) ORDER BY count DESC")
+    cur.execute(sql.STATS_COUNTS_BY_TYPE)
     ret = cur.fetchall()
     for cluster in ret:
         clusters.append({'name': cluster.term, 'description': cluster.description, 'count': cluster.count})
 
 
-    cur.execute("""
-SELECT tax_id, genus, species, COUNT(acc) as tax_count
-    FROM antismash.dna_sequences
-    JOIN antismash.genomes ON genome=genome_id
-    JOIN antismash.taxa ON taxon=tax_id
-    GROUP BY tax_id
-    ORDER BY tax_count DESC""")
+    cur.execute(sql.STATS_TAXON_SEQUENCES)
     ret = cur.fetchone()
     top_seq_taxon = ret.tax_id
     top_seq_taxon_count = ret.tax_count
 
 
-    cur.execute("""
-SELECT
-        tax_id,
-        species,
-        COUNT(DISTINCT bgc_id) AS bgc_count,
-        COUNT(DISTINCT acc) AS seq_count,
-        (COUNT(DISTINCT bgc_id)::float / COUNT(DISTINCT acc)) AS clusters_per_seq
-    FROM antismash.biosynthetic_gene_clusters c
-    JOIN antismash.loci l ON c.locus = l.locus_id
-    JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
-    JOIN antismash.genomes g ON seq.genome=g.genome_id
-    JOIN antismash.taxa t ON g.taxon=t.tax_id
-    GROUP BY tax_id
-    ORDER BY clusters_per_seq DESC
-    LIMIT 1""")
+    cur.execute(sql.STATS_TAXON_SECMETS)
     ret = cur.fetchone()
     top_secmet_taxon = ret.tax_id
     top_secmet_species = ret.species
@@ -92,17 +72,7 @@ SELECT
 def get_sec_met_tree():
     '''Get the jsTree structure for secondary metabolite clusters'''
     cur = get_db().cursor()
-    cur.execute("""
-SELECT bgc_id, cluster_number, acc, term, description, species
-    FROM antismash.biosynthetic_gene_clusters bgc
-    JOIN antismash.loci l ON bgc.locus = l.locus_id
-    JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
-    JOIN antismash.rel_clusters_types USING (bgc_id)
-    JOIN antismash.bgc_types USING (bgc_type_id)
-    JOIN antismash.genomes g ON seq.genome = g.genome_id
-    JOIN antismash.taxa t ON g.taxon = t.tax_id
-    ORDER BY species, acc, cluster_number
-""")
+    cur.execute(sql.SECMET_TREE)
     ret = cur.fetchall()
 
     clusters = []

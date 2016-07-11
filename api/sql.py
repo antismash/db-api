@@ -166,3 +166,52 @@ SELECT tax_id, species, acc, version FROM antismash.taxa t
     AND lower(family) = lower(%s)
     AND lower(genus) = lower(%s)
     ORDER BY species"""
+
+STATS_CLUSTER_COUNT = "SELECT COUNT(bgc_id) FROM antismash.biosynthetic_gene_clusters"
+
+STATS_GENOME_COUNT = "SELECT COUNT(genome_id) FROM antismash.genomes"
+
+STATS_SEQUENCE_COUNT = "SELECT COUNT(sequence_id) FROM antismash.dna_sequences"
+
+STATS_COUNTS_BY_TYPE = """
+SELECT term, description, count FROM antismash.bgc_types
+    JOIN (
+        SELECT bgc_type_id, COUNT(1) FROM antismash.rel_clusters_types
+        GROUP BY bgc_type_id
+    ) q USING (bgc_type_id)
+    ORDER BY count DESC"""
+
+STATS_TAXON_SEQUENCES = """
+SELECT tax_id, genus, species, COUNT(acc) as tax_count
+    FROM antismash.dna_sequences
+    JOIN antismash.genomes ON genome=genome_id
+    JOIN antismash.taxa ON taxon=tax_id
+    GROUP BY tax_id
+    ORDER BY tax_count DESC"""
+
+STATS_TAXON_SECMETS = """
+SELECT
+        tax_id,
+        species,
+        COUNT(DISTINCT bgc_id) AS bgc_count,
+        COUNT(DISTINCT acc) AS seq_count,
+        (COUNT(DISTINCT bgc_id)::float / COUNT(DISTINCT acc)) AS clusters_per_seq
+    FROM antismash.biosynthetic_gene_clusters c
+    JOIN antismash.loci l ON c.locus = l.locus_id
+    JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
+    JOIN antismash.genomes g ON seq.genome=g.genome_id
+    JOIN antismash.taxa t ON g.taxon=t.tax_id
+    GROUP BY tax_id
+    ORDER BY clusters_per_seq DESC
+    LIMIT 1"""
+
+SECMET_TREE = """
+SELECT bgc_id, cluster_number, acc, term, description, species
+    FROM antismash.biosynthetic_gene_clusters bgc
+    JOIN antismash.loci l ON bgc.locus = l.locus_id
+    JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
+    JOIN antismash.rel_clusters_types USING (bgc_id)
+    JOIN antismash.bgc_types USING (bgc_type_id)
+    JOIN antismash.genomes g ON seq.genome = g.genome_id
+    JOIN antismash.taxa t ON g.taxon = t.tax_id
+    ORDER BY species, acc, cluster_number"""
