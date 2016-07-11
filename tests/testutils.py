@@ -51,6 +51,9 @@ def fake_connection():
 
         def wrap_reply(self, reply):
             '''Create a namedtuple from the reply'''
+            if reply is None:
+                return reply
+
             FakeReply = namedtuple('FakeReply', self.current_names)
             return FakeReply(*reply)
 
