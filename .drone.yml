@@ -6,3 +6,15 @@ build:
         - pip install -r tests/requirements.txt
         - pip install -e .
         - py.test -v
+
+notify:
+  slack:
+    webhook_url: $$ANTISMASH_SLACK_HOOK
+    channel: general
+    username: drone
+
+  email:
+    from: ci@secondarymetabolites.org
+    host: mail.secondarymetabolites.org
+    username: antismash
+    password: $$ANTISMASH_EMAIL_PASSWORD
