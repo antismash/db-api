@@ -90,7 +90,6 @@ def parse_simple_search(search_string):
             parsed.append({'category': 'genus', 'term': ret.genus})
             continue
 
-
         cur.execute(sql.SEARCH_IS_SPECIES, ('% {}'.format(term), ))
         ret = cur.fetchone()
         if ret is not None:
@@ -98,6 +97,7 @@ def parse_simple_search(search_string):
             continue
 
         cur.execute(sql.SEARCH_IS_MONOMER, (term, ))
+        ret = cur.fetchone()
         if ret is not None:
             parsed.append({'category': 'monomer', 'term': ret.name})
             continue
