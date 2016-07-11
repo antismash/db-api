@@ -110,6 +110,201 @@ def test_sec_met_tree(client):
     assert results.json == expected
 
 
+def test_taxa_superkingdom(client):
+    '''Test /api/v1.0/tree/taxa endpoint for superkingdom'''
+    cur = get_db().cursor()
+    cur.expected_queries.append((
+        ('name'), sql.TAXTREE_SUPERKINGOM
+    ))
+    cur.canned_replies.append(
+        [('Bacteria',), ('Fungi',)]
+    )
+
+    expected = [
+        {
+            'id': 'superkingdom_bacteria',
+            'parent': '#',
+            'text': 'Bacteria',
+            'state': {
+                'disabled': True
+            },
+            'children': True
+        },
+        {
+            'id': 'superkingdom_fungi',
+            'parent': '#',
+            'text': 'Fungi',
+            'state': {
+                'disabled': True
+            },
+            'children': True
+        },
+    ]
+
+    results = client.get(url_for('get_taxon_tree'))
+    assert results.status_code == 200
+    assert results.json == expected
+
+
+def test_taxa_phylum(client):
+    '''Test /api/v1.0/tree/taxa endpoint for phylum'''
+    cur = get_db().cursor()
+    cur.expected_queries.append((
+        ('name'), sql.TAXTREE_PHYLUM
+    ))
+    cur.canned_replies.append(
+        [('Actinobacteria',)]
+    )
+
+    expected = [
+        {
+            'id': 'phylum_bacteria_actinobacteria',
+            'parent': 'superkingdom_bacteria',
+            'text': 'Actinobacteria',
+            'state': {
+                'disabled': True
+            },
+            'children': True
+        },
+    ]
+
+    results = client.get(url_for('get_taxon_tree'), query_string="id=superkingdom_bacteria")
+    assert results.status_code == 200
+    assert results.json == expected
+
+
+def test_taxa_class(client):
+    '''Test /api/v1.0/tree/taxa endpoint for class'''
+    cur = get_db().cursor()
+    cur.expected_queries.append((
+        ('name'), sql.TAXTREE_CLASS
+    ))
+    cur.canned_replies.append(
+        [('Actinobacteria',)]
+    )
+
+    expected = [
+        {
+            'id': 'class_bacteria_actinobacteria_actinobacteria',
+            'parent': 'phylum_bacteria_actinobacteria',
+            'text': 'Actinobacteria',
+            'state': {
+                'disabled': True
+            },
+            'children': True
+        },
+    ]
+
+    results = client.get(url_for('get_taxon_tree'), query_string="id=phylum_bacteria_actinobacteria")
+    assert results.status_code == 200
+    assert results.json == expected
+
+
+def test_taxa_order(client):
+    '''Test /api/v1.0/tree/taxa endpoint for order'''
+    cur = get_db().cursor()
+    cur.expected_queries.append((
+        ('name'), sql.TAXTREE_ORDER
+    ))
+    cur.canned_replies.append(
+        [('Streptomycetales',)]
+    )
+
+    expected = [
+        {
+            'id': 'order_bacteria_actinobacteria_actinobacteria_streptomycetales',
+            'parent': 'class_bacteria_actinobacteria_actinobacteria',
+            'text': 'Streptomycetales',
+            'state': {
+                'disabled': True
+            },
+            'children': True
+        },
+    ]
+
+    results = client.get(url_for('get_taxon_tree'), query_string="id=class_bacteria_actinobacteria_actinobacteria")
+    assert results.status_code == 200
+    assert results.json == expected
+
+
+def test_taxa_family(client):
+    '''Test /api/v1.0/tree/taxa endpoint for family'''
+    cur = get_db().cursor()
+    cur.expected_queries.append((
+        ('name'), sql.TAXTREE_FAMILY
+    ))
+    cur.canned_replies.append(
+        [('Streptomycetaceae',)]
+    )
+
+    expected = [
+        {
+            'id': 'family_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae',
+            'parent': 'order_bacteria_actinobacteria_actinobacteria_streptomycetales',
+            'text': 'Streptomycetaceae',
+            'state': {
+                'disabled': True
+            },
+            'children': True
+        },
+    ]
+
+    results = client.get(url_for('get_taxon_tree'), query_string="id=order_bacteria_actinobacteria_actinobacteria_streptomycetales")
+    assert results.status_code == 200
+    assert results.json == expected
+
+
+def test_taxa_genus(client):
+    '''Test /api/v1.0/tree/taxa endpoint for genus'''
+    cur = get_db().cursor()
+    cur.expected_queries.append((
+        ('name'), sql.TAXTREE_GENUS
+    ))
+    cur.canned_replies.append(
+        [('Streptomyces',)]
+    )
+
+    expected = [
+        {
+            'id': 'genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces',
+            'parent': 'family_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae',
+            'text': 'Streptomyces',
+            'state': {
+                'disabled': True
+            },
+            'children': True
+        },
+    ]
+
+    results = client.get(url_for('get_taxon_tree'), query_string="id=family_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae")
+    assert results.status_code == 200
+    assert results.json == expected
+
+
+def test_taxa_species(client):
+    '''Test /api/v1.0/tree/taxa endpoint for species'''
+    cur = get_db().cursor()
+    cur.expected_queries.append((
+        ('species', 'acc', 'version'), sql.TAXTREE_SPECIES
+    ))
+    cur.canned_replies.append(
+        [('Streptomyces coelicolor', 'NC_003888', 3)]
+    )
+
+    expected = [
+        {
+            'id': 'nc_003888',
+            'parent': 'genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces',
+            'text': 'Streptomyces coelicolor NC_003888.3',
+            'type': 'strain'
+        },
+    ]
+
+    results = client.get(url_for('get_taxon_tree'), query_string="id=genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces")
+    assert results.status_code == 200
+    assert results.json == expected
+
+
 def test_search(client, monkeypatch):
     '''Test /api/v1.0/search endpoint'''
     expected = {
