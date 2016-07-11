@@ -150,3 +150,46 @@ def test_parse_simple_search_compound(app):  # noqa: F811
 
     result = search.parse_simple_search('FAKE')
     assert result == [{'category': 'compound_seq', 'term': 'FAKE'}]
+
+
+def test_create_cluster_json_single(app):  # noqa: F811
+    '''Test create_cluster_json'''
+    cur = get_db().cursor()
+
+    cur.expected_queries.append((
+        ('term', 'description'), sql.CLUSTER_INFO
+    ))
+
+    cur.canned_replies.append([
+        ('lassopeptide', 'Lasso peptide')
+    ])
+
+    expected = {
+        'term': 'lassopeptide',
+        'description': 'Lasso peptide',
+    }
+
+    results = search.create_cluster_json(23)
+    assert results == expected
+
+
+def test_create_cluster_json_hybrid(app):  # noqa: F811
+    '''Test create_cluster_json for hybrid clusters'''
+    cur = get_db().cursor()
+
+    cur.expected_queries.append((
+        ('term', 'description'), sql.CLUSTER_INFO
+    ))
+
+    cur.canned_replies.append([
+        ('lassopeptide', 'Lasso peptide'),
+        ('terpene', 'Terpene'),
+    ])
+
+    expected = {
+        'term': 'lassopeptide-terpene hybrid',
+        'description': 'Hybrid cluster: lassopeptide-terpene',
+    }
+
+    results = search.create_cluster_json(23)
+    assert results == expected
