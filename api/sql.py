@@ -215,3 +215,13 @@ SELECT bgc_id, cluster_number, acc, term, description, species
     JOIN antismash.genomes g ON seq.genome = g.genome_id
     JOIN antismash.taxa t ON g.taxon = t.tax_id
     ORDER BY species, acc, cluster_number"""
+
+SEARCH_IS_TYPE = "SELECT term FROM antismash.bgc_types WHERE lower(term) = lower(%s)"
+
+SEARCH_IS_ACC = "SELECT acc FROM antismash.dna_sequences WHERE lower(acc) = lower(%s)"
+
+SEARCH_IS_GENUS = "SELECT genus FROM antismash.taxa WHERE lower(genus) = lower(%s)"
+
+SEARCH_IS_SPECIES = "SELECT species FROM antismash.taxa WHERE lower(species) LIKE lower(%s)"
+
+SEARCH_IS_MONOMER = "SELECT name FROM antismash.monomers WHERE lower(name) = lower(%s)"

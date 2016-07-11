@@ -72,32 +72,32 @@ def parse_simple_search(search_string):
     cleaned_terms = [sanitise_string(t) for t in search_string.split()]
 
     for term in cleaned_terms:
-        cur.execute("SELECT term FROM antismash.bgc_types WHERE lower(term) = lower(%s)", (term, ))
+        cur.execute(sql.SEARCH_IS_TYPE, (term, ))
         ret = cur.fetchone()
         if ret is not None:
             parsed.append({'category': 'type', 'term': ret.term})
             continue
 
-        cur.execute("SELECT acc FROM antismash.dna_sequences WHERE lower(acc) = lower(%s)", (term, ))
+        cur.execute(sql.SEARCH_IS_ACC, (term, ))
         ret = cur.fetchone()
         if ret is not None:
             parsed.append({'category': 'acc', 'term': ret.acc})
             continue
 
-        cur.execute("SELECT genus FROM antismash.taxa WHERE lower(genus) = lower(%s)", (term, ))
+        cur.execute(sql.SEARCH_IS_GENUS, (term, ))
         ret = cur.fetchone()
         if ret is not None:
             parsed.append({'category': 'genus', 'term': ret.genus})
             continue
 
 
-        cur.execute("SELECT species FROM antismash.taxa WHERE lower(species) LIKE lower(%s)", ('% {}'.format(term), ))
+        cur.execute(sql.SEARCH_IS_SPECIES, ('% {}'.format(term), ))
         ret = cur.fetchone()
         if ret is not None:
             parsed.append({'category': 'species', 'term': ret.species})
             continue
 
-        cur.execute("SELECT name FROM antismash.monomers WHERE lower(name) = lower(%s)", (term, ))
+        cur.execute(sql.SEARCH_IS_MONOMER, (term, ))
         if ret is not None:
             parsed.append({'category': 'monomer', 'term': ret.name})
             continue
