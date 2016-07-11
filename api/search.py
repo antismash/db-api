@@ -133,6 +133,7 @@ def get_sql_by_category(category):
     attr = 'CLUSTER_BY_{}'.format(category.upper())
     return getattr(sql, attr)
 
+
 WHITELIST = set()
 for item in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
     WHITELIST.add(item)
