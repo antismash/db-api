@@ -144,3 +144,23 @@ def test_search(client, monkeypatch):
     results = client.post(url_for('search'), data='{"search_string": "foo", "offset": 2, "paginate": 5}', content_type="application/json")
     assert results.status_code == 200
     assert results.json == expected
+
+
+def test_genome(client, monkeypatch):
+    '''Test /api/v1.0/genome/<identifier> endpoint'''
+    reference = {
+        'count': 23,
+        'clusters': [{'foo': 'foo'}, {'bar': 'bar'}]
+    }
+
+    # We have separate tests for the search code, so just test the REST API part here
+    import api.api
+
+    def fake_search(search_string):
+        '''fake search function'''
+        return reference['count'], reference['clusters']
+    monkeypatch.setattr(api.api, 'search_bgcs', fake_search)
+
+    results = client.get(url_for('show_genome', identifier='fake'))
+    assert results.status_code == 200
+    assert results.json == reference['clusters']
