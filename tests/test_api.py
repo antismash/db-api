@@ -59,3 +59,52 @@ def test_stats(client):
     results = client.get(url_for('get_stats'))
     assert results.status_code == 200
     assert results.json == expected
+
+
+def test_sec_met_tree(client):
+    '''Test /api/v1.0/tree/secmet endpoint'''
+    cur = get_db().cursor()
+
+    expected = [
+        {
+            'id': 'nrps',
+            'parent': '#',
+            'text': 'Non-ribosomal peptide',
+            'state': {
+                'disabled': True
+            }
+        },
+        {
+            'id': 'lantipeptide',
+            'parent': '#',
+            'text': 'Lanthipeptide',
+            'state': {
+                'disabled': True
+            }
+        },
+        {
+            'id': 'AB1234_c1_nrps',
+            'parent': 'nrps',
+            'text': 'E. xample AB1234 Cluster 1',
+            'type': 'cluster',
+        },
+        {
+            'id': 'AB1234_c1_lantipeptide',
+            'parent': 'lantipeptide',
+            'text': 'E. xample AB1234 Cluster 1',
+            'type': 'cluster',
+        },
+    ]
+
+    cur.expected_queries.append((
+        ('cluster_number', 'acc', 'term', 'description', 'species'),
+        sql.SECMET_TREE
+    ))
+    cur.canned_replies.append([
+        (1, 'AB1234', 'nrps', 'Non-ribosomal peptide', 'E. xample'),
+        (1, 'AB1234', 'lantipeptide', 'Lanthipeptide', 'E. xample')
+    ])
+
+    results = client.get(url_for('get_sec_met_tree'))
+    assert results.status_code == 200
+    assert results.json == expected
