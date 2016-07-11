@@ -193,3 +193,41 @@ def test_create_cluster_json_hybrid(app):  # noqa: F811
 
     results = search.create_cluster_json(23)
     assert results == expected
+
+
+def test_search_bgcs(monkeypatch):
+    '''Test the main search function with a '''
+
+    # We individually test all the other functions, so mock the heck out of them
+    def fake_parse_simple_search(search_string):
+        return [{'category': 'type', 'term': search_string}]
+    monkeypatch.setattr(search, 'parse_simple_search', fake_parse_simple_search)
+
+    def fake_clusters_by_category(category, term):
+        return set((23, 42, len(category), len(term)))
+    monkeypatch.setattr(search, 'clusters_by_category', fake_clusters_by_category)
+
+    def fake_create_cluster_json(bgc_id):
+        return {'bgc_id': bgc_id, 'term': 'fake', 'description': 'Fake cluster'}
+    monkeypatch.setattr(search, 'create_cluster_json', fake_create_cluster_json)
+
+    expected = [
+        fake_create_cluster_json(4),
+        fake_create_cluster_json(23),
+        fake_create_cluster_json(42),
+    ]
+    count, results = search.search_bgcs('[type]fake')
+    assert count == 3
+    assert results == expected
+
+    count, results = search.search_bgcs('fake')
+    assert count == 3
+    assert results == expected
+
+    count, results = search.search_bgcs('fake', offset=1)
+    assert count == 3
+    assert results == expected[1:]
+
+    count, results = search.search_bgcs('fake', paginate=2)
+    assert count == 3
+    assert results == expected[:2]
