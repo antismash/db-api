@@ -108,3 +108,39 @@ def test_sec_met_tree(client):
     results = client.get(url_for('get_sec_met_tree'))
     assert results.status_code == 200
     assert results.json == expected
+
+
+def test_search(client, monkeypatch):
+    '''Test /api/v1.0/search endpoint'''
+    expected = {
+        'total': 0,
+        'clusters': [],
+        'offset': 0,
+        'paginate': 50
+    }
+
+    # We have separate tests for the search code, so just test the REST API part here
+    import api.api
+
+    def fake_search(search_string, offset=0, paginate=0):
+        '''fake search function'''
+        return expected['total'], expected['clusters']
+    monkeypatch.setattr(api.api, 'search_bgcs', fake_search)
+
+    results = client.post(url_for('search'), data='{"search_string": "foo"}', content_type="application/json")
+    assert results.status_code == 200
+    assert results.json == expected
+
+    expected['clusters'] = [{'foo': 'foo'}, {'bar': 'bar'}]
+    expected['total'] = 23
+    expected['offset'] = 2
+
+    results = client.post(url_for('search'), data='{"search_string": "foo", "offset": 2}', content_type="application/json")
+    assert results.status_code == 200
+    assert results.json == expected
+
+    expected['paginate'] = 5
+
+    results = client.post(url_for('search'), data='{"search_string": "foo", "offset": 2, "paginate": 5}', content_type="application/json")
+    assert results.status_code == 200
+    assert results.json == expected
