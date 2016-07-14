@@ -165,7 +165,7 @@ SELECT tax_id, species, acc, version FROM antismash.taxa t
     AND lower(taxonomic_order) = lower(%s)
     AND lower(family) = lower(%s)
     AND lower(genus) = lower(%s)
-    ORDER BY species"""
+    ORDER BY species, acc"""
 
 STATS_CLUSTER_COUNT = "SELECT COUNT(bgc_id) FROM antismash.biosynthetic_gene_clusters"
 
