@@ -4,7 +4,24 @@ from .helpers import get_db
 import sql
 
 
-def search_bgcs(search_string, offset=0, paginate=0):
+def create_cluster_json(bgc_id):
+    '''Create the JSONifiable record for a given cluster'''
+    cur = get_db().cursor()
+    cur.execute(sql.CLUSTER_INFO, (bgc_id, bgc_id))
+    ret = cur.fetchall()
+    cluster_json = {}
+    for i, name in enumerate(ret[0]._fields):
+        cluster_json[name] = ret[0][i]
+    if len(ret) > 1:
+        cluster_json['description'] = 'Hybrid cluster: '
+        for i in range(1, len(ret)):
+            cluster_json['term'] += '-{}'.format(ret[i].term)
+        cluster_json['description'] += cluster_json['term']
+        cluster_json['term'] += ' hybrid'
+    return cluster_json
+
+
+def search_bgcs(search_string, offset=0, paginate=0, mapfunc=create_cluster_json):
     '''search for BGCs specified by the given search string, returning a list of found bgcs'''
     if '[' in search_string:
         parsed_query = parse_search_string(search_string)
@@ -28,24 +45,7 @@ def search_bgcs(search_string, offset=0, paginate=0):
         end = min(offset + paginate, total)
     else:
         end = total
-    return total, map(create_cluster_json, bgc_list[offset:end])
-
-
-def create_cluster_json(bgc_id):
-    '''Create the JSONifiable record for a given cluster'''
-    cur = get_db().cursor()
-    cur.execute(sql.CLUSTER_INFO, (bgc_id, bgc_id))
-    ret = cur.fetchall()
-    cluster_json = {}
-    for i, name in enumerate(ret[0]._fields):
-        cluster_json[name] = ret[0][i]
-    if len(ret) > 1:
-        cluster_json['description'] = 'Hybrid cluster: '
-        for i in range(1, len(ret)):
-            cluster_json['term'] += '-{}'.format(ret[i].term)
-        cluster_json['description'] += cluster_json['term']
-        cluster_json['term'] += ' hybrid'
-    return cluster_json
+    return total, map(mapfunc, bgc_list[offset:end])
 
 
 def parse_search_string(search_string):

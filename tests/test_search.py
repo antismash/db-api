@@ -209,25 +209,24 @@ def test_search_bgcs(monkeypatch):
 
     def fake_create_cluster_json(bgc_id):
         return {'bgc_id': bgc_id, 'term': 'fake', 'description': 'Fake cluster'}
-    monkeypatch.setattr(search, 'create_cluster_json', fake_create_cluster_json)
 
     expected = [
         fake_create_cluster_json(4),
         fake_create_cluster_json(23),
         fake_create_cluster_json(42),
     ]
-    count, results = search.search_bgcs('[type]fake')
+    count, results = search.search_bgcs('[type]fake', mapfunc=fake_create_cluster_json)
     assert count == 3
     assert results == expected
 
-    count, results = search.search_bgcs('fake')
+    count, results = search.search_bgcs('fake', mapfunc=fake_create_cluster_json)
     assert count == 3
     assert results == expected
 
-    count, results = search.search_bgcs('fake', offset=1)
+    count, results = search.search_bgcs('fake', offset=1, mapfunc=fake_create_cluster_json)
     assert count == 3
     assert results == expected[1:]
 
-    count, results = search.search_bgcs('fake', paginate=2)
+    count, results = search.search_bgcs('fake', paginate=2, mapfunc=fake_create_cluster_json)
     assert count == 3
     assert results == expected[:2]
