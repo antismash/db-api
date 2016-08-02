@@ -341,6 +341,25 @@ def test_search(client, monkeypatch):
     assert results.json == expected
 
 
+def test_export(client, monkeypatch):
+    '''Test /api/v1.0/export endpoint'''
+    expected = '''#Species\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID
+fake\tcsv\tline\n'''
+
+    # We have separate tests for the search code, so just test the REST API part here
+    import api.api
+
+    def fake_search(search_string, offset=0, paginate=0, mapfunc=None):
+        '''fake search function'''
+        return None, ['fake\tcsv\tline']
+    monkeypatch.setattr(api.api, 'search_bgcs', fake_search)
+
+    results = client.post(url_for('export'), data='{"search_string": "foo"}', content_type="application/json")
+    assert results.status_code == 200
+    print dir(results)
+    assert results.data == expected
+
+
 def test_genome(client, monkeypatch):
     '''Test /api/v1.0/genome/<identifier> endpoint'''
     reference = {

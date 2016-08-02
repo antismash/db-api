@@ -1,12 +1,14 @@
 '''The API calls'''
 
+import StringIO
 from flask import (
     jsonify,
     request,
+    send_file,
 )
 from . import app
 from .helpers import get_db
-from .search import search_bgcs
+from .search import search_bgcs, create_cluster_csv
 import sql
 
 
@@ -245,6 +247,22 @@ def search():
     }
 
     return jsonify(result)
+
+
+@app.route('/api/v1.0/export', methods=['POST'])
+def export():
+    '''Export the search results as CSV file'''
+    search_string = request.json.get('search_string', '')
+    _, found_bgcs = search_bgcs(search_string, mapfunc=create_cluster_csv)
+
+    found_bgcs.insert(0, '#Species\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID')
+
+    handle = StringIO.StringIO()
+    for line in found_bgcs:
+        handle.write('{}\n'.format(line))
+
+    handle.seek(0)
+    return send_file(handle, attachment_filename='asdb_search_results.csv', as_attachment=True)
 
 
 @app.route('/api/v1.0/genome/<identifier>')

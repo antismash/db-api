@@ -21,6 +21,24 @@ def create_cluster_json(bgc_id):
     return cluster_json
 
 
+def create_cluster_csv(bgc_id):
+    '''Create a CSV record for a given cluster'''
+    cur = get_db().cursor()
+    cur.execute(sql.CLUSTER_INFO, (bgc_id, bgc_id))
+    ret = cur.fetchall()
+    cluster = {}
+    for i, name in enumerate(ret[0]._fields):
+        cluster[name] = ret[0][i]
+    if len(ret) > 1:
+        cluster['description'] = 'Hybrid cluster: '
+        for i in range(1, len(ret)):
+            cluster['term'] += '-{}'.format(ret[i].term)
+        cluster['description'] += cluster['term']
+        cluster['term'] += ' hybrid'
+
+    return '{species}\t{acc}.{version}\t{cluster_number}\t{term}\t{start_pos}\t{end_pos}\t{cbh_description}\t{similarity}\t{cbh_acc}'.format(**cluster)
+
+
 def search_bgcs(search_string, offset=0, paginate=0, mapfunc=create_cluster_json):
     '''search for BGCs specified by the given search string, returning a list of found bgcs'''
     if '[' in search_string:

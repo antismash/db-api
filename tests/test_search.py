@@ -195,6 +195,65 @@ def test_create_cluster_json_hybrid(app):  # noqa: F811
     assert results == expected
 
 
+def test_create_cluster_csv_single(app):  # noqa: F811
+    '''Test create_cluster_csv'''
+    cur = get_db().cursor()
+
+    cur.expected_queries.append((
+        ('bgc_id',
+         'start_pos',
+         'end_pos',
+         'cluster_number',
+         'acc',
+         'version',
+         'term',
+         'description',
+         'species',
+         'cbh_acc',
+         'cbh_description',
+         'similarity'), sql.CLUSTER_INFO
+    ))
+
+    cur.canned_replies.append([
+        (23, 17, 42, 23, 'ABC12345', 1, 'lassopeptide', 'Lasso peptide', 'E. xample', 'BGC12345', 'Examplin biosynthetic gene cluster', 71)
+    ])
+
+    expected = 'E. xample\tABC12345.1\t23\tlassopeptide\t17\t42\tExamplin biosynthetic gene cluster\t71\tBGC12345'
+
+    results = search.create_cluster_csv(23)
+    assert results == expected
+
+
+def test_create_cluster_csv_hybrid(app):  # noqa: F811
+    '''Test create_cluster_csv for a hybrid cluster'''
+    cur = get_db().cursor()
+
+    cur.expected_queries.append((
+        ('bgc_id',
+         'start_pos',
+         'end_pos',
+         'cluster_number',
+         'acc',
+         'version',
+         'term',
+         'description',
+         'species',
+         'cbh_acc',
+         'cbh_description',
+         'similarity'), sql.CLUSTER_INFO
+    ))
+
+    cur.canned_replies.append([
+        (23, 17, 42, 23, 'ABC12345', 1, 'lassopeptide', 'Lasso peptide', 'E. xample', 'BGC12345', 'Examplin biosynthetic gene cluster', 71),
+        (23, 17, 42, 23, 'ABC12345', 1, 'terpene', 'Terpene', 'E. xample', 'BGC12345', 'Examplin biosynthetic gene cluster', 71),
+    ])
+
+    expected = 'E. xample\tABC12345.1\t23\tlassopeptide-terpene hybrid\t17\t42\tExamplin biosynthetic gene cluster\t71\tBGC12345'
+
+    results = search.create_cluster_csv(23)
+    assert results == expected
+
+
 def test_search_bgcs(monkeypatch):
     '''Test the main search function with a '''
 
