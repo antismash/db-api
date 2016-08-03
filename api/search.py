@@ -36,7 +36,7 @@ def create_cluster_csv(bgc_id):
         cluster['description'] += cluster['term']
         cluster['term'] += ' hybrid'
 
-    return '{species}\t{acc}.{version}\t{cluster_number}\t{term}\t{start_pos}\t{end_pos}\t{cbh_description}\t{similarity}\t{cbh_acc}'.format(**cluster)
+    return '{species}\t{acc}.{version}\t{cluster_number}\t{term}\t{start_pos}\t{end_pos}\t{cbh_description}\t{similarity}\t{cbh_acc}\thttp://antismash-db.secondarymetabolites.org/output/{acc}/index.html#cluster-{cluster_number}'.format(**cluster)
 
 
 def search_bgcs(search_string, offset=0, paginate=0, mapfunc=create_cluster_json):

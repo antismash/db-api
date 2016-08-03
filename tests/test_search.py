@@ -218,7 +218,7 @@ def test_create_cluster_csv_single(app):  # noqa: F811
         (23, 17, 42, 23, 'ABC12345', 1, 'lassopeptide', 'Lasso peptide', 'E. xample', 'BGC12345', 'Examplin biosynthetic gene cluster', 71)
     ])
 
-    expected = 'E. xample\tABC12345.1\t23\tlassopeptide\t17\t42\tExamplin biosynthetic gene cluster\t71\tBGC12345'
+    expected = 'E. xample\tABC12345.1\t23\tlassopeptide\t17\t42\tExamplin biosynthetic gene cluster\t71\tBGC12345\thttp://antismash-db.secondarymetabolites.org/output/ABC12345/index.html#cluster-23'
 
     results = search.create_cluster_csv(23)
     assert results == expected
@@ -248,7 +248,7 @@ def test_create_cluster_csv_hybrid(app):  # noqa: F811
         (23, 17, 42, 23, 'ABC12345', 1, 'terpene', 'Terpene', 'E. xample', 'BGC12345', 'Examplin biosynthetic gene cluster', 71),
     ])
 
-    expected = 'E. xample\tABC12345.1\t23\tlassopeptide-terpene hybrid\t17\t42\tExamplin biosynthetic gene cluster\t71\tBGC12345'
+    expected = 'E. xample\tABC12345.1\t23\tlassopeptide-terpene hybrid\t17\t42\tExamplin biosynthetic gene cluster\t71\tBGC12345\thttp://antismash-db.secondarymetabolites.org/output/ABC12345/index.html#cluster-23'
 
     results = search.create_cluster_csv(23)
     assert results == expected

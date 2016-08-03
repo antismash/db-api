@@ -343,7 +343,7 @@ def test_search(client, monkeypatch):
 
 def test_export(client, monkeypatch):
     '''Test /api/v1.0/export endpoint'''
-    expected = '''#Species\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID
+    expected = '''#Species\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL
 fake\tcsv\tline\n'''
 
     # We have separate tests for the search code, so just test the REST API part here

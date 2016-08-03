@@ -255,7 +255,7 @@ def export():
     search_string = request.json.get('search_string', '')
     _, found_bgcs = search_bgcs(search_string, mapfunc=create_cluster_csv)
 
-    found_bgcs.insert(0, '#Species\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID')
+    found_bgcs.insert(0, '#Species\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL')
 
     handle = StringIO.StringIO()
     for line in found_bgcs:
