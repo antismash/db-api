@@ -1,10 +1,21 @@
 '''SQL query strings'''
 
 CLUSTER_BY_TYPE_OR_DESCRIPTION = """
-SELECT bgc_id FROM antismash.biosynthetic_gene_clusters
+WITH RECURSIVE all_subtypes AS (
+    SELECT
+        bgc_type_id
+    FROM antismash.bgc_types
+    WHERE
+        term = %s
+    OR
+        lower(description) LIKE lower(%s)
+    UNION SELECT
+        t.bgc_type_id
+    FROM antismash.bgc_types t
+    JOIN all_subtypes a ON (t.parent = a.bgc_type_id)
+) SELECT bgc_id FROM antismash.biosynthetic_gene_clusters
     JOIN antismash.rel_clusters_types USING (bgc_id)
-    JOIN antismash.bgc_types USING (bgc_type_id)
-    WHERE lower(term) = lower(%s) OR lower(description) LIKE lower(%s)"""
+    JOIN all_subtypes USING (bgc_type_id)"""
 
 CLUSTER_BY_MONOMER_OR_DESCRIPTION = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
