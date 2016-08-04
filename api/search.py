@@ -131,14 +131,21 @@ def clusters_by_category(category, term):
     found_clusters = set()
     cur = get_db().cursor()
 
-    search_term = "%{}%".format(term)
-
     try:
-        sql_expression = get_sql_by_category(category)
+        sql_expression = get_sql_by_category_fuzzy(category)
+        search = ("%{}%".format(term),)
     except AttributeError:
-        return found_clusters
+        try:
+            sql_expression = get_sql_by_category(category)
+            search = (term, )
+        except AttributeError:
+            try:
+                sql_expression = get_sql_by_category_or_desc(category)
+                search = (term, "%{}%".format(term))
+            except AttributeError:
+                return found_clusters
 
-    cur.execute(sql_expression, (search_term, ))
+    cur.execute(sql_expression, search)
     clusters = cur.fetchall()
     for cluster in clusters:
         found_clusters.add(cluster.bgc_id)
@@ -149,6 +156,18 @@ def clusters_by_category(category, term):
 def get_sql_by_category(category):
     '''Get the appropriate SQL expression'''
     attr = 'CLUSTER_BY_{}'.format(category.upper())
+    return getattr(sql, attr)
+
+
+def get_sql_by_category_fuzzy(category):
+    '''Get the appropriate SQL expression in fuzzy mode'''
+    attr = 'CLUSTER_BY_{}_FUZZY'.format(category.upper())
+    return getattr(sql, attr)
+
+
+def get_sql_by_category_or_desc(category):
+    '''Get the appropriate SQL expression for category or description'''
+    attr = 'CLUSTER_BY_{}_OR_DESCRIPTION'.format(category.upper())
     return getattr(sql, attr)
 
 

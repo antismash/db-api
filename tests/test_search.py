@@ -4,13 +4,13 @@ from api import search, sql
 from api.helpers import get_db
 
 
-def test_get_sql_by_category():
+def test_get_sql_by_category_fuzzy():
     '''Test getting the category filter SQL from the sql module'''
-    result = search.get_sql_by_category('type')
-    assert result == sql.CLUSTER_BY_TYPE
+    result = search.get_sql_by_category_fuzzy('genus')
+    assert result == sql.CLUSTER_BY_GENUS_FUZZY
 
     with pytest.raises(AttributeError):
-        search.get_sql_by_category('invalid')
+        search.get_sql_by_category_fuzzy('invalid')
 
 
 def test_clusters_by_category(app):  # noqa: F811
@@ -19,7 +19,7 @@ def test_clusters_by_category(app):  # noqa: F811
     cur = get_db().cursor()
 
     cur.expected_queries.append((
-        ('bgc_id'), sql.CLUSTER_BY_TYPE
+        ('bgc_id'), sql.CLUSTER_BY_TYPE_OR_DESCRIPTION
     ))
     cur.canned_replies.append(((i,) for i in expected))
 

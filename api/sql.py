@@ -1,31 +1,31 @@
 '''SQL query strings'''
 
-CLUSTER_BY_TYPE = """
+CLUSTER_BY_TYPE_OR_DESCRIPTION = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters
     JOIN antismash.rel_clusters_types USING (bgc_id)
     JOIN antismash.bgc_types USING (bgc_type_id)
-    WHERE lower(term) LIKE lower(%s)"""
+    WHERE lower(term) = lower(%s) OR lower(description) LIKE lower(%s)"""
 
-CLUSTER_BY_MONOMER = """
+CLUSTER_BY_MONOMER_OR_DESCRIPTION = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.rel_clusters_compounds USING (bgc_id)
     JOIN antismash.rel_compounds_monomers USING (compound_id)
     JOIN antismash.monomers USING (monomer_id)
-    WHERE lower(name) LIKE lower(%s)"""
+    WHERE lower(name) = lower(%s) OR lower(description) LIKE lower(%s)"""
 
-CLUSTER_BY_ACC = """
+CLUSTER_BY_ACC_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
     WHERE lower(acc) LIKE lower(%s)"""
 
-CLUSTER_BY_COMPOUND_SEQ = """
+CLUSTER_BY_COMPOUND_SEQ_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters
     JOIN antismash.rel_clusters_compounds USING (bgc_id)
     JOIN antismash.compounds USING (compound_id)
     WHERE lower(peptide_sequence) LIKE lower(%s)"""
 
-CLUSTER_BY_SPECIES = """
+CLUSTER_BY_SPECIES_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
@@ -33,7 +33,7 @@ SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.taxa t ON g.taxon = t.tax_id
     WHERE lower(t.species) LIKE lower(%s)"""
 
-CLUSTER_BY_GENUS = """
+CLUSTER_BY_GENUS_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
@@ -41,7 +41,7 @@ SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.taxa t ON g.taxon = t.tax_id
     WHERE lower(t.genus) LIKE lower(%s)"""
 
-CLUSTER_BY_FAMILY = """
+CLUSTER_BY_FAMILY_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
@@ -49,7 +49,7 @@ SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.taxa t ON g.taxon = t.tax_id
     WHERE lower(t.family) LIKE lower(%s)"""
 
-CLUSTER_BY_ORDER = """
+CLUSTER_BY_ORDER_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
@@ -57,7 +57,7 @@ SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.taxa t ON g.taxon = t.tax_id
     WHERE lower(t.taxonomic_order LIKE lower(%s)"""
 
-CLUSTER_BY_CLASS = """
+CLUSTER_BY_CLASS_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
@@ -65,7 +65,7 @@ SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.taxa t ON g.taxon = t.tax_id
     WHERE lower(t.class) LIKE lower(%s)"""
 
-CLUSTER_BY_PHYLUM = """
+CLUSTER_BY_PHYLUM_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
@@ -73,7 +73,7 @@ SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.taxa t ON g.taxon = t.tax_id
     WHERE lower(t.phylum) LIKE lower(%s)"""
 
-CLUSTER_BY_SUPERKINGDOM = """
+CLUSTER_BY_SUPERKINGDOM_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
