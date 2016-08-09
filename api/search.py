@@ -55,10 +55,12 @@ def search_bgcs(search_string, offset=0, paginate=0, mapfunc=create_cluster_json
 
     final = all_clusters.copy()
     for i, result in enumerate(collected_sets):
-        if parsed_query[i]['operation'] == 'and':
-            final = final.intersection(result)
-        else:
+        if parsed_query[i]['operation'] == 'or':
             final = final.union(result)
+        elif parsed_query[i]['operation'] == 'not':
+            final = final.difference(result)
+        else:
+            final = final.intersection(result)
     bgc_list = list(final)
     bgc_list.sort()
     total = len(bgc_list)
@@ -76,9 +78,9 @@ def parse_search_string(search_string):
     >>> parse_search_string("[type]lanthipeptide [genus]Streptomyces")
     [{'category': 'type', 'term': 'lanthipeptide', 'operation': 'and'}, {'category': 'genus', 'term': 'Streptomyces', 'operation': 'and'}]
 
-    Optionally, the fieldname can be followed by ':OP', where 'OP' is either 'and' or 'or'
-    >>> parse_search_string("[genus:and]Streptomyces [type:or]lanthipeptide [type:or]lasso")
-    [{'category': 'genus', 'term': 'Streptomyces', 'operation': 'and'}, {'category': 'type', 'term': 'lanthipeptide', 'operation': 'or'}, {'category': 'type', 'term': 'lasso', 'operation': 'or'}]
+    Optionally, the fieldname can be followed by ':OP', where 'OP' is either 'and', 'or' or 'not'
+    >>> parse_search_string("[genus:and]Streptomyces [type:or]ripp [type:not]lasso")
+    [{'category': 'genus', 'term': 'Streptomyces', 'operation': 'and'}, {'category': 'type', 'term': 'ripp', 'operation': 'or'}, {'category': 'type', 'term': 'lasso', 'operation': 'not'}]
     '''
 
     parsed = []
