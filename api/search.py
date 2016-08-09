@@ -71,13 +71,21 @@ def parse_search_string(search_string):
 
     Given a search string like "[fieldname1]searchterm1 [fieldname2]searchterm2", return the parsed representation.
     >>> parse_search_string("[type]lanthipeptide [genus]Streptomyces")
-    [{'category': 'type', 'term': 'lanthipeptide'}, {'category': 'genus', 'term': 'Streptomyces'}]
+    [{'category': 'type', 'term': 'lanthipeptide', 'operation': 'and'}, {'category': 'genus', 'term': 'Streptomyces', 'operation': 'and'}]
+
+    Optionally, the fieldname can be followed by ':OP', where 'OP' is either 'and' or 'or'
+    >>> parse_search_string("[genus:and]Streptomyces [type:or]lanthipeptide [type:or]lasso")
+    [{'category': 'genus', 'term': 'Streptomyces', 'operation': 'and'}, {'category': 'type', 'term': 'lanthipeptide', 'operation': 'or'}, {'category': 'type', 'term': 'lasso', 'operation': 'or'}]
     '''
 
     parsed = []
-    pattern = r'\[(\w+)\](\w+)'
+    pattern = r'\[(\w+)(:\w+)?\](\w+)'
     for match in re.finditer(pattern, search_string):
-        parsed.append({'category': match.group(1), 'term': match.group(2)})
+        if match.group(2) is None:
+            operation = "and"
+        else:
+            operation = match.group(2)[1:]
+        parsed.append({'category': match.group(1), 'term': match.group(3), 'operation': operation})
 
     return parsed
 
