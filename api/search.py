@@ -54,8 +54,11 @@ def search_bgcs(search_string, offset=0, paginate=0, mapfunc=create_cluster_json
         all_clusters = all_clusters.union(found_clusters)
 
     final = all_clusters.copy()
-    for result in collected_sets:
-        final = final.intersection(result)
+    for i, result in enumerate(collected_sets):
+        if parsed_query[i]['operation'] == 'and':
+            final = final.intersection(result)
+        else:
+            final = final.union(result)
     bgc_list = list(final)
     bgc_list.sort()
     total = len(bgc_list)

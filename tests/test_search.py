@@ -259,7 +259,7 @@ def test_search_bgcs(monkeypatch):
 
     # We individually test all the other functions, so mock the heck out of them
     def fake_parse_simple_search(search_string):
-        return [{'category': 'type', 'term': search_string}]
+        return [{'category': 'type', 'term': search_string, 'operation': 'and'}]
     monkeypatch.setattr(search, 'parse_simple_search', fake_parse_simple_search)
 
     def fake_clusters_by_category(category, term):
