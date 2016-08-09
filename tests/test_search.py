@@ -41,7 +41,7 @@ def test_parse_simple_search_type(app):  # noqa: F811
     cur.canned_replies.append(('lantipeptide',))
 
     result = search.parse_simple_search('LanTiPePtide')
-    assert result == [{'category': 'type', 'term': 'lantipeptide'}]
+    assert result == [{'category': 'type', 'term': 'lantipeptide', 'operation': 'and'}]
 
 
 def test_parse_simple_search_acc(app):  # noqa: F811
@@ -59,7 +59,7 @@ def test_parse_simple_search_acc(app):  # noqa: F811
     ])
 
     result = search.parse_simple_search('aB12345')
-    assert result == [{'category': 'acc', 'term': 'AB12345'}]
+    assert result == [{'category': 'acc', 'term': 'AB12345', 'operation': 'and'}]
 
 
 def test_parse_simple_search_genus(app):  # noqa: F811
@@ -79,7 +79,7 @@ def test_parse_simple_search_genus(app):  # noqa: F811
     ])
 
     result = search.parse_simple_search('STREPTomyces')
-    assert result == [{'category': 'genus', 'term': 'Streptomyces'}]
+    assert result == [{'category': 'genus', 'term': 'Streptomyces', 'operation': 'and'}]
 
 
 def test_parse_simple_search_species(app):  # noqa: F811
@@ -101,7 +101,7 @@ def test_parse_simple_search_species(app):  # noqa: F811
     ])
 
     result = search.parse_simple_search('coelicolor')
-    assert result == [{'category': 'species', 'term': 'Streptomyces coelicolor'}]
+    assert result == [{'category': 'species', 'term': 'Streptomyces coelicolor', 'operation': 'and'}]
 
 
 def test_parse_simple_search_monomer(app):  # noqa: F811
@@ -125,7 +125,7 @@ def test_parse_simple_search_monomer(app):  # noqa: F811
     ])
 
     result = search.parse_simple_search('ccmal')
-    assert result == [{'category': 'monomer', 'term': 'ccmal'}]
+    assert result == [{'category': 'monomer', 'term': 'ccmal', 'operation': 'and'}]
 
 
 def test_parse_simple_search_compound(app):  # noqa: F811
@@ -149,7 +149,7 @@ def test_parse_simple_search_compound(app):  # noqa: F811
     ])
 
     result = search.parse_simple_search('FAKE')
-    assert result == [{'category': 'compound_seq', 'term': 'FAKE'}]
+    assert result == [{'category': 'compound_seq', 'term': 'FAKE', 'operation': 'and'}]
 
 
 def test_create_cluster_json_single(app):  # noqa: F811

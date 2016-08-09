@@ -101,34 +101,34 @@ def parse_simple_search(search_string):
         cur.execute(sql.SEARCH_IS_TYPE, (term, ))
         ret = cur.fetchone()
         if ret is not None:
-            parsed.append({'category': 'type', 'term': ret.term})
+            parsed.append({'category': 'type', 'term': ret.term, 'operation': 'and'})
             continue
 
         cur.execute(sql.SEARCH_IS_ACC, (term, ))
         ret = cur.fetchone()
         if ret is not None:
-            parsed.append({'category': 'acc', 'term': ret.acc})
+            parsed.append({'category': 'acc', 'term': ret.acc, 'operation': 'and'})
             continue
 
         cur.execute(sql.SEARCH_IS_GENUS, (term, ))
         ret = cur.fetchone()
         if ret is not None:
-            parsed.append({'category': 'genus', 'term': ret.genus})
+            parsed.append({'category': 'genus', 'term': ret.genus, 'operation': 'and'})
             continue
 
         cur.execute(sql.SEARCH_IS_SPECIES, ('% {}'.format(term), ))
         ret = cur.fetchone()
         if ret is not None:
-            parsed.append({'category': 'species', 'term': ret.species})
+            parsed.append({'category': 'species', 'term': ret.species, 'operation': 'and'})
             continue
 
         cur.execute(sql.SEARCH_IS_MONOMER, (term, ))
         ret = cur.fetchone()
         if ret is not None:
-            parsed.append({'category': 'monomer', 'term': ret.name})
+            parsed.append({'category': 'monomer', 'term': ret.name, 'operation': 'and'})
             continue
 
-        parsed.append({'category': 'compound_seq', 'term': term})
+        parsed.append({'category': 'compound_seq', 'term': term, 'operation': 'and'})
 
     return parsed
 
