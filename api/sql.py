@@ -66,7 +66,7 @@ SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
     JOIN antismash.genomes g ON seq.genome = g.genome_id
     JOIN antismash.taxa t ON g.taxon = t.tax_id
-    WHERE lower(t.taxonomic_order LIKE lower(%s)"""
+    WHERE lower(t.taxonomic_order) LIKE lower(%s)"""
 
 CLUSTER_BY_CLASS_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
