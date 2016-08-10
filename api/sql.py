@@ -245,7 +245,7 @@ AVAILABLE_COMPOUND_FUZZY = "SELECT peptide_sequence FROM antismash.compounds WHE
 
 AVAILABLE_ACC_FUZZY = "SELECT acc FROM antismash.dna_sequences WHERE lower(acc) LIKE lower(%s)"
 
-AVAILABLE_SPECIES_FUZZY = "SELECT species FROM antismash.taxa WHERE lower(species) LIKE lower(%s)"
+AVAILABLE_SPECIES_FUZZY = "SELECT DISTINCT substring(species from (position(' ' in species)+1)) FROM antismash.taxa WHERE lower(species) LIKE lower(%s)"
 
 AVAILABLE_GENUS_FUZZY = "SELECT DISTINCT genus FROM antismash.taxa WHERE lower(genus) LIKE lower(%s)"
 

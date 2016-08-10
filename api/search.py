@@ -223,7 +223,11 @@ def available_term_by_category(category, term):
         print 'not found: {}'.format(cleaned_category)
         return []
 
-    cur.execute(sql_expression, ('{}%'.format(cleaned_term), ))
+    sql_term = ('{}%'.format(cleaned_term), )
+    if cleaned_category == 'species':
+        sql_term = ('% {}%'.format(cleaned_term), )
+
+    cur.execute(sql_expression, sql_term)
     ret = cur.fetchall()
 
     if ret is None:
