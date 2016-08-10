@@ -236,3 +236,25 @@ SEARCH_IS_GENUS = "SELECT genus FROM antismash.taxa WHERE lower(genus) = lower(%
 SEARCH_IS_SPECIES = "SELECT species FROM antismash.taxa WHERE lower(species) LIKE lower(%s)"
 
 SEARCH_IS_MONOMER = "SELECT name FROM antismash.monomers WHERE lower(name) = lower(%s)"
+
+AVAILABLE_TYPE_FUZZY = "SELECT term FROM antismash.bgc_types WHERE lower(term) LIKE lower(%s)"
+
+AVAILABLE_MONOMER_FUZZY = "SELECT name FROM antismash.monomers WHERE lower(name) LIKE lower(%s)"
+
+AVAILABLE_COMPOUND_FUZZY = "SELECT peptide_sequence FROM antismash.compounds WHERE lower(peptide_sequence) LIKE lower(%s)"
+
+AVAILABLE_ACC_FUZZY = "SELECT acc FROM antismash.dna_sequences WHERE lower(acc) LIKE lower(%s)"
+
+AVAILABLE_SPECIES_FUZZY = "SELECT species FROM antismash.taxa WHERE lower(species) LIKE lower(%s)"
+
+AVAILABLE_GENUS_FUZZY = "SELECT genus FROM antismash.taxa WHERE lower(genus) LIKE lower(%s)"
+
+AVAILABLE_FAMILY_FUZZY = "SELECT family FROM antismash.taxa WHERE lower(family) LIKE lower(%s)"
+
+AVAILABLE_ORDER_FUZZY = "SELECT taxonomic_order FROM antismash.taxa WHERE lower(taxonomic_order) LIKE lower(%s)"
+
+AVAILABLE_CLASS_FUZZY = "SELECT class FROM antismash.taxa WHERE lower(class) LIKE lower(%s)"
+
+AVAILABLE_PHYLUM_FUZZY = "SELECT phylum FROM antismash.taxa WHERE lower(phylum) LIKE lower(%s)"
+
+AVAILABLE_SUPERKINGDOM_FUZZY = "SELECT superkingdom FROM antismash.taxa WHERE lower(superkingdom) LIKE lower(%s)"

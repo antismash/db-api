@@ -209,3 +209,30 @@ def sanitise_string(search_string):
             cleaned.append(symbol)
 
     return ''.join(cleaned)
+
+
+def available_term_by_category(category, term):
+    '''List all available terms by category'''
+    cleaned_category = sanitise_string(category)
+    cleaned_term = sanitise_string(term)
+
+    cur = get_db().cursor()
+    try:
+        sql_expression = get_sql_by_available(cleaned_category)
+    except AttributeError:
+        print 'not found: {}'.format(cleaned_category)
+        return []
+
+    cur.execute(sql_expression, ('{}%'.format(cleaned_term), ))
+    ret = cur.fetchall()
+
+    if ret is None:
+        return []
+
+    return ret
+
+
+def get_sql_by_available(category):
+    '''Get the appropriate SQL expression for an AVAILABLE check'''
+    attr = 'AVAILABLE_{}_FUZZY'.format(category.upper())
+    return getattr(sql, attr)

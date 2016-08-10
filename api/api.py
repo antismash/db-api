@@ -8,7 +8,11 @@ from flask import (
 )
 from . import app
 from .helpers import get_db
-from .search import search_bgcs, create_cluster_csv
+from .search import (
+    search_bgcs,
+    create_cluster_csv,
+    available_term_by_category,
+)
 import sql
 
 
@@ -272,6 +276,12 @@ def show_genome(identifier):
     _, found_bgcs = search_bgcs(search_string)
 
     return jsonify(found_bgcs)
+
+
+@app.route('/api/v1.0/available/<category>/<term>')
+def list_available(category, term):
+    '''list available terms for a given category'''
+    return jsonify(available_term_by_category(category, term))
 
 
 def _create_tree_node(node_id, parent, text, disabled=True, leaf=False):
