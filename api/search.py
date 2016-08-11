@@ -64,11 +64,32 @@ def search_bgcs(search_string, offset=0, paginate=0, mapfunc=create_cluster_json
     bgc_list = list(final)
     bgc_list.sort()
     total = len(bgc_list)
+    stats = calculate_stats(bgc_list)
     if paginate > 0:
         end = min(offset + paginate, total)
     else:
         end = total
-    return total, map(mapfunc, bgc_list[offset:end])
+    return total, stats, map(mapfunc, bgc_list[offset:end])
+
+
+def calculate_stats(bgc_list):
+    '''Calculate some stats on the search results'''
+    cur = get_db().cursor()
+    stats = {}
+
+    cur.execute(sql.SEARCH_SUMMARY_TYPES, (bgc_list,))
+    clusters_by_type_list = cur.fetchall()
+    clusters_by_type = {}
+    clusters_by_type['labels'], clusters_by_type['data'] = zip(*clusters_by_type_list)
+    stats['clusters_by_type'] = clusters_by_type
+
+    cur.execute(sql.SEARCH_SUMMARY_PHYLUM, (bgc_list,))
+    clusters_by_phylum_list = cur.fetchall()
+    clusters_by_phylum = {}
+    clusters_by_phylum['labels'], clusters_by_phylum['data'] = zip(*clusters_by_phylum_list)
+    stats['clusters_by_phylum'] = clusters_by_phylum
+
+    return stats
 
 
 def parse_search_string(search_string):

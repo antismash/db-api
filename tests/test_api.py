@@ -310,6 +310,7 @@ def test_search(client, monkeypatch):
     expected = {
         'total': 0,
         'clusters': [],
+        'stats': {},
         'offset': 0,
         'paginate': 50
     }
@@ -319,7 +320,7 @@ def test_search(client, monkeypatch):
 
     def fake_search(search_string, offset=0, paginate=0):
         '''fake search function'''
-        return expected['total'], expected['clusters']
+        return expected['total'], {}, expected['clusters']
     monkeypatch.setattr(api.api, 'search_bgcs', fake_search)
 
     results = client.post(url_for('search'), data='{"search_string": "foo"}', content_type="application/json")
@@ -351,7 +352,7 @@ fake\tcsv\tline\n'''
 
     def fake_search(search_string, offset=0, paginate=0, mapfunc=None):
         '''fake search function'''
-        return None, ['fake\tcsv\tline']
+        return None, {}, ['fake\tcsv\tline']
     monkeypatch.setattr(api.api, 'search_bgcs', fake_search)
 
     results = client.post(url_for('export'), data='{"search_string": "foo"}', content_type="application/json")

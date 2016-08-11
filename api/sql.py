@@ -258,3 +258,21 @@ AVAILABLE_CLASS_FUZZY = "SELECT DISTINCT class FROM antismash.taxa WHERE lower(c
 AVAILABLE_PHYLUM_FUZZY = "SELECT DISTINCT phylum FROM antismash.taxa WHERE lower(phylum) LIKE lower(%s)"
 
 AVAILABLE_SUPERKINGDOM_FUZZY = "SELECT DISTINCT superkingdom FROM antismash.taxa WHERE lower(superkingdom) LIKE lower(%s)"
+
+SEARCH_SUMMARY_TYPES = """
+SELECT term, COUNT(term) FROM antismash.biosynthetic_gene_clusters bgc
+    JOIN antismash.rel_clusters_types USING (bgc_id)
+    JOIN antismash.bgc_types USING (bgc_type_id)
+        WHERE bgc_id = ANY(%s)
+    GROUP BY term
+"""
+
+SEARCH_SUMMARY_PHYLUM = """
+SELECT phylum, COUNT(phylum) FROM antismash.biosynthetic_gene_clusters bgc
+    JOIN antismash.loci l ON bgc.locus = l.locus_id
+    JOIN antismash.dna_sequences s ON l.sequence = s.sequence_id
+    JOIN antismash.genomes g ON s.genome = g.genome_id
+    JOIN antismash.taxa t ON g.taxon = t.tax_id
+        WHERE bgc_id = ANY(%s)
+    GROUP BY phylum
+"""

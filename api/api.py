@@ -241,13 +241,14 @@ def search():
     except TypeError:
         paginate = 50
 
-    total_count, found_bgcs = search_bgcs(search_string, offset=offset, paginate=paginate)
+    total_count, stats, found_bgcs = search_bgcs(search_string, offset=offset, paginate=paginate)
 
     result = {
         'total': total_count,
         'clusters': found_bgcs,
         'offset': offset,
         'paginate': paginate,
+        'stats': stats,
     }
 
     return jsonify(result)
@@ -257,7 +258,7 @@ def search():
 def export():
     '''Export the search results as CSV file'''
     search_string = request.json.get('search_string', '')
-    _, found_bgcs = search_bgcs(search_string, mapfunc=create_cluster_csv)
+    _, _, found_bgcs = search_bgcs(search_string, mapfunc=create_cluster_csv)
 
     found_bgcs.insert(0, '#Species\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL')
 

@@ -266,6 +266,10 @@ def test_search_bgcs(monkeypatch):
         return set((23, 42, len(category), len(term)))
     monkeypatch.setattr(search, 'clusters_by_category', fake_clusters_by_category)
 
+    def fake_calculate_stats(bgc_list):
+        return {}
+    monkeypatch.setattr(search, 'calculate_stats', fake_calculate_stats)
+
     def fake_create_cluster_json(bgc_id):
         return {'bgc_id': bgc_id, 'term': 'fake', 'description': 'Fake cluster'}
 
@@ -274,18 +278,18 @@ def test_search_bgcs(monkeypatch):
         fake_create_cluster_json(23),
         fake_create_cluster_json(42),
     ]
-    count, results = search.search_bgcs('[type]fake', mapfunc=fake_create_cluster_json)
+    count, _, results = search.search_bgcs('[type]fake', mapfunc=fake_create_cluster_json)
     assert count == 3
     assert results == expected
 
-    count, results = search.search_bgcs('fake', mapfunc=fake_create_cluster_json)
+    count, _, results = search.search_bgcs('fake', mapfunc=fake_create_cluster_json)
     assert count == 3
     assert results == expected
 
-    count, results = search.search_bgcs('fake', offset=1, mapfunc=fake_create_cluster_json)
+    count, _, results = search.search_bgcs('fake', offset=1, mapfunc=fake_create_cluster_json)
     assert count == 3
     assert results == expected[1:]
 
-    count, results = search.search_bgcs('fake', paginate=2, mapfunc=fake_create_cluster_json)
+    count, _, results = search.search_bgcs('fake', paginate=2, mapfunc=fake_create_cluster_json)
     assert count == 3
     assert results == expected[:2]
