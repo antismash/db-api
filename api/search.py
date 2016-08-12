@@ -76,17 +76,21 @@ def calculate_stats(bgc_list):
     '''Calculate some stats on the search results'''
     cur = get_db().cursor()
     stats = {}
+    if len(bgc_list) < 1:
+        return stats
 
     cur.execute(sql.SEARCH_SUMMARY_TYPES, (bgc_list,))
     clusters_by_type_list = cur.fetchall()
     clusters_by_type = {}
-    clusters_by_type['labels'], clusters_by_type['data'] = zip(*clusters_by_type_list)
+    if clusters_by_type_list is not None:
+        clusters_by_type['labels'], clusters_by_type['data'] = zip(*clusters_by_type_list)
     stats['clusters_by_type'] = clusters_by_type
 
     cur.execute(sql.SEARCH_SUMMARY_PHYLUM, (bgc_list,))
     clusters_by_phylum_list = cur.fetchall()
     clusters_by_phylum = {}
-    clusters_by_phylum['labels'], clusters_by_phylum['data'] = zip(*clusters_by_phylum_list)
+    if clusters_by_phylum_list is not None:
+        clusters_by_phylum['labels'], clusters_by_phylum['data'] = zip(*clusters_by_phylum_list)
     stats['clusters_by_phylum'] = clusters_by_phylum
 
     return stats
