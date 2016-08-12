@@ -274,7 +274,7 @@ def export():
 def show_genome(identifier):
     '''show information for a genome by identifier'''
     search_string = '[acc]{}'.format(identifier)
-    _, found_bgcs = search_bgcs(search_string)
+    _, _, found_bgcs = search_bgcs(search_string)
 
     return jsonify(found_bgcs)
 

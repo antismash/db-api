@@ -373,7 +373,7 @@ def test_genome(client, monkeypatch):
 
     def fake_search(search_string):
         '''fake search function'''
-        return reference['count'], reference['clusters']
+        return reference['count'], {}, reference['clusters']
     monkeypatch.setattr(api.api, 'search_bgcs', fake_search)
 
     results = client.get(url_for('show_genome', identifier='fake'))
