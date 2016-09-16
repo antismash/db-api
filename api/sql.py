@@ -40,7 +40,7 @@ CLUSTER_BY_SPECIES_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
-    JOIN antismash.genomes g ON seq.genome = g.genome_id
+    JOIN antismash.genomes g USING (genome_id)
     JOIN antismash.taxa t USING (tax_id)
     WHERE lower(t.species) LIKE lower(%s)"""
 
@@ -48,7 +48,7 @@ CLUSTER_BY_GENUS_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
-    JOIN antismash.genomes g ON seq.genome = g.genome_id
+    JOIN antismash.genomes g USING (genome_id)
     JOIN antismash.taxa t USING (tax_id)
     WHERE lower(t.genus) LIKE lower(%s)"""
 
@@ -56,7 +56,7 @@ CLUSTER_BY_FAMILY_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
-    JOIN antismash.genomes g ON seq.genome = g.genome_id
+    JOIN antismash.genomes g USING (genome_id)
     JOIN antismash.taxa t USING (tax_id)
     WHERE lower(t.family) LIKE lower(%s)"""
 
@@ -64,7 +64,7 @@ CLUSTER_BY_ORDER_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
-    JOIN antismash.genomes g ON seq.genome = g.genome_id
+    JOIN antismash.genomes g USING (genome_id)
     JOIN antismash.taxa t USING (tax_id)
     WHERE lower(t.taxonomic_order) LIKE lower(%s)"""
 
@@ -72,7 +72,7 @@ CLUSTER_BY_CLASS_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
-    JOIN antismash.genomes g ON seq.genome = g.genome_id
+    JOIN antismash.genomes g USING (genome_id)
     JOIN antismash.taxa t USING (tax_id)
     WHERE lower(t.class) LIKE lower(%s)"""
 
@@ -80,7 +80,7 @@ CLUSTER_BY_PHYLUM_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
-    JOIN antismash.genomes g ON seq.genome = g.genome_id
+    JOIN antismash.genomes g USING (genome_id)
     JOIN antismash.taxa t USING (tax_id)
     WHERE lower(t.phylum) LIKE lower(%s)"""
 
@@ -88,7 +88,7 @@ CLUSTER_BY_SUPERKINGDOM_FUZZY = """
 SELECT bgc_id FROM antismash.biosynthetic_gene_clusters bgc
     JOIN antismash.loci l ON bgc.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
-    JOIN antismash.genomes g ON seq.genome = g.genome_id
+    JOIN antismash.genomes g USING (genome_id)
     JOIN antismash.taxa t USING (tax_id)
     WHERE lower(t.superkingdom) LIKE lower(%s)"""
 
@@ -109,7 +109,7 @@ SELECT * FROM
         JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
         JOIN antismash.rel_clusters_types USING (bgc_id)
         JOIN antismash.bgc_types t USING (bgc_type_id)
-        JOIN antismash.genomes genomes ON seq.genome = genomes.genome_id
+        JOIN antismash.genomes genomes USING (genome_id)
         JOIN antismash.taxa taxa USING (tax_id)
             WHERE bgc_id = %s) bgc
 LEFT OUTER JOIN
@@ -169,7 +169,7 @@ SELECT genus FROM antismash.taxa
 TAXTREE_SPECIES = """
 SELECT tax_id, species, acc, version FROM antismash.taxa t
     JOIN antismash.genomes g USING (tax_id)
-    JOIN antismash.dna_sequences s ON s.genome = g.genome_id
+    JOIN antismash.dna_sequences s USING (genome_id)
     WHERE lower(superkingdom) = lower(%s)
     AND lower(phylum) = lower(%s)
     AND lower(class) = lower(%s)
@@ -195,7 +195,7 @@ SELECT term, description, count FROM antismash.bgc_types
 STATS_TAXON_SEQUENCES = """
 SELECT t.tax_id, genus, species, COUNT(acc) AS tax_count
     FROM antismash.dna_sequences
-    JOIN antismash.genomes ON genome=genome_id
+    JOIN antismash.genomes g USING (genome_id)
     JOIN antismash.taxa t USING (tax_id)
     GROUP BY t.tax_id
     ORDER BY tax_count DESC"""
@@ -210,7 +210,7 @@ SELECT
     FROM antismash.biosynthetic_gene_clusters c
     JOIN antismash.loci l ON c.locus = l.locus_id
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
-    JOIN antismash.genomes g ON seq.genome=g.genome_id
+    JOIN antismash.genomes g USING (genome_id)
     JOIN antismash.taxa t USING (tax_id)
     GROUP BY t.tax_id
     ORDER BY clusters_per_seq DESC
@@ -223,7 +223,7 @@ SELECT bgc_id, cluster_number, acc, term, description, species
     JOIN antismash.dna_sequences seq ON l.sequence = seq.sequence_id
     JOIN antismash.rel_clusters_types USING (bgc_id)
     JOIN antismash.bgc_types USING (bgc_type_id)
-    JOIN antismash.genomes g ON seq.genome = g.genome_id
+    JOIN antismash.genomes g USING (genome_id)
     JOIN antismash.taxa t USING (tax_id)
     ORDER BY species, acc, cluster_number"""
 
