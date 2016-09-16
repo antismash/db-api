@@ -253,7 +253,7 @@ AVAILABLE_FAMILY_FUZZY = "SELECT DISTINCT family FROM antismash.taxa WHERE lower
 
 AVAILABLE_ORDER_FUZZY = "SELECT DISTINCT taxonomic_order FROM antismash.taxa WHERE lower(taxonomic_order) LIKE lower(%s)"
 
-AVAILABLE_CLASS_FUZZY = "SELECT DISTINCT class FROM antismash.taxa WHERE lower(class) LIKE lower(%s)"
+AVAILABLE_CLASS_FUZZY = "SELECT DISTINCT class AS cls FROM antismash.taxa WHERE lower(class) LIKE lower(%s)"
 
 AVAILABLE_PHYLUM_FUZZY = "SELECT DISTINCT phylum FROM antismash.taxa WHERE lower(phylum) LIKE lower(%s)"
 
