@@ -3,6 +3,21 @@ import re
 from .helpers import get_db
 import sql
 
+from sqlalchemy import (
+    distinct,
+)
+from .models import (
+    db,
+    BgcType,
+    Compound,
+    DnaSequence,
+    Monomer,
+    Taxa,
+)
+
+
+AVAILABLE = {}
+
 
 def create_cluster_json(bgc_id):
     '''Create the JSONifiable record for a given cluster'''
@@ -241,24 +256,92 @@ def available_term_by_category(category, term):
     cleaned_category = sanitise_string(category)
     cleaned_term = sanitise_string(term)
 
-    cur = get_db().cursor()
-    try:
-        sql_expression = get_sql_by_available(cleaned_category)
-    except AttributeError:
-        print 'not found: {}'.format(cleaned_category)
-        return []
+    if cleaned_category in AVAILABLE:
+        query = AVAILABLE[cleaned_category](cleaned_term)
+        return query.all()
 
-    sql_term = ('{}%'.format(cleaned_term), )
-    if cleaned_category == 'species':
-        sql_term = ('% {}%'.format(cleaned_term), )
+    return []
 
-    cur.execute(sql_expression, sql_term)
-    ret = cur.fetchall()
 
-    if ret is None:
-        return []
+def register_available(func):
+    '''Decorator to register a function as an AVAILABLE handler'''
+    name = func.func_name.split('_')[-1]
+    AVAILABLE[name] = func
 
-    return ret
+    def inner(*args, **kwargs):
+        return func(*args, **kwargs)
+
+
+@register_available
+def available_superkingdom(term):
+    '''Generate query for available superkingdoms'''
+    return db.session.query(distinct(Taxa.superkingdom)).filter(Taxa.superkingdom.ilike('{}%'.format(term)))
+
+
+@register_available
+def available_phylum(term):
+    '''Generate query for available phyla'''
+    return db.session.query(distinct(Taxa.phylum)).filter(Taxa.phylum.ilike('{}%'.format(term)))
+
+
+@register_available
+def available_class(term):
+    '''Generate query for available class'''
+    return db.session.query(distinct(Taxa._class)).filter(Taxa._class.ilike('{}%'.format(term)))
+
+
+@register_available
+def available_order(term):
+    '''Generate query for available order'''
+    return db.session.query(distinct(Taxa.taxonomic_order)).filter(Taxa.taxonomic_order.ilike('{}%'.format(term)))
+
+
+@register_available
+def available_family(term):
+    '''Generate query for available family'''
+    return db.session.query(distinct(Taxa.family)).filter(Taxa.family.ilike('{}%'.format(term)))
+
+
+@register_available
+def available_genus(term):
+    '''Generate query for available genus'''
+    return db.session.query(distinct(Taxa.genus)).filter(Taxa.genus.ilike('{}%'.format(term)))
+
+
+@register_available
+def available_species(term):
+    '''Generate query for available species'''
+    return db.session.query(distinct(Taxa.species)).filter(Taxa.species.ilike('{}%'.format(term)))
+
+
+@register_available
+def available_strain(term):
+    '''Generate query for available strain'''
+    return db.session.query(distinct(Taxa.strain)).filter(Taxa.strain.ilike('{}%'.format(term)))
+
+
+@register_available
+def available_acc(term):
+    '''Generate query for available accession'''
+    return db.session.query(distinct(DnaSequence.acc)).filter(DnaSequence.acc.ilike('{}%'.format(term)))
+
+
+@register_available
+def available_compound(term):
+    '''Generate query for available compound by peptide sequence'''
+    return db.session.query(distinct(Compound.peptide_sequence)).filter(Compound.peptide_sequence.ilike('{}%'.format(term)))
+
+
+@register_available
+def available_monomer(term):
+    '''Generate query for available monomer'''
+    return db.session.query(distinct(Monomer.name)).filter(Monomer.name.ilike('{}%'.format(term)))
+
+
+@register_available
+def available_type(term):
+    '''Generate query for available type'''
+    return db.session.query(distinct(BgcType.term)).filter(BgcType.term.ilike('{}%'.format(term)))
 
 
 def get_sql_by_available(category):
