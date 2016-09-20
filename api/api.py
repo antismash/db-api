@@ -6,6 +6,7 @@ from flask import (
     request,
     send_file,
 )
+import sqlalchemy
 from . import app
 from .helpers import get_db
 from .search import (
@@ -21,7 +22,8 @@ def get_version():
     '''display the API version'''
     from .version import __version__ as api_version
     ret = {
-        'api': api_version
+        'api': api_version,
+        'sqlalchemy': sqlalchemy.__version__
     }
     return jsonify(ret)
 
