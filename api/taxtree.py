@@ -100,13 +100,19 @@ def get_genus(cur, params):
 def get_species(cur, params):
     '''Get list of species per kingdom/phylum/class/order/family/genus'''
     tree = []
-    cur.execute(sql.TAXTREE_SPECIES, params)
-    strains = cur.fetchall()
-    for strain in strains:
-        tree.append(_create_tree_node('{}'.format(strain.acc.lower()),
+    species = db.session.query(Taxa.species) \
+                        .filter(Taxa.superkingdom.ilike(params[0])) \
+                        .filter(Taxa.phylum.ilike(params[1])) \
+                        .filter(Taxa._class.ilike(params[2])) \
+                        .filter(Taxa.taxonomic_order.ilike(params[3])) \
+                        .filter(Taxa.family.ilike(params[4])) \
+                        .filter(Taxa.genus.ilike(params[5])) \
+                        .group_by(Taxa.species).order_by(Taxa.species)
+    for sp in species:
+        id_list = params + [sp[0].lower()]
+        tree.append(_create_tree_node('species_{}'.format('_'.join(id_list)),
                                       'genus_{}'.format('_'.join(params)),
-                                      '{} {}.{}'.format(strain.species, strain.acc, strain.version),
-                                      disabled=False, leaf=True))
+                                      sp[0]))
 
     return tree
 
