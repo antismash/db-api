@@ -148,7 +148,7 @@ def get_taxon_tree():
     }
 
     if tree_id == '1':
-        tree = taxtree.get_superkingdom(cur)
+        tree = taxtree.get_superkingdom()
     else:
         params = tree_id.split('_')
         taxlevel = params[0]

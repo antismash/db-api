@@ -1,12 +1,15 @@
 '''Functions related to building the taxonomic tree data'''
 import sql
+from .models import (
+    db,
+    Taxa,
+)
 
 
-def get_superkingdom(cur):
+def get_superkingdom():
     '''Get list of superkingdoms'''
     tree = []
-    cur.execute(sql.TAXTREE_SUPERKINGOM)
-    kingdoms = cur.fetchall()
+    kingdoms = db.session.query(Taxa.superkingdom).group_by(Taxa.superkingdom).order_by(Taxa.superkingdom)
     for kingdom in kingdoms:
         tree.append(_create_tree_node('superkingdom_{}'.format(kingdom[0].lower()),
                                       '#', kingdom[0]))
