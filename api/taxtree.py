@@ -34,8 +34,10 @@ def get_phylum(cur, params):
 def get_class(cur, params):
     '''Get list of classes per kingdom/phylum'''
     tree = []
-    cur.execute(sql.TAXTREE_CLASS, params)
-    classes = cur.fetchall()
+    classes = db.session.query(Taxa._class) \
+                        .filter(Taxa.superkingdom.ilike(params[0])) \
+                        .filter(Taxa.phylum.ilike(params[1])) \
+                        .group_by(Taxa._class).order_by(Taxa._class)
     for cls in classes:
         id_list = params + [cls[0].lower()]
         tree.append(_create_tree_node('class_{}'.format('_'.join(id_list)),
