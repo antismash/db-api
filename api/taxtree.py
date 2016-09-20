@@ -49,8 +49,11 @@ def get_class(cur, params):
 def get_order(cur, params):
     '''Get list of oders per kingdom/phylum/class'''
     tree = []
-    cur.execute(sql.TAXTREE_ORDER, params)
-    orders = cur.fetchall()
+    orders = db.session.query(Taxa.taxonomic_order) \
+                       .filter(Taxa.superkingdom.ilike(params[0])) \
+                       .filter(Taxa.phylum.ilike(params[1])) \
+                       .filter(Taxa._class.ilike(params[2])) \
+                       .group_by(Taxa.taxonomic_order).order_by(Taxa.taxonomic_order)
     for order in orders:
         id_list = params + [order[0].lower()]
         tree.append(_create_tree_node('order_{}'.format('_'.join(id_list)),
