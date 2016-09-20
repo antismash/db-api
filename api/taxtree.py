@@ -20,8 +20,8 @@ def get_superkingdom():
 def get_phylum(cur, params):
     '''Get list of phyla per kingdom'''
     tree = []
-    cur.execute(sql.TAXTREE_PHYLUM, params)
-    phyla = cur.fetchall()
+    phyla = db.session.query(Taxa.phylum).filter(Taxa.superkingdom.ilike(params[0])) \
+                      .group_by(Taxa.phylum).order_by(Taxa.phylum)
     for phylum in phyla:
         id_list = params + [phylum[0].lower()]
         tree.append(_create_tree_node('phylum_{}'.format('_'.join(id_list)),
