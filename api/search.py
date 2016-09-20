@@ -232,6 +232,9 @@ for item in '0123456789':
     WHITELIST.add(item)
 WHITELIST.add('_')
 WHITELIST.add('-')
+WHITELIST.add('(')
+WHITELIST.add(')')
+WHITELIST.add(' ')
 
 
 def sanitise_string(search_string):
