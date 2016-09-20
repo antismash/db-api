@@ -345,9 +345,3 @@ def available_monomer(term):
 def available_type(term):
     '''Generate query for available type'''
     return db.session.query(distinct(BgcType.term)).filter(BgcType.term.ilike('{}%'.format(term)))
-
-
-def get_sql_by_available(category):
-    '''Get the appropriate SQL expression for an AVAILABLE check'''
-    attr = 'AVAILABLE_{}_FUZZY'.format(category.upper())
-    return getattr(sql, attr)
