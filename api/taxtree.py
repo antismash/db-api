@@ -82,8 +82,13 @@ def get_family(cur, params):
 def get_genus(cur, params):
     '''Get list of genera per kingdom/phylum/class/order/family'''
     tree = []
-    cur.execute(sql.TAXTREE_GENUS, params)
-    genera = cur.fetchall()
+    genera = db.session.query(Taxa.genus) \
+                       .filter(Taxa.superkingdom.ilike(params[0])) \
+                       .filter(Taxa.phylum.ilike(params[1])) \
+                       .filter(Taxa._class.ilike(params[2])) \
+                       .filter(Taxa.taxonomic_order.ilike(params[3])) \
+                       .filter(Taxa.family.ilike(params[4])) \
+                       .group_by(Taxa.genus).order_by(Taxa.genus)
     for genus in genera:
         id_list = params + [genus[0].lower()]
         tree.append(_create_tree_node('genus_{}'.format('_'.join(id_list)),
