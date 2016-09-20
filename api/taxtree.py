@@ -65,8 +65,12 @@ def get_order(cur, params):
 def get_family(cur, params):
     '''Get list of families per kingdom/phylum/class/order'''
     tree = []
-    cur.execute(sql.TAXTREE_FAMILY, params)
-    families = cur.fetchall()
+    families = db.session.query(Taxa.family) \
+                         .filter(Taxa.superkingdom.ilike(params[0])) \
+                         .filter(Taxa.phylum.ilike(params[1])) \
+                         .filter(Taxa._class.ilike(params[2])) \
+                         .filter(Taxa.taxonomic_order.ilike(params[3])) \
+                         .group_by(Taxa.family).order_by(Taxa.family)
     for family in families:
         id_list = params + [family[0].lower()]
         tree.append(_create_tree_node('family_{}'.format('_'.join(id_list)),
