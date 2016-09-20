@@ -2,6 +2,8 @@
 import sql
 from .models import (
     db,
+    DnaSequence,
+    Genome,
     Taxa,
 )
 
@@ -114,6 +116,28 @@ def get_species(cur, params):
                                       'genus_{}'.format('_'.join(params)),
                                       sp[0]))
 
+    return tree
+
+
+def get_strains(cur, params):
+    '''Get list of strains per kingdom/phylum/class/order/family/genus/species'''
+    tree = []
+    strains = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain,
+                               DnaSequence.acc, DnaSequence.version) \
+                        .join(Genome).join(DnaSequence) \
+                        .filter(Taxa.superkingdom.ilike(params[0])) \
+                        .filter(Taxa.phylum.ilike(params[1])) \
+                        .filter(Taxa._class.ilike(params[2])) \
+                        .filter(Taxa.taxonomic_order.ilike(params[3])) \
+                        .filter(Taxa.family.ilike(params[4])) \
+                        .filter(Taxa.genus.ilike(params[5])) \
+                        .filter(Taxa.species.ilike(params[6])) \
+                        .order_by(Taxa.strain)
+    for strain in strains:
+        tree.append(_create_tree_node('{}'.format(strain.acc.lower()),
+                                      'species_{}'.format('_'.join(params)),
+                                      '{s.genus} {s.species} {s.strain} {s.acc}.{s.version}'.format(s=strain),
+                                      disabled=False, leaf=True))
     return tree
 
 

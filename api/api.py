@@ -145,6 +145,7 @@ def get_taxon_tree():
         'order': taxtree.get_family,
         'family': taxtree.get_genus,
         'genus': taxtree.get_species,
+        'species': taxtree.get_strains,
     }
 
     if tree_id == '1':
