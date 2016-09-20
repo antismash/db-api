@@ -97,9 +97,14 @@ def get_stats():
 @app.route('/api/v1.0/tree/secmet')
 def get_sec_met_tree():
     '''Get the jsTree structure for secondary metabolite clusters'''
-    cur = get_db().cursor()
-    cur.execute(sql.SECMET_TREE)
-    ret = cur.fetchall()
+    ret = db.session.query(Bgc.bgc_id, Bgc.cluster_number,
+                           DnaSequence.acc,
+                           BgcType.term, BgcType.description,
+                           Taxa.genus, Taxa.species) \
+                    .join(t_rel_clusters_types).join(BgcType).join(Locus) \
+                    .join(DnaSequence).join(Genome).join(Taxa) \
+                    .order_by(Taxa.genus, Taxa.species, DnaSequence.acc, Bgc.cluster_number) \
+                    .all()
 
     clusters = []
     types = {}
