@@ -7,12 +7,29 @@ from flask import (
     send_file,
 )
 import sqlalchemy
+from sqlalchemy import (
+    cast,
+    desc as sql_desc,
+    distinct,
+    Float,
+    func,
+)
 from . import app
 from .helpers import get_db
 from .search import (
     search_bgcs,
     create_cluster_csv,
     available_term_by_category,
+)
+from .models import (
+    db,
+    BgcType,
+    BiosyntheticGeneCluster as Bgc,
+    DnaSequence,
+    Genome,
+    Locus,
+    Taxa,
+    t_rel_clusters_types,
 )
 import sql
 
@@ -31,32 +48,33 @@ def get_version():
 @app.route('/api/v1.0/stats')
 def get_stats():
     '''contents for the stats page'''
-    cur = get_db().cursor()
-    cur.execute(sql.STATS_CLUSTER_COUNT)
-    num_clusters = cur.fetchone()[0]
+    num_clusters = Bgc.query.count()
 
-    cur.execute(sql.STATS_GENOME_COUNT)
-    num_genomes = cur.fetchone()[0]
+    num_genomes = Genome.query.count()
 
-    cur.execute(sql.STATS_SEQUENCE_COUNT)
-    num_sequences = cur.fetchone()[0]
+    num_sequences = DnaSequence.query.count()
 
     clusters = []
 
-    cur.execute(sql.STATS_COUNTS_BY_TYPE)
-    ret = cur.fetchall()
+    sub = db.session.query(t_rel_clusters_types.c.bgc_type_id, func.count(1).label('count')) \
+                    .group_by(t_rel_clusters_types.c.bgc_type_id).subquery()
+    ret = db.session.query(BgcType.term, BgcType.description, sub.c.count).join(sub) \
+                    .order_by(sub.c.count.desc())
     for cluster in ret:
         clusters.append({'name': cluster.term, 'description': cluster.description, 'count': cluster.count})
 
-
-    cur.execute(sql.STATS_TAXON_SEQUENCES)
-    ret = cur.fetchone()
+    ret = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, func.count(DnaSequence.acc).label('tax_count')) \
+                    .join(Genome).join(DnaSequence) \
+                    .group_by(Taxa.tax_id).order_by(sql_desc('tax_count')).limit(1).first()
     top_seq_taxon = ret.tax_id
     top_seq_taxon_count = ret.tax_count
 
 
-    cur.execute(sql.STATS_TAXON_SECMETS)
-    ret = cur.fetchone()
+    ret = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, func.count(distinct(Bgc.bgc_id)).label('bgc_count'),
+                           func.count(distinct(DnaSequence.acc)).label('seq_count'),
+                           (cast(func.count(distinct(Bgc.bgc_id)), Float) / func.count(distinct(DnaSequence.acc))).label('clusters_per_seq')) \
+                    .join(Genome).join(DnaSequence).join(Locus).join(Bgc) \
+                    .group_by(Taxa.tax_id).order_by(sql_desc('clusters_per_seq')).limit(1).first()
     top_secmet_taxon = ret.tax_id
     top_secmet_species = ret.species
     top_secmet_taxon_count = ret.clusters_per_seq
