@@ -15,7 +15,6 @@ from sqlalchemy import (
     func,
 )
 from . import app, taxtree
-from .helpers import get_db
 from .search import (
     search_bgcs,
     create_cluster_csv,
@@ -136,8 +135,6 @@ def get_taxon_tree():
     '''Get the jsTree structure for all taxa'''
     tree_id = request.args.get('id', '1')
 
-    cur = get_db().cursor()
-
     HANDLERS = {
         'superkingdom': taxtree.get_phylum,
         'phylum': taxtree.get_class,
@@ -155,7 +152,7 @@ def get_taxon_tree():
         taxlevel = params[0]
         params = params[1:]
         handler = HANDLERS.get(taxlevel, lambda x, y: [])
-        tree = handler(cur, params)
+        tree = handler(params)
 
     return jsonify(tree)
 

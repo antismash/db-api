@@ -1,5 +1,4 @@
 '''Functions related to building the taxonomic tree data'''
-import sql
 from .models import (
     db,
     DnaSequence,
@@ -19,7 +18,7 @@ def get_superkingdom():
     return tree
 
 
-def get_phylum(cur, params):
+def get_phylum(params):
     '''Get list of phyla per kingdom'''
     tree = []
     phyla = db.session.query(Taxa.phylum).filter(Taxa.superkingdom.ilike(params[0])) \
@@ -33,7 +32,7 @@ def get_phylum(cur, params):
     return tree
 
 
-def get_class(cur, params):
+def get_class(params):
     '''Get list of classes per kingdom/phylum'''
     tree = []
     classes = db.session.query(Taxa._class) \
@@ -48,7 +47,7 @@ def get_class(cur, params):
     return tree
 
 
-def get_order(cur, params):
+def get_order(params):
     '''Get list of oders per kingdom/phylum/class'''
     tree = []
     orders = db.session.query(Taxa.taxonomic_order) \
@@ -64,7 +63,7 @@ def get_order(cur, params):
     return tree
 
 
-def get_family(cur, params):
+def get_family(params):
     '''Get list of families per kingdom/phylum/class/order'''
     tree = []
     families = db.session.query(Taxa.family) \
@@ -81,7 +80,7 @@ def get_family(cur, params):
     return tree
 
 
-def get_genus(cur, params):
+def get_genus(params):
     '''Get list of genera per kingdom/phylum/class/order/family'''
     tree = []
     genera = db.session.query(Taxa.genus) \
@@ -99,7 +98,7 @@ def get_genus(cur, params):
     return tree
 
 
-def get_species(cur, params):
+def get_species(params):
     '''Get list of species per kingdom/phylum/class/order/family/genus'''
     tree = []
     species = db.session.query(Taxa.species) \
@@ -119,7 +118,7 @@ def get_species(cur, params):
     return tree
 
 
-def get_strains(cur, params):
+def get_strains(params):
     '''Get list of strains per kingdom/phylum/class/order/family/genus/species'''
     tree = []
     strains = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain,
