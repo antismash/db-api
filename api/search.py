@@ -5,18 +5,22 @@ import sql
 
 from sqlalchemy import (
     distinct,
+    or_,
 )
 from .models import (
     db,
     BgcType,
+    BiosyntheticGeneCluster as Bgc,
     Compound,
     DnaSequence,
     Monomer,
     Taxa,
+    t_rel_clusters_types,
 )
 
 
 AVAILABLE = {}
+CLUSTERS = {}
 
 
 def register_handler(handler):
@@ -216,6 +220,14 @@ def clusters_by_category(category, term):
         found_clusters.add(cluster.bgc_id)
 
     return found_clusters
+
+
+@register_handler(CLUSTERS)
+def clusters_by_type(term):
+    '''Return a query for a bgc by type or type description search'''
+    all_subtypes = db.session.query(BgcType).filter(or_(BgcType.term == term, BgcType.description.ilike('%{}%'.format(term)))).cte(name="all_subtypes", recursive=True)
+    all_subtypes = all_subtypes.union(db.session.query(BgcType).filter(BgcType.parent_id == all_subtypes.c.bgc_type_id))
+    return db.session.query(Bgc.bgc_id).join(t_rel_clusters_types).join(all_subtypes)
 
 
 def get_sql_by_category(category):
