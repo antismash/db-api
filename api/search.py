@@ -27,7 +27,7 @@ def register_handler(handler):
     '''Decorator to register a function as a handler'''
     def real_decorator(function):
         name = function.func_name.split('_')[-1]
-        AVAILABLE[name] = function
+        handler[name] = function
 
         def inner(*args, **kwargs):
             return function(*args, **kwargs)
