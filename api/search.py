@@ -12,7 +12,9 @@ from .models import (
     BgcType,
     BiosyntheticGeneCluster as Bgc,
     Compound,
+    Genome,
     DnaSequence,
+    Locus,
     Monomer,
     Taxa,
     t_rel_clusters_types,
@@ -290,6 +292,12 @@ def clusters_by_type(term):
     all_subtypes = db.session.query(BgcType).filter(or_(BgcType.term == term, BgcType.description.ilike('%{}%'.format(term)))).cte(recursive=True)
     all_subtypes = all_subtypes.union(db.session.query(BgcType).filter(BgcType.parent_id == all_subtypes.c.bgc_type_id))
     return db.session.query(Bgc).join(t_rel_clusters_types).join(all_subtypes)
+
+
+@register_handler(CLUSTERS)
+def clusters_by_genus(term):
+    '''Return a query for a bgc by genus search'''
+    return Bgc.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.genus.ilike('%{}%'.format(term)))
 
 
 
