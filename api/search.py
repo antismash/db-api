@@ -124,11 +124,7 @@ def core_search(query):
 
     results = sql_query.all()
 
-    if query['return_type'] == 'json':
-        if query['search'] == 'cluster':
-            return clusters_to_json(results)
-
-    return []
+    return results
 
 
 def clusters_to_json(clusters):
@@ -169,6 +165,18 @@ def clusters_to_json(clusters):
 
         json_clusters.append(json_cluster)
     return json_clusters
+
+
+def clusters_to_csv(clusters):
+    '''Convert model.BiosyntheticGeneClusters into CSV'''
+    json_clusters = clusters_to_json(clusters)
+    print(json_clusters)
+    csv_lines = ['#Species\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL']
+    for cluster in json_clusters:
+        csv_lines.append('{species}\t{acc}.{version}\t{cluster_number}\t{term}\t{start_pos}\t{end_pos}\t'
+                         '{cbh_description}\t{similarity}\t{cbh_acc}\t'
+                         'http://antismash-db.secondarymetabolites.org/output/{acc}/index.html#cluster-{cluster_number}'.format(**cluster))
+    return csv_lines
 
 
 def cluster_query_from_term(term):

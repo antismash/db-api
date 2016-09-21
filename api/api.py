@@ -1,7 +1,9 @@
 '''The API calls'''
 
 import StringIO
+import json
 from flask import (
+    abort,
     jsonify,
     request,
     send_file,
@@ -19,6 +21,8 @@ from .search import (
     search_bgcs,
     core_search,
     json_stats,
+    clusters_to_csv,
+    clusters_to_json,
     create_cluster_csv,
     available_term_by_category,
 )
@@ -165,7 +169,11 @@ def search():
         return old_search()
 
     # FIXME: Maybe sanitize the query object?
-    clusters = core_search(request.json['query'])
+
+    if request.json['query']['return_type'] != 'json':
+        abort(400)
+
+    clusters = clusters_to_json(core_search(request.json['query']))
     stats = json_stats(clusters)
 
     result = {
@@ -208,17 +216,30 @@ def old_search():
 @app.route('/api/v1.0/export', methods=['POST'])
 def export():
     '''Export the search results as CSV file'''
-    search_string = request.json.get('search_string', '')
-    _, _, found_bgcs = search_bgcs(search_string, mapfunc=create_cluster_csv)
+    if 'query' not in request.json:
+        search_string = request.json.get('search_string', '')
+        _, _, found_bgcs = search_bgcs(search_string, mapfunc=create_cluster_csv)
+        found_bgcs.insert(0, '#Species\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL')
+        filename = 'asdb_search_results.csv'
+    else:
+        # FIXME: Maybe sanitize the query object?
+        found_bgcs = core_search(request.json['query'])
+        return_type = request.json['query']['return_type']
+        filename = 'asdb_search_results.{}'.format(return_type)
+        if return_type == 'csv':
+            found_bgcs = clusters_to_csv(found_bgcs)
+        elif return_type == 'json':
+            found_bgcs = [json.dumps(clusters_to_json(found_bgcs))]
 
-    found_bgcs.insert(0, '#Species\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL')
 
     handle = StringIO.StringIO()
     for line in found_bgcs:
         handle.write('{}\n'.format(line))
 
     handle.seek(0)
-    return send_file(handle, attachment_filename='asdb_search_results.csv', as_attachment=True)
+
+
+    return send_file(handle, attachment_filename=filename, as_attachment=True)
 
 
 @app.route('/api/v1.0/genome/<identifier>')
