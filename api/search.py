@@ -287,7 +287,7 @@ def clusters_by_category(category, term):
 @register_handler(CLUSTERS)
 def clusters_by_type(term):
     '''Return a query for a bgc by type or type description search'''
-    all_subtypes = db.session.query(BgcType).filter(or_(BgcType.term == term, BgcType.description.ilike('%{}%'.format(term)))).cte(name="all_subtypes", recursive=True)
+    all_subtypes = db.session.query(BgcType).filter(or_(BgcType.term == term, BgcType.description.ilike('%{}%'.format(term)))).cte(recursive=True)
     all_subtypes = all_subtypes.union(db.session.query(BgcType).filter(BgcType.parent_id == all_subtypes.c.bgc_type_id))
     return db.session.query(Bgc).join(t_rel_clusters_types).join(all_subtypes)
 
