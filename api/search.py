@@ -19,6 +19,18 @@ from .models import (
 AVAILABLE = {}
 
 
+def register_handler(handler):
+    '''Decorator to register a function as a handler'''
+    def real_decorator(function):
+        name = function.func_name.split('_')[-1]
+        AVAILABLE[name] = function
+
+        def inner(*args, **kwargs):
+            return function(*args, **kwargs)
+        return inner
+    return real_decorator
+
+
 def create_cluster_json(bgc_id):
     '''Create the JSONifiable record for a given cluster'''
     cur = get_db().cursor()
@@ -266,82 +278,73 @@ def available_term_by_category(category, term):
     return []
 
 
-def register_available(func):
-    '''Decorator to register a function as an AVAILABLE handler'''
-    name = func.func_name.split('_')[-1]
-    AVAILABLE[name] = func
-
-    def inner(*args, **kwargs):
-        return func(*args, **kwargs)
-
-
-@register_available
+@register_handler(AVAILABLE)
 def available_superkingdom(term):
     '''Generate query for available superkingdoms'''
     return db.session.query(distinct(Taxa.superkingdom)).filter(Taxa.superkingdom.ilike('{}%'.format(term)))
 
 
-@register_available
+@register_handler(AVAILABLE)
 def available_phylum(term):
     '''Generate query for available phyla'''
     return db.session.query(distinct(Taxa.phylum)).filter(Taxa.phylum.ilike('{}%'.format(term)))
 
 
-@register_available
+@register_handler(AVAILABLE)
 def available_class(term):
     '''Generate query for available class'''
     return db.session.query(distinct(Taxa._class)).filter(Taxa._class.ilike('{}%'.format(term)))
 
 
-@register_available
+@register_handler(AVAILABLE)
 def available_order(term):
     '''Generate query for available order'''
     return db.session.query(distinct(Taxa.taxonomic_order)).filter(Taxa.taxonomic_order.ilike('{}%'.format(term)))
 
 
-@register_available
+@register_handler(AVAILABLE)
 def available_family(term):
     '''Generate query for available family'''
     return db.session.query(distinct(Taxa.family)).filter(Taxa.family.ilike('{}%'.format(term)))
 
 
-@register_available
+@register_handler(AVAILABLE)
 def available_genus(term):
     '''Generate query for available genus'''
     return db.session.query(distinct(Taxa.genus)).filter(Taxa.genus.ilike('{}%'.format(term)))
 
 
-@register_available
+@register_handler(AVAILABLE)
 def available_species(term):
     '''Generate query for available species'''
     return db.session.query(distinct(Taxa.species)).filter(Taxa.species.ilike('{}%'.format(term)))
 
 
-@register_available
+@register_handler(AVAILABLE)
 def available_strain(term):
     '''Generate query for available strain'''
     return db.session.query(distinct(Taxa.strain)).filter(Taxa.strain.ilike('{}%'.format(term)))
 
 
-@register_available
+@register_handler(AVAILABLE)
 def available_acc(term):
     '''Generate query for available accession'''
     return db.session.query(distinct(DnaSequence.acc)).filter(DnaSequence.acc.ilike('{}%'.format(term)))
 
 
-@register_available
+@register_handler(AVAILABLE)
 def available_compound(term):
     '''Generate query for available compound by peptide sequence'''
     return db.session.query(distinct(Compound.peptide_sequence)).filter(Compound.peptide_sequence.ilike('{}%'.format(term)))
 
 
-@register_available
+@register_handler(AVAILABLE)
 def available_monomer(term):
     '''Generate query for available monomer'''
     return db.session.query(distinct(Monomer.name)).filter(Monomer.name.ilike('{}%'.format(term)))
 
 
-@register_available
+@register_handler(AVAILABLE)
 def available_type(term):
     '''Generate query for available type'''
     return db.session.query(distinct(BgcType.term)).filter(BgcType.term.ilike('{}%'.format(term)))
