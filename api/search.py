@@ -319,9 +319,51 @@ def clusters_by_type(term):
 
 
 @register_handler(CLUSTERS)
+def clusters_by_strain(term):
+    '''Return a query for a bgc by strain search'''
+    return Bgc.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.strain.ilike('%{}%'.format(term)))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_species(term):
+    '''Return a query for a bgc by species search'''
+    return Bgc.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.species.ilike('%{}%'.format(term)))
+
+
+@register_handler(CLUSTERS)
 def clusters_by_genus(term):
     '''Return a query for a bgc by genus search'''
     return Bgc.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.genus.ilike('%{}%'.format(term)))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_family(term):
+    '''Return a query for a bgc by family search'''
+    return Bgc.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.family.ilike('%{}%'.format(term)))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_order(term):
+    '''Return a query for a bgc by order search'''
+    return Bgc.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.taxonomic_order.ilike('%{}%'.format(term)))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_class(term):
+    '''Return a query for a bgc by class search'''
+    return Bgc.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Taxa._class.ilike('%{}%'.format(term)))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_phylum(term):
+    '''Return a query for a bgc by phylum search'''
+    return Bgc.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.phylum.ilike('%{}%'.format(term)))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_superkingdom(term):
+    '''Return a query for a bgc by superkingdom search'''
+    return Bgc.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.superkingdom.ilike('%{}%'.format(term)))
 
 
 @register_handler(CLUSTERS)
