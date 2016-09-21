@@ -337,6 +337,12 @@ def clusters_by_acc(term):
     return Bgc.query.join(Locus).join(DnaSequence).filter(DnaSequence.acc.ilike('%{}%'.format(term)))
 
 
+@register_handler(CLUSTERS)
+def clusters_by_compoundseq(term):
+    '''Return a query for a bgc by compound sequence search'''
+    return Bgc.query.join(t_rel_clusters_compounds).join(Compound).filter(Compound.peptide_sequence.ilike('%{}%'.format(term)))
+
+
 def get_sql_by_category(category):
     '''Get the appropriate SQL expression'''
     attr = 'CLUSTER_BY_{}'.format(category.upper())
