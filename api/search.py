@@ -17,7 +17,9 @@ from .models import (
     Locus,
     Monomer,
     Taxa,
+    t_rel_clusters_compounds,
     t_rel_clusters_types,
+    RelCompoundsMonomer,
 )
 
 
@@ -300,6 +302,11 @@ def clusters_by_genus(term):
     return Bgc.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.genus.ilike('%{}%'.format(term)))
 
 
+@register_handler(CLUSTERS)
+def clusters_by_monomer(term):
+    '''Return a query for a bgc by monomer or monomer description search'''
+    return Bgc.query.join(t_rel_clusters_compounds).join(RelCompoundsMonomer, t_rel_clusters_compounds.c.compound_id == RelCompoundsMonomer.compound_id).join(Monomer).filter(
+        or_(Monomer.name.ilike(term), Monomer.description.ilike('%{}%'.format(term))))
 
 
 def get_sql_by_category(category):
