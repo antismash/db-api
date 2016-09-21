@@ -27,6 +27,13 @@ AVAILABLE = {}
 CLUSTERS = {}
 
 
+class NoneQuery(object):
+    '''A 'no result' return object'''
+    def all(self):
+        '''Just return an empty list'''
+        return []
+
+
 def register_handler(handler):
     '''Decorator to register a function as a handler'''
     def real_decorator(function):
