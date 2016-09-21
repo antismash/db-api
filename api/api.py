@@ -17,6 +17,7 @@ from sqlalchemy import (
 from . import app, taxtree
 from .search import (
     search_bgcs,
+    core_search,
     create_cluster_csv,
     available_term_by_category,
 )
@@ -159,6 +160,24 @@ def get_taxon_tree():
 
 @app.route('/api/v1.0/search', methods=['POST'])
 def search():
+    if 'query' not in request.json:
+        return old_search()
+
+    # FIXME: Maybe sanitize the query object?
+    clusters = core_search(request.json['query'])
+
+    result = {
+        'total': len(clusters),
+        'clusters': clusters,
+        'offset': 0,
+        'paginate': 42,
+        'stats': {},
+    }
+
+    return jsonify(result)
+
+
+def old_search():
     '''Handle searching the database'''
     search_string = request.json.get('search_string', '')
     try:

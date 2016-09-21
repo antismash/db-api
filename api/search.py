@@ -103,6 +103,68 @@ def search_bgcs(search_string, offset=0, paginate=0, mapfunc=create_cluster_json
     return total, stats, map(mapfunc, bgc_list[offset:end])
 
 
+def core_search(query):
+    '''Actually run the search logic'''
+    sql_query = cluster_query_from_term(query['terms'])
+    results = sql_query.all()
+
+    if query['return_type'] == 'json':
+        return clusters_to_json(results)
+
+    return []
+
+
+def clusters_to_json(clusters):
+    '''Convert model.BiosyntheticGeneClusters into JSON'''
+    json_clusters = []
+    for cluster in clusters:
+        json_cluster = {}
+        json_cluster['bgc_id'] = cluster.bgc_id
+        json_cluster['cluster_number'] = cluster.cluster_number
+
+        json_cluster['start_pos'] = cluster.locus.start_pos
+        json_cluster['end_pos'] = cluster.locus.end_pos
+
+        json_cluster['acc'] = cluster.locus.sequence.acc
+        json_cluster['version'] = cluster.locus.sequence.version
+
+        json_cluster['genus'] = cluster.locus.sequence.genome.tax.genus
+        json_cluster['species'] = cluster.locus.sequence.genome.tax.species
+        json_cluster['strain'] = cluster.locus.sequence.genome.tax.strain
+
+        term = '-'.join([t.term for t in cluster.bgc_types])
+        if len(cluster.bgc_types) == 1:
+            json_cluster['description'] = cluster.bgc_types[0].description
+            json_cluster['term'] = term
+        else:
+            json_cluster['description'] = 'Hybrid cluster: {}'.format(term)
+            json_cluster['term'] = '{} hybrid'.format(term)
+
+        json_cluster['similarity'] = None
+        json_cluster['cbh_description'] = None
+        json_cluster['cbh_acc'] = None
+
+        knownclusterblasts = [hit for hit in cluster.clusterblast_hits if hit.algorithm.name == 'knownclusterblast']
+        if len(knownclusterblasts) > 0:
+            json_cluster['similarity'] = knownclusterblasts[0].similarity
+            json_cluster['cbh_description'] = knownclusterblasts[0].description
+            json_cluster['cbh_acc'] = knownclusterblasts[0].acc
+
+        json_clusters.append(json_cluster)
+    return json_clusters
+
+
+def cluster_query_from_term(term):
+    '''Recursively generate an SQL query from the search terms'''
+    if term['term_type'] == 'expr':
+        print term
+        print CLUSTERS
+        if term['category'] in CLUSTERS:
+            return CLUSTERS[term['category']](term['term'])
+        else:
+            return None
+
+
 def calculate_stats(bgc_list):
     '''Calculate some stats on the search results'''
     cur = get_db().cursor()
@@ -227,7 +289,9 @@ def clusters_by_type(term):
     '''Return a query for a bgc by type or type description search'''
     all_subtypes = db.session.query(BgcType).filter(or_(BgcType.term == term, BgcType.description.ilike('%{}%'.format(term)))).cte(name="all_subtypes", recursive=True)
     all_subtypes = all_subtypes.union(db.session.query(BgcType).filter(BgcType.parent_id == all_subtypes.c.bgc_type_id))
-    return db.session.query(Bgc.bgc_id).join(t_rel_clusters_types).join(all_subtypes)
+    return db.session.query(Bgc).join(t_rel_clusters_types).join(all_subtypes)
+
+
 
 
 def get_sql_by_category(category):
