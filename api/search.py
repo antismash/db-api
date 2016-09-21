@@ -116,11 +116,16 @@ def search_bgcs(search_string, offset=0, paginate=0, mapfunc=create_cluster_json
 
 def core_search(query):
     '''Actually run the search logic'''
-    sql_query = cluster_query_from_term(query['terms'])
+    sql_query = NoneQuery()
+
+    if query['search'] == 'cluster':
+        sql_query = cluster_query_from_term(query['terms'])
+
     results = sql_query.all()
 
     if query['return_type'] == 'json':
-        return clusters_to_json(results)
+        if query['search'] == 'cluster':
+            return clusters_to_json(results)
 
     return []
 
