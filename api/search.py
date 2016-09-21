@@ -331,6 +331,12 @@ def clusters_by_monomer(term):
         or_(Monomer.name.ilike(term), Monomer.description.ilike('%{}%'.format(term))))
 
 
+@register_handler(CLUSTERS)
+def clusters_by_acc(term):
+    '''Return a query for a bgc by accession number search'''
+    return Bgc.query.join(Locus).join(DnaSequence).filter(DnaSequence.acc.ilike('%{}%'.format(term)))
+
+
 def get_sql_by_category(category):
     '''Get the appropriate SQL expression'''
     attr = 'CLUSTER_BY_{}'.format(category.upper())
