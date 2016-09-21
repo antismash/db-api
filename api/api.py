@@ -151,7 +151,7 @@ def get_taxon_tree():
         params = tree_id.split('_')
         taxlevel = params[0]
         params = params[1:]
-        handler = HANDLERS.get(taxlevel, lambda x, y: [])
+        handler = HANDLERS.get(taxlevel, lambda x: [])
         tree = handler(params)
 
     return jsonify(tree)
