@@ -173,12 +173,22 @@ def clusters_to_json(clusters):
 def cluster_query_from_term(term):
     '''Recursively generate an SQL query from the search terms'''
     if term['term_type'] == 'expr':
-        print term
-        print CLUSTERS
         if term['category'] in CLUSTERS:
             return CLUSTERS[term['category']](term['term'])
         else:
-            return None
+            # FIXME: once all categories are implemented, return a NoneQuery
+            raise NotImplementedError(term['category'])
+    elif term['term_type'] == 'op':
+        left_query = cluster_query_from_term(term['left'])
+        right_query = cluster_query_from_term(term['right'])
+        if term['operation'] == 'except':
+            return left_query.except_(right_query)
+        elif term['operation'] == 'or':
+            return left_query.union(right_query)
+        elif term['operation'] == 'and':
+            return left_query.intersect(right_query)
+
+    return NoneQuery()
 
 
 def calculate_stats(bgc_list):
