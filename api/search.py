@@ -5,6 +5,7 @@ import sql
 
 from sqlalchemy import (
     distinct,
+    func,
     or_,
 )
 from .models import (
@@ -222,6 +223,36 @@ def calculate_stats(bgc_list):
     stats['clusters_by_phylum'] = clusters_by_phylum
 
     return stats
+
+
+def json_stats(json_clusters):
+    '''Calculate some stats on the search results'''
+    stats = {}
+    if len(json_clusters) < 1:
+        return stats
+
+    bgc_ids = set()
+    for cluster in json_clusters:
+        bgc_ids.add(cluster['bgc_id'])
+
+    clusters_by_type_list = db.session.query(BgcType.term, func.count(BgcType.term)) \
+                                      .join(t_rel_clusters_types).join(Bgc) \
+                                      .filter(Bgc.bgc_id.in_(bgc_ids)).group_by(BgcType.term).all()
+    clusters_by_type = {}
+    if clusters_by_type_list is not None:
+        clusters_by_type['labels'], clusters_by_type['data'] = zip(*clusters_by_type_list)
+    stats['clusters_by_type'] = clusters_by_type
+
+    clusters_by_phylum_list = db.session.query(Taxa.phylum, func.count(Taxa.phylum)) \
+                                        .join(Genome).join(DnaSequence).join(Locus).join(Bgc) \
+                                        .filter(Bgc.bgc_id.in_(bgc_ids)).group_by(Taxa.phylum).all()
+    clusters_by_phylum = {}
+    if clusters_by_phylum_list is not None:
+        clusters_by_phylum['labels'], clusters_by_phylum['data'] = zip(*clusters_by_phylum_list)
+    stats['clusters_by_phylum'] = clusters_by_phylum
+
+    return stats
+
 
 
 def parse_search_string(search_string):

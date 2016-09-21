@@ -18,6 +18,7 @@ from . import app, taxtree
 from .search import (
     search_bgcs,
     core_search,
+    json_stats,
     create_cluster_csv,
     available_term_by_category,
 )
@@ -165,13 +166,14 @@ def search():
 
     # FIXME: Maybe sanitize the query object?
     clusters = core_search(request.json['query'])
+    stats = json_stats(clusters)
 
     result = {
         'total': len(clusters),
         'clusters': clusters,
         'offset': 0,
         'paginate': 42,
-        'stats': {},
+        'stats': stats,
     }
 
     return jsonify(result)
