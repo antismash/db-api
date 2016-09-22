@@ -182,6 +182,16 @@ def clusters_to_csv(clusters):
 def cluster_query_from_term(term):
     '''Recursively generate an SQL query from the search terms'''
     if term.kind == 'expression':
+        if term.category == 'unknown':
+            if BgcType.query.filter(BgcType.term.ilike(term.term)).count() > 0:
+                term.category = 'type'
+            elif DnaSequence.query.filter(DnaSequence.acc.ilike(term.term)).count() > 0:
+                term.category = 'acc'
+            elif Taxa.query.filter(Taxa.genus.ilike(term.term)).count() > 0:
+                term.category = 'genus'
+            elif Taxa.query.filter(Taxa.species.ilike(term.term)).count() > 0:
+                term.category = 'species'
+
         if term.category in CLUSTERS:
             return CLUSTERS[term.category](term.term)
         else:
