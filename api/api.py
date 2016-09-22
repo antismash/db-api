@@ -23,9 +23,9 @@ from .search import (
     json_stats,
     clusters_to_csv,
     clusters_to_json,
-    create_cluster_csv,
     available_term_by_category,
 )
+from .search_parser import Query
 from .models import (
     db,
     BgcType,
@@ -165,15 +165,18 @@ def get_taxon_tree():
 
 @app.route('/api/v1.0/search', methods=['POST'])
 def search():
-    if 'query' not in request.json:
-        return old_search()
-
-    # FIXME: Maybe sanitize the query object?
-
-    if request.json['query']['return_type'] != 'json':
+    try:
+        if 'query' not in request.json:
+            query = Query.from_string(request.json.get('search_string', ''))
+        else:
+            query = Query.from_json(request.json['query'])
+    except ValueError:
         abort(400)
 
-    clusters = clusters_to_json(core_search(request.json['query']))
+    if query.return_type != 'json':
+        abort(400)
+
+    clusters = clusters_to_json(core_search(query))
     stats = json_stats(clusters)
 
     result = {
@@ -216,20 +219,20 @@ def old_search():
 @app.route('/api/v1.0/export', methods=['POST'])
 def export():
     '''Export the search results as CSV file'''
-    if 'query' not in request.json:
-        search_string = request.json.get('search_string', '')
-        _, _, found_bgcs = search_bgcs(search_string, mapfunc=create_cluster_csv)
-        found_bgcs.insert(0, '#Species\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL')
-        filename = 'asdb_search_results.csv'
-    else:
-        # FIXME: Maybe sanitize the query object?
-        found_bgcs = core_search(request.json['query'])
-        return_type = request.json['query']['return_type']
-        filename = 'asdb_search_results.{}'.format(return_type)
-        if return_type == 'csv':
-            found_bgcs = clusters_to_csv(found_bgcs)
-        elif return_type == 'json':
-            found_bgcs = [json.dumps(clusters_to_json(found_bgcs))]
+    try:
+        if 'query' not in request.json:
+            query = Query.from_string(request.json.get('search_string', ''), return_type='csv')
+        else:
+            query = Query.from_json(request.json['query'])
+    except ValueError:
+        abort(400)
+
+    found_bgcs = core_search(query)
+    filename = 'asdb_search_results.{}'.format(query.return_type)
+    if query.return_type == 'csv':
+        found_bgcs = clusters_to_csv(found_bgcs)
+    elif query.return_type == 'json':
+        found_bgcs = [json.dumps(clusters_to_json(found_bgcs))]
 
 
     handle = StringIO.StringIO()

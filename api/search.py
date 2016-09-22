@@ -119,8 +119,8 @@ def core_search(query):
     '''Actually run the search logic'''
     sql_query = NoneQuery()
 
-    if query['search'] == 'cluster':
-        sql_query = cluster_query_from_term(query['terms'])
+    if query.search_type == 'cluster':
+        sql_query = cluster_query_from_term(query.terms)
 
     results = sql_query.all()
 
@@ -181,27 +181,27 @@ def clusters_to_csv(clusters):
 
 def cluster_query_from_term(term):
     '''Recursively generate an SQL query from the search terms'''
-    if term['term_type'] == 'expr':
-        if term['category'] in CLUSTERS:
-            return CLUSTERS[term['category']](term['term'])
+    if term.kind == 'expression':
+        if term.category in CLUSTERS:
+            return CLUSTERS[term.category](term.term)
         else:
             return NoneQuery()
-    elif term['term_type'] == 'op':
-        left_query = cluster_query_from_term(term['left'])
-        right_query = cluster_query_from_term(term['right'])
-        if term['operation'] == 'except':
+    elif term.kind == 'operation':
+        left_query = cluster_query_from_term(term.left)
+        right_query = cluster_query_from_term(term.right)
+        if term.operation == 'except':
             if isinstance(left_query, NoneQuery):
                 return NoneQuery()
             if isinstance(right_query, NoneQuery):
                 return left_query
             return left_query.except_(right_query)
-        elif term['operation'] == 'or':
+        elif term.operation == 'or':
             if isinstance(left_query, NoneQuery):
                 return right_query
             if isinstance(right_query, NoneQuery):
                 return left_query
             return left_query.union(right_query)
-        elif term['operation'] == 'and':
+        elif term.operation == 'and':
             if isinstance(left_query, NoneQuery) or isinstance(right_query, NoneQuery):
                 return NoneQuery()
             return left_query.intersect(right_query)
