@@ -221,9 +221,40 @@ def test_export(client):
 Streptomyces\tcyaneogriseus\tCP010849.1\t13\tlassopeptide\t4593898\t4616468\tNeomycin_biosynthetic_gene_cluster\t8\tBGC0000709_c1\thttp://antismash-db.secondarymetabolites.org/output/CP010849/index.html#cluster-13
 '''
 
+    expected_json = [{
+        "acc": "CP010849",
+        "bgc_id": 54,
+        "cbh_acc": "BGC0000709_c1",
+        "cbh_description": "Neomycin_biosynthetic_gene_cluster",
+        "cluster_number": 13,
+        "description": "Lasso peptide",
+        "end_pos": 4616468,
+        "genus": "Streptomyces",
+        "similarity": 8,
+        "species": "cyaneogriseus",
+        "start_pos": 4593898,
+        "strain": "NMWT 1",
+        "term": "lassopeptide",
+        "version": 1
+    }]
+
     results = client.post(url_for('export'), data='{"search_string": "[type]lassopeptide"}', content_type="application/json")
     assert results.status_code == 200
     assert results.data == expected
+
+    query = {'query': {'search': 'cluster', 'return_type': 'json', 'terms': {'term_type': 'expr', 'category': 'type', 'term': 'lassopeptide'}}}
+    results = client.post(url_for('export'), data=json.dumps(query), content_type="application/json")
+    assert results.status_code == 200
+    assert results.json == expected_json
+
+    query['query']['return_type'] = 'csv'
+    results = client.post(url_for('export'), data=json.dumps(query), content_type="application/json")
+    assert results.status_code == 200
+    assert results.data == expected
+
+    query['query'] = {}
+    results = client.post(url_for('export'), data=json.dumps(query), content_type="application/json")
+    assert results.status_code == 400
 
 
 def test_genome(client):
