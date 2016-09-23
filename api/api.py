@@ -248,8 +248,8 @@ def export():
 @app.route('/api/v1.0/genome/<identifier>')
 def show_genome(identifier):
     '''show information for a genome by identifier'''
-    search_string = '[acc]{}'.format(identifier)
-    _, _, found_bgcs = search_bgcs(search_string)
+    query = Query.from_string('[acc]{}'.format(identifier))
+    found_bgcs = clusters_to_json(core_search(query))
 
     return jsonify(found_bgcs)
 

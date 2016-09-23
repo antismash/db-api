@@ -214,19 +214,23 @@ Streptomyces\tcyaneogriseus\tCP010849.1\t13\tlassopeptide\t4593898\t4616468\tNeo
 
 def test_genome(client, monkeypatch):
     '''Test /api/v1.0/genome/<identifier> endpoint'''
-    reference = {
-        'count': 23,
-        'clusters': [{'foo': 'foo'}, {'bar': 'bar'}]
-    }
+    expected = [{
+        "acc": "NC_017486",
+        "bgc_id": 1,
+        "cbh_acc": "BGC0000535_c1",
+        "cbh_description": "Nisin_A_biosynthetic_gene_cluster",
+        "cluster_number": 1,
+        "description": "Lanthipeptide",
+        "end_pos": 620999,
+        "genus": "Lactococcus",
+        "similarity": 100,
+        "species": "lactis",
+        "start_pos": 594686,
+        "strain": "CV56",
+        "term": "lantipeptide",
+        "version": 1
+    }]
 
-    # We have separate tests for the search code, so just test the REST API part here
-    import api.api
-
-    def fake_search(search_string):
-        '''fake search function'''
-        return reference['count'], {}, reference['clusters']
-    monkeypatch.setattr(api.api, 'search_bgcs', fake_search)
-
-    results = client.get(url_for('show_genome', identifier='fake'))
+    results = client.get(url_for('show_genome', identifier='nc_017486'))
     assert results.status_code == 200
-    assert results.json == reference['clusters']
+    assert results.json == expected
