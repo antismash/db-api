@@ -10,7 +10,7 @@ def test_query_init():
     assert query.terms is None
     assert query.search_type == 'cluster'
     assert query.return_type == 'json'
-    assert repr(query) == "Query(search_type: 'cluster', return_type: 'json', terms: None)"
+    assert repr(query) == "Query(search_type: 'cluster', return_type: 'json', terms: 'None')"
 
 
 def test_query_from_json():
@@ -36,6 +36,12 @@ def test_query_from_string():
     assert query.return_type == 'json'
     assert isinstance(query.terms, QueryTerm)
 
+    string = "[type]ripp"
+    query = Query.from_string(string, return_type='csv')
+    assert query.search_type == 'cluster'
+    assert query.return_type == 'csv'
+    assert isinstance(query.terms, QueryTerm)
+
 
 def test_query_term_init_expression():
     with pytest.raises(ValueError):
@@ -50,6 +56,7 @@ def test_query_term_init_expression():
     assert term.category == 'type'
     assert term.term == 'nrps'
     assert repr(term) == "QueryTerm(category: 'type', term: 'nrps')"
+    assert str(term) == "[type]nrps"
 
 
 def test_query_term_init_operation():
@@ -67,6 +74,7 @@ def test_query_term_init_operation():
     expected = "QueryTerm(operation: {!r},\n\tleft: {!r}\n\tright: {!r}\n)".format('or', left, right)
 
     assert repr(term) == expected
+    assert str(term) == "( [type]nrps OR [type]nrps )"
 
 
 def test_query_term_init_invalid():
@@ -155,7 +163,6 @@ def test_query_term_from_string():
     assert term.left.term == 'nrps'
     assert term.right.term == '1234'
 
-
     string = "ripp AND ( streptomyces OR lactococcus )"
     term = QueryTerm.from_string(string)
     assert term.kind == 'operation'
@@ -163,7 +170,6 @@ def test_query_term_from_string():
     assert term.right.kind == 'operation'
     assert term.right.left.term == 'streptomyces'
     assert term.right.right.term == 'lactococcus'
-
 
     string = "lanthipeptide ((Streptomyces coelicolor) OR (Lactococcus lactis))"
     term = QueryTerm.from_string(string)
@@ -174,6 +180,18 @@ def test_query_term_from_string():
     assert term.right.left.left.term == 'Streptomyces'
     assert term.right.right.kind == 'operation'
     assert term.right.right.right.term == 'lactis'
+
+    with pytest.raises(ValueError):
+        string = "AND ripp"
+        term = QueryTerm.from_string(string)
+
+    with pytest.raises(ValueError):
+        string = "END"
+        term = QueryTerm.from_string(string)
+
+    with pytest.raises(ValueError):
+        string = "( ripp"
+        term = QueryTerm.from_string(string)
 
 
 def test_query_term__generate_tokens():
