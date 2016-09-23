@@ -234,3 +234,11 @@ def test_genome(client):
     results = client.get(url_for('show_genome', identifier='nc_017486'))
     assert results.status_code == 200
     assert results.json == expected
+
+
+def test_available(client):
+    '''Test /api/v1.0/available/<category>/<term> endpoint'''
+    expected = [['Lactococcus']]
+    results = client.get(url_for('list_available', category='genus', term='l'))
+    assert results.status_code == 200
+    assert results.json == expected
