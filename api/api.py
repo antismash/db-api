@@ -62,7 +62,7 @@ def get_stats():
     sub = db.session.query(t_rel_clusters_types.c.bgc_type_id, func.count(1).label('count')) \
                     .group_by(t_rel_clusters_types.c.bgc_type_id).subquery()
     ret = db.session.query(BgcType.term, BgcType.description, sub.c.count).join(sub) \
-                    .order_by(sub.c.count.desc())
+                    .order_by(sub.c.count.desc(), BgcType.term)
     for cluster in ret:
         clusters.append({'name': cluster.term, 'description': cluster.description, 'count': cluster.count})
 

@@ -48,6 +48,11 @@ def test_stats(client):
             },
             {
                 "count": 4,
+                "description": "Lanthipeptide",
+                "name": "lantipeptide"
+            },
+            {
+                "count": 4,
                 "description": "Type II polyketide",
                 "name": "t2pks"
             },
@@ -55,11 +60,6 @@ def test_stats(client):
                 "count": 4,
                 "description": "Type III polyketide",
                 "name": "t3pks"
-            },
-            {
-                "count": 4,
-                "description": "Lanthipeptide",
-                "name": "lantipeptide"
             },
             {
                 "count": 3,
@@ -73,8 +73,8 @@ def test_stats(client):
             },
             {
                 "count": 2,
-                "description": "Trans-AT polyketide",
-                "name": "transatpks"
+                "description": "Butyrolactone",
+                "name": "butyrolactone"
             },
             {
                 "count": 2,
@@ -83,13 +83,8 @@ def test_stats(client):
             },
             {
                 "count": 2,
-                "description": "Butyrolactone",
-                "name": "butyrolactone"
-            },
-            {
-                "count": 1,
-                "description": "Polyunsaturated fatty acid",
-                "name": "pufa"
+                "description": "Trans-AT polyketide",
+                "name": "transatpks"
             },
             {
                 "count": 1,
@@ -98,14 +93,19 @@ def test_stats(client):
             },
             {
                 "count": 1,
+                "description": "Indole",
+                "name": "indole"
+            },
+            {
+                "count": 1,
                 "description": "Lasso peptide",
                 "name": "lassopeptide"
             },
             {
                 "count": 1,
-                "description": "Indole",
-                "name": "indole"
-            }
+                "description": "Polyunsaturated fatty acid",
+                "name": "pufa"
+            },
         ],
         "num_clusters": 73,
         "num_genomes": 4,
