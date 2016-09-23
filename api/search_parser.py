@@ -26,6 +26,9 @@ class Query(object):
     @classmethod
     def from_json(cls, json_query):
         '''Generate query from a json structure'''
+        if 'terms' not in json_query:
+            raise ValueError('Invalid query')
+
         terms = QueryTerm.from_json(json_query['terms'])
         extra_args = {}
         if 'search' in json_query:

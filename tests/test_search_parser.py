@@ -28,6 +28,9 @@ def test_query_from_json():
     assert query.return_type == 'csv'
     assert isinstance(query.terms, QueryTerm)
 
+    with pytest.raises(ValueError):
+        Query.from_json({})
+
 
 def test_query_from_string():
     string = "[type]ripp"
