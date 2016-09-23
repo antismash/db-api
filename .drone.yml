@@ -8,7 +8,7 @@ build:
         - echo "localhost:5432:*:postgres:secret" > ~/.pgpass
         - chmod 600 ~/.pgpass
         - psql -h localhost -U postgres -c 'CREATE DATABASE antismash'
-        - xzcat tests/test.sql.xz | psql -h localhost -U postgres antismash
+        - xzcat tests/test.sql.xz | psql -h localhost -U postgres antismash > /dev/null
         - pytest -v
 
 compose:
