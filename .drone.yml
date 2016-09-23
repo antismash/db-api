@@ -1,11 +1,22 @@
 build:
     image: alpine:latest
     commands:
-        - apk --no-cache add python py-pip ca-certificates py-psycopg2
+        - apk --no-cache add python py-pip ca-certificates py-psycopg2 postgresql-client xz
         - pip install -r requirements.txt
         - pip install -r tests/requirements.txt
         - pip install -e .
-        - py.test -v
+        - echo "localhost:5432:*:postgres:secret" > ~/.pgpass
+        - chmod 600 ~/.pgpass
+        - psql -h localhost -U postgres -c 'CREATE DATABASE antismash'
+        - xzcat tests/test.sql.xz | psql -h localhost -U postgres antismash
+        - pytest -v
+
+compose:
+  database:
+    image: postgres:9.4
+    environmet:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret
 
 notify:
   slack:
