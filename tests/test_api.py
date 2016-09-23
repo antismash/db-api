@@ -1,3 +1,4 @@
+import json
 from flask import url_for
 from api import taxtree
 
@@ -199,6 +200,19 @@ def test_search(client):
     results = client.post(url_for('search'), data='{"search_string": "[type]lassopeptide"}', content_type="application/json")
     assert results.status_code == 200
     assert results.json == expected
+
+    query = {'query': {'search': 'cluster', 'return_type': 'json', 'terms': {'term_type': 'expr', 'category': 'type', 'term': 'lassopeptide'}}}
+    results = client.post(url_for('search'), data=json.dumps(query), content_type="application/json")
+    assert results.status_code == 200
+    assert results.json == expected
+
+    query['query']['return_type'] = 'csv'
+    results = client.post(url_for('search'), data=json.dumps(query), content_type="application/json")
+    assert results.status_code == 400
+
+    query['query'] = {}
+    results = client.post(url_for('search'), data=json.dumps(query), content_type="application/json")
+    assert results.status_code == 400
 
 
 def test_export(client):
