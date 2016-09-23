@@ -18,7 +18,6 @@ from sqlalchemy import (
 )
 from . import app, taxtree
 from .search import (
-    search_bgcs,
     core_search,
     json_stats,
     clusters_to_csv,
@@ -184,32 +183,6 @@ def search():
         'clusters': clusters,
         'offset': 0,
         'paginate': 50,
-        'stats': stats,
-    }
-
-    return jsonify(result)
-
-
-def old_search():
-    '''Handle searching the database'''
-    search_string = request.json.get('search_string', '')
-    try:
-        offset = int(request.json.get('offset'))
-    except TypeError:
-        offset = 0
-
-    try:
-        paginate = int(request.json.get('paginate'))
-    except TypeError:
-        paginate = 50
-
-    total_count, stats, found_bgcs = search_bgcs(search_string, offset=offset, paginate=paginate)
-
-    result = {
-        'total': total_count,
-        'clusters': found_bgcs,
-        'offset': offset,
-        'paginate': paginate,
         'stats': stats,
     }
 
