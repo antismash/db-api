@@ -183,7 +183,7 @@ def search():
         'total': len(clusters),
         'clusters': clusters,
         'offset': 0,
-        'paginate': 42,
+        'paginate': 50,
         'stats': stats,
     }
 

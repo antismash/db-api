@@ -1,8 +1,5 @@
 from flask import url_for
-from api import sql
-from api.helpers import get_db
-# The noqa tells flake8 to ignore the unused import
-from testutils import app  # noqa: F401
+from api import taxtree
 
 
 def test_version(client):
@@ -16,44 +13,109 @@ def test_version(client):
 
 def test_stats(client):
     '''Test /api/v1.0/stats endpoint'''
-    cur = get_db().cursor()
 
     expected = {
-        'num_clusters': 23,
-        'num_genomes': 17,
-        'num_sequences': 42,
-        'top_seq_taxon': 12345,
-        'top_seq_taxon_count': 2,
-        'top_secmet_taxon': 54321,
-        'top_secmet_taxon_count': 3,
-        'top_secmet_species': 'E. xample',
-        'clusters': [
-            {'name': 'foo', 'description': 'fake cluster 1', 'count': 23},
-            {'name': 'bar', 'description': 'fake cluster 2', 'count': 42},
+        "clusters": [
+            {
+                "count": 17,
+                "description": "Nonribosomal peptide",
+                "name": "nrps"
+            },
+            {
+                "count": 15,
+                "description": "Terpene",
+                "name": "terpene"
+            },
+            {
+                "count": 9,
+                "description": "Type I polyketide",
+                "name": "t1pks"
+            },
+            {
+                "count": 6,
+                "description": "Siderophore",
+                "name": "siderophore"
+            },
+            {
+                "count": 5,
+                "description": "Bacteriocin or other unspecified RiPP",
+                "name": "bacteriocin"
+            },
+            {
+                "count": 5,
+                "description": "Other",
+                "name": "other"
+            },
+            {
+                "count": 4,
+                "description": "Type II polyketide",
+                "name": "t2pks"
+            },
+            {
+                "count": 4,
+                "description": "Type III polyketide",
+                "name": "t3pks"
+            },
+            {
+                "count": 4,
+                "description": "Lanthipeptide",
+                "name": "lantipeptide"
+            },
+            {
+                "count": 3,
+                "description": "Ectoine",
+                "name": "ectoine"
+            },
+            {
+                "count": 3,
+                "description": "Other types of polyketides",
+                "name": "otherks"
+            },
+            {
+                "count": 2,
+                "description": "Trans-AT polyketide",
+                "name": "transatpks"
+            },
+            {
+                "count": 2,
+                "description": "Melanin",
+                "name": "melanin"
+            },
+            {
+                "count": 2,
+                "description": "Butyrolactone",
+                "name": "butyrolactone"
+            },
+            {
+                "count": 1,
+                "description": "Polyunsaturated fatty acid",
+                "name": "pufa"
+            },
+            {
+                "count": 1,
+                "description": "Pheganomycin-like ligase",
+                "name": "fused"
+            },
+            {
+                "count": 1,
+                "description": "Lasso peptide",
+                "name": "lassopeptide"
+            },
+            {
+                "count": 1,
+                "description": "Indole",
+                "name": "indole"
+            }
         ],
+        "num_clusters": 73,
+        "num_genomes": 4,
+        "num_sequences": 6,
+        "top_secmet_species": "cyaneogriseus",
+        "top_secmet_taxon": 477245,
+        "top_secmet_taxon_count": 32.0,
+        "top_seq_taxon": 1435356,
+        "top_seq_taxon_count": 3
     }
-
-    expected_queries = [
-        (('count'), sql.STATS_CLUSTER_COUNT),
-        (('count'), sql.STATS_GENOME_COUNT),
-        (('count'), sql.STATS_SEQUENCE_COUNT),
-        (('term', 'description', 'count'), sql.STATS_COUNTS_BY_TYPE),
-        (('tax_id', 'tax_count'), sql.STATS_TAXON_SEQUENCES),
-        (('tax_id', 'species', 'clusters_per_seq'), sql.STATS_TAXON_SECMETS),
-    ]
-
-    # Replies need to be iterable for the FakeCursor to work
-    canned_replies = [
-        (expected['num_clusters'],),
-        (expected['num_genomes'],),
-        (expected['num_sequences'],),
-        [(i['name'], i['description'], i['count']) for i in expected['clusters']],
-        (expected['top_seq_taxon'], expected['top_seq_taxon_count']),
-        (expected['top_secmet_taxon'], expected['top_secmet_species'], expected['top_secmet_taxon_count'])
-    ]
-
-    cur.expected_queries.extend(expected_queries)
-    cur.canned_replies.extend(canned_replies)
 
 
     results = client.get(url_for('get_stats'))
@@ -63,84 +125,27 @@ def test_stats(client):
 
 def test_sec_met_tree(client):
     '''Test /api/v1.0/tree/secmet endpoint'''
-    cur = get_db().cursor()
 
     expected = [
         {
-            'id': 'nrps',
-            'parent': '#',
-            'text': 'Non-ribosomal peptide',
-            'state': {
-                'disabled': True
-            }
-        },
-        {
-            'id': 'lantipeptide',
-            'parent': '#',
-            'text': 'Lanthipeptide',
-            'state': {
-                'disabled': True
-            }
-        },
-        {
-            'id': 'AB1234_c1_nrps',
-            'parent': 'nrps',
-            'text': 'E. xample AB1234 Cluster 1',
-            'type': 'cluster',
-        },
-        {
-            'id': 'AB1234_c1_lantipeptide',
-            'parent': 'lantipeptide',
-            'text': 'E. xample AB1234 Cluster 1',
-            'type': 'cluster',
+            "id": "nrps",
+            "parent": "#",
+            "state": {
+                "disabled": True
+            },
+            "text": "Nonribosomal peptide"
         },
     ]
 
-    cur.expected_queries.append((
-        ('cluster_number', 'acc', 'term', 'description', 'species'),
-        sql.SECMET_TREE
-    ))
-    cur.canned_replies.append([
-        (1, 'AB1234', 'nrps', 'Non-ribosomal peptide', 'E. xample'),
-        (1, 'AB1234', 'lantipeptide', 'Lanthipeptide', 'E. xample')
-    ])
-
     results = client.get(url_for('get_sec_met_tree'))
     assert results.status_code == 200
-    assert results.json == expected
+    assert results.json[:1] == expected
 
 
 def test_taxa_superkingdom(client):
     '''Test /api/v1.0/tree/taxa endpoint for superkingdom'''
-    cur = get_db().cursor()
-    cur.expected_queries.append((
-        ('name'), sql.TAXTREE_SUPERKINGOM
-    ))
-    cur.canned_replies.append(
-        [('Bacteria',), ('Fungi',)]
-    )
 
-    expected = [
-        {
-            'id': 'superkingdom_bacteria',
-            'parent': '#',
-            'text': 'Bacteria',
-            'state': {
-                'disabled': True
-            },
-            'children': True
-        },
-        {
-            'id': 'superkingdom_fungi',
-            'parent': '#',
-            'text': 'Fungi',
-            'state': {
-                'disabled': True
-            },
-            'children': True
-        },
-    ]
-
+    expected = taxtree.get_superkingdom()
     results = client.get(url_for('get_taxon_tree'))
     assert results.status_code == 200
     assert results.json == expected
@@ -148,159 +153,9 @@ def test_taxa_superkingdom(client):
 
 def test_taxa_phylum(client):
     '''Test /api/v1.0/tree/taxa endpoint for phylum'''
-    cur = get_db().cursor()
-    cur.expected_queries.append((
-        ('name'), sql.TAXTREE_PHYLUM
-    ))
-    cur.canned_replies.append(
-        [('Actinobacteria',)]
-    )
 
-    expected = [
-        {
-            'id': 'phylum_bacteria_actinobacteria',
-            'parent': 'superkingdom_bacteria',
-            'text': 'Actinobacteria',
-            'state': {
-                'disabled': True
-            },
-            'children': True
-        },
-    ]
-
+    expected = taxtree.get_phylum(['bacteria'])
     results = client.get(url_for('get_taxon_tree'), query_string="id=superkingdom_bacteria")
-    assert results.status_code == 200
-    assert results.json == expected
-
-
-def test_taxa_class(client):
-    '''Test /api/v1.0/tree/taxa endpoint for class'''
-    cur = get_db().cursor()
-    cur.expected_queries.append((
-        ('name'), sql.TAXTREE_CLASS
-    ))
-    cur.canned_replies.append(
-        [('Actinobacteria',)]
-    )
-
-    expected = [
-        {
-            'id': 'class_bacteria_actinobacteria_actinobacteria',
-            'parent': 'phylum_bacteria_actinobacteria',
-            'text': 'Actinobacteria',
-            'state': {
-                'disabled': True
-            },
-            'children': True
-        },
-    ]
-
-    results = client.get(url_for('get_taxon_tree'), query_string="id=phylum_bacteria_actinobacteria")
-    assert results.status_code == 200
-    assert results.json == expected
-
-
-def test_taxa_order(client):
-    '''Test /api/v1.0/tree/taxa endpoint for order'''
-    cur = get_db().cursor()
-    cur.expected_queries.append((
-        ('name'), sql.TAXTREE_ORDER
-    ))
-    cur.canned_replies.append(
-        [('Streptomycetales',)]
-    )
-
-    expected = [
-        {
-            'id': 'order_bacteria_actinobacteria_actinobacteria_streptomycetales',
-            'parent': 'class_bacteria_actinobacteria_actinobacteria',
-            'text': 'Streptomycetales',
-            'state': {
-                'disabled': True
-            },
-            'children': True
-        },
-    ]
-
-    results = client.get(url_for('get_taxon_tree'), query_string="id=class_bacteria_actinobacteria_actinobacteria")
-    assert results.status_code == 200
-    assert results.json == expected
-
-
-def test_taxa_family(client):
-    '''Test /api/v1.0/tree/taxa endpoint for family'''
-    cur = get_db().cursor()
-    cur.expected_queries.append((
-        ('name'), sql.TAXTREE_FAMILY
-    ))
-    cur.canned_replies.append(
-        [('Streptomycetaceae',)]
-    )
-
-    expected = [
-        {
-            'id': 'family_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae',
-            'parent': 'order_bacteria_actinobacteria_actinobacteria_streptomycetales',
-            'text': 'Streptomycetaceae',
-            'state': {
-                'disabled': True
-            },
-            'children': True
-        },
-    ]
-
-    results = client.get(url_for('get_taxon_tree'), query_string="id=order_bacteria_actinobacteria_actinobacteria_streptomycetales")
-    assert results.status_code == 200
-    assert results.json == expected
-
-
-def test_taxa_genus(client):
-    '''Test /api/v1.0/tree/taxa endpoint for genus'''
-    cur = get_db().cursor()
-    cur.expected_queries.append((
-        ('name'), sql.TAXTREE_GENUS
-    ))
-    cur.canned_replies.append(
-        [('Streptomyces',)]
-    )
-
-    expected = [
-        {
-            'id': 'genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces',
-            'parent': 'family_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae',
-            'text': 'Streptomyces',
-            'state': {
-                'disabled': True
-            },
-            'children': True
-        },
-    ]
-
-    results = client.get(url_for('get_taxon_tree'), query_string="id=family_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae")
-    assert results.status_code == 200
-    assert results.json == expected
-
-
-def test_taxa_species(client):
-    '''Test /api/v1.0/tree/taxa endpoint for species'''
-    cur = get_db().cursor()
-    cur.expected_queries.append((
-        ('species', 'acc', 'version'), sql.TAXTREE_SPECIES
-    ))
-    cur.canned_replies.append(
-        [('Streptomyces coelicolor', 'NC_003888', 3)]
-    )
-
-    expected = [
-        {
-            'id': 'nc_003888',
-            'parent': 'genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces',
-            'text': 'Streptomyces coelicolor NC_003888.3',
-            'type': 'strain'
-        },
-    ]
-
-    results = client.get(url_for('get_taxon_tree'), query_string="id=genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces")
     assert results.status_code == 200
     assert results.json == expected
 
@@ -308,56 +163,52 @@ def test_taxa_species(client):
 def test_search(client, monkeypatch):
     '''Test /api/v1.0/search endpoint'''
     expected = {
-        'total': 0,
-        'clusters': [],
-        'stats': {},
-        'offset': 0,
-        'paginate': 50
+        "clusters": [
+            {
+                "acc": "CP010849",
+                "bgc_id": 54,
+                "cbh_acc": "BGC0000709_c1",
+                "cbh_description": "Neomycin_biosynthetic_gene_cluster",
+                "cluster_number": 13,
+                "description": "Lasso peptide",
+                "end_pos": 4616468,
+                "genus": "Streptomyces",
+                "similarity": 8,
+                "species": "cyaneogriseus",
+                "start_pos": 4593898,
+                "strain": "NMWT 1",
+                "term": "lassopeptide",
+                "version": 1
+            }
+        ],
+        "offset": 0,
+        "paginate": 50,
+        "stats": {
+            "clusters_by_phylum": {
+                "data": [1],
+                "labels": ["Actinobacteria"]
+            },
+            "clusters_by_type": {
+                "data": [1],
+                "labels": ["lassopeptide"]
+            }
+        },
+        "total": 1
     }
 
-    # We have separate tests for the search code, so just test the REST API part here
-    import api.api
-
-    def fake_search(search_string, offset=0, paginate=0):
-        '''fake search function'''
-        return expected['total'], {}, expected['clusters']
-    monkeypatch.setattr(api.api, 'search_bgcs', fake_search)
-
-    results = client.post(url_for('search'), data='{"search_string": "foo"}', content_type="application/json")
-    assert results.status_code == 200
-    assert results.json == expected
-
-    expected['clusters'] = [{'foo': 'foo'}, {'bar': 'bar'}]
-    expected['total'] = 23
-    expected['offset'] = 2
-
-    results = client.post(url_for('search'), data='{"search_string": "foo", "offset": 2}', content_type="application/json")
-    assert results.status_code == 200
-    assert results.json == expected
-
-    expected['paginate'] = 5
-
-    results = client.post(url_for('search'), data='{"search_string": "foo", "offset": 2, "paginate": 5}', content_type="application/json")
+    results = client.post(url_for('search'), data='{"search_string": "[type]lassopeptide"}', content_type="application/json")
     assert results.status_code == 200
     assert results.json == expected
 
 
 def test_export(client, monkeypatch):
     '''Test /api/v1.0/export endpoint'''
-    expected = '''#Species\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL
-fake\tcsv\tline\n'''
+    expected = '''#Genus\tSpecies\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL
+Streptomyces\tcyaneogriseus\tCP010849.1\t13\tlassopeptide\t4593898\t4616468\tNeomycin_biosynthetic_gene_cluster\t8\tBGC0000709_c1\thttp://antismash-db.secondarymetabolites.org/output/CP010849/index.html#cluster-13
+'''
 
-    # We have separate tests for the search code, so just test the REST API part here
-    import api.api
-
-    def fake_search(search_string, offset=0, paginate=0, mapfunc=None):
-        '''fake search function'''
-        return None, {}, ['fake\tcsv\tline']
-    monkeypatch.setattr(api.api, 'search_bgcs', fake_search)
-
-    results = client.post(url_for('export'), data='{"search_string": "foo"}', content_type="application/json")
+    results = client.post(url_for('export'), data='{"search_string": "[type]lassopeptide"}', content_type="application/json")
     assert results.status_code == 200
-    print dir(results)
     assert results.data == expected
 
 
