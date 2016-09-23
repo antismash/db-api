@@ -160,7 +160,7 @@ def test_taxa_phylum(client):
     assert results.json == expected
 
 
-def test_search(client, monkeypatch):
+def test_search(client):
     '''Test /api/v1.0/search endpoint'''
     expected = {
         "clusters": [
@@ -201,7 +201,7 @@ def test_search(client, monkeypatch):
     assert results.json == expected
 
 
-def test_export(client, monkeypatch):
+def test_export(client):
     '''Test /api/v1.0/export endpoint'''
     expected = '''#Genus\tSpecies\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL
 Streptomyces\tcyaneogriseus\tCP010849.1\t13\tlassopeptide\t4593898\t4616468\tNeomycin_biosynthetic_gene_cluster\t8\tBGC0000709_c1\thttp://antismash-db.secondarymetabolites.org/output/CP010849/index.html#cluster-13
@@ -212,7 +212,7 @@ Streptomyces\tcyaneogriseus\tCP010849.1\t13\tlassopeptide\t4593898\t4616468\tNeo
     assert results.data == expected
 
 
-def test_genome(client, monkeypatch):
+def test_genome(client):
     '''Test /api/v1.0/genome/<identifier> endpoint'''
     expected = [{
         "acc": "NC_017486",
