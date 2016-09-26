@@ -36,6 +36,13 @@ from .models import (
 )
 
 
+MIME_TYPE_MAP = {
+    'json': 'application/json',
+    'csv': 'text/csv',
+    'fasta': 'application/fasta',
+}
+
+
 @app.route('/api/v1.0/version')
 def get_version():
     '''display the API version'''
@@ -214,8 +221,9 @@ def export():
 
     handle.seek(0)
 
+    mime_type = MIME_TYPE_MAP.get(query.return_type, None)
 
-    return send_file(handle, attachment_filename=filename, as_attachment=True)
+    return send_file(handle, mimetype=mime_type, attachment_filename=filename, as_attachment=True)
 
 
 @app.route('/api/v1.0/genome/<identifier>')
