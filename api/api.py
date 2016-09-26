@@ -21,6 +21,7 @@ from .search import (
     core_search,
     json_stats,
     clusters_to_csv,
+    clusters_to_fasta,
     clusters_to_json,
     available_term_by_category,
 )
@@ -200,12 +201,17 @@ def export():
     except ValueError:
         abort(400)
 
+    if query.return_type not in ('json', 'csv', 'fasta'):
+        abort(400)
+
     found_bgcs = core_search(query)
     filename = 'asdb_search_results.{}'.format(query.return_type)
     if query.return_type == 'csv':
         found_bgcs = clusters_to_csv(found_bgcs)
     elif query.return_type == 'json':
         found_bgcs = [json.dumps(clusters_to_json(found_bgcs))]
+    elif query.return_type == 'fasta':
+        found_bgcs = clusters_to_fasta(found_bgcs)
 
 
     handle = StringIO.StringIO()

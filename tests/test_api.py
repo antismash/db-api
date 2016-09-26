@@ -217,7 +217,7 @@ def test_search(client):
 
 def test_export(client):
     '''Test /api/v1.0/export endpoint'''
-    expected = '''#Genus\tSpecies\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL
+    expected_csv = '''#Genus\tSpecies\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL
 Streptomyces\tcyaneogriseus\tCP010849.1\t13\tlassopeptide\t4593898\t4616468\tNeomycin_biosynthetic_gene_cluster\t8\tBGC0000709_c1\thttp://antismash-db.secondarymetabolites.org/output/CP010849/index.html#cluster-13
 '''
 
@@ -238,9 +238,12 @@ Streptomyces\tcyaneogriseus\tCP010849.1\t13\tlassopeptide\t4593898\t4616468\tNeo
         "version": 1
     }]
 
+    expected_fasta = '''>CP010849.1|Cluster 13|lassopeptide|4593898-4616468|Streptomyces cyaneogriseus NMWT 1
+TGACGGCACGACTGTGTGTCAGGTGCCAGGGTTGGCCCTGGCGGGCCAAC'''
+
     results = client.post(url_for('export'), data='{"search_string": "[type]lassopeptide"}', content_type="application/json")
     assert results.status_code == 200
-    assert results.data == expected
+    assert results.data == expected_csv
 
     query = {'query': {'search': 'cluster', 'return_type': 'json', 'terms': {'term_type': 'expr', 'category': 'type', 'term': 'lassopeptide'}}}
     results = client.post(url_for('export'), data=json.dumps(query), content_type="application/json")
@@ -250,7 +253,16 @@ Streptomyces\tcyaneogriseus\tCP010849.1\t13\tlassopeptide\t4593898\t4616468\tNeo
     query['query']['return_type'] = 'csv'
     results = client.post(url_for('export'), data=json.dumps(query), content_type="application/json")
     assert results.status_code == 200
-    assert results.data == expected
+    assert results.data == expected_csv
+
+    query['query']['return_type'] = 'fasta'
+    results = client.post(url_for('export'), data=json.dumps(query), content_type="application/json")
+    assert results.status_code == 200
+    assert results.data.startswith(expected_fasta)
+
+    query['query']['return_type'] = 'bogus'
+    results = client.post(url_for('export'), data=json.dumps(query), content_type="application/json")
+    assert results.status_code == 400
 
     query['query'] = {}
     results = client.post(url_for('export'), data=json.dumps(query), content_type="application/json")

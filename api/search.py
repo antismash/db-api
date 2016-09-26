@@ -98,13 +98,27 @@ def clusters_to_json(clusters):
 def clusters_to_csv(clusters):
     '''Convert model.BiosyntheticGeneClusters into CSV'''
     json_clusters = clusters_to_json(clusters)
-    print(json_clusters)
     csv_lines = ['#Genus\tSpecies\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL']
     for cluster in json_clusters:
         csv_lines.append('{genus}\t{species}\t{acc}.{version}\t{cluster_number}\t{term}\t{start_pos}\t{end_pos}\t'
                          '{cbh_description}\t{similarity}\t{cbh_acc}\t'
                          'http://antismash-db.secondarymetabolites.org/output/{acc}/index.html#cluster-{cluster_number}'.format(**cluster))
     return csv_lines
+
+
+def clusters_to_fasta(clusters):
+    '''Convert model.BiosyntheticGeneCluster into FASTA'''
+    fasta_records = []
+    for cluster in clusters:
+        compiled_type = '-'.join([t.term for t in cluster.bgc_types])
+        fasta = '>{c.locus.sequence.acc}.{c.locus.sequence.version}|Cluster {c.cluster_number}|' \
+                '{compiled_type}|{c.locus.start_pos}-{c.locus.end_pos}|' \
+                '{c.locus.sequence.genome.tax.genus} {c.locus.sequence.genome.tax.species} ' \
+                '{c.locus.sequence.genome.tax.strain}\n{c.locus.sequence.dna}' \
+                .format(c=cluster, compiled_type=compiled_type)
+        fasta_records.append(fasta)
+
+    return fasta_records
 
 
 def cluster_query_from_term(term):
