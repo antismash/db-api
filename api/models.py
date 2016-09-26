@@ -68,8 +68,8 @@ class BiosyntheticGeneCluster(db.Model):
 
     evidence = db.relationship(u'Evidence', primaryjoin='BiosyntheticGeneCluster.evidence_id == Evidence.evidence_id', backref=u'biosynthetic_gene_clusters')
     locus = db.relationship(u'Locus', primaryjoin='BiosyntheticGeneCluster.locus_id == Locus.locus_id', backref=u'biosynthetic_gene_clusters')
-    bgc_types = db.relationship(u'BgcType', secondary=u'antismash.rel_clusters_types', backref=u'biosynthetic_gene_clusters')
     compounds = db.relationship(u'Compound', secondary=u'antismash.rel_clusters_compounds', backref=u'biosynthetic_gene_clusters')
+    bgc_types = db.relationship(u'BgcType', secondary=u'antismash.rel_clusters_types', backref=u'biosynthetic_gene_clusters')
 
 
 class ClusterblastAlgorithm(db.Model):
@@ -165,13 +165,11 @@ class Gene(db.Model):
 
     gene_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
     functional_class_id = db.Column(db.ForeignKey(u'antismash.functional_classes.functional_class_id'))
-    specificity = db.Column(db.Integer)
     evidence_id = db.Column(db.ForeignKey(u'antismash.evidences.evidence_id'))
     locus_tag = db.Column(db.Text, index=True)
-    acc = db.Column(db.Text)
-    ncbi_gene_id = db.Column(db.Text)
-    key_val_column = db.Column(db.Integer)
-    label = db.Column(db.Text)
+    name = db.Column(db.Text)
+    product = db.Column(db.Text)
+    protein_id = db.Column(db.Text)
     translation = db.Column(db.Text)
     locus_id = db.Column(db.ForeignKey(u'antismash.loci.locus_id', ondelete=u'CASCADE'), index=True)
     operon_id = db.Column(db.ForeignKey(u'antismash.operons.operon_id'))
