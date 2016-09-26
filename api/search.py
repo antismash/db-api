@@ -3,6 +3,7 @@ from sqlalchemy import (
     distinct,
     func,
     or_,
+    sql,
 )
 from .models import (
     db,
@@ -141,28 +142,18 @@ def cluster_query_from_term(term):
         if term.category in CLUSTERS:
             return CLUSTERS[term.category](term.term)
         else:
-            return NoneQuery()
+            return Bgc.query.filter(sql.false())
     elif term.kind == 'operation':
         left_query = cluster_query_from_term(term.left)
         right_query = cluster_query_from_term(term.right)
         if term.operation == 'except':
-            if isinstance(left_query, NoneQuery):
-                return NoneQuery()
-            if isinstance(right_query, NoneQuery):
-                return left_query
             return left_query.except_(right_query)
         elif term.operation == 'or':
-            if isinstance(left_query, NoneQuery):
-                return right_query
-            if isinstance(right_query, NoneQuery):
-                return left_query
             return left_query.union(right_query)
         elif term.operation == 'and':
-            if isinstance(left_query, NoneQuery) or isinstance(right_query, NoneQuery):
-                return NoneQuery()
             return left_query.intersect(right_query)
 
-    return NoneQuery()
+    return Bgc.query.filter(sql.false())
 
 
 def json_stats(json_clusters):
