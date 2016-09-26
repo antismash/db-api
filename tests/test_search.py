@@ -8,6 +8,13 @@ def test_none_query():
     assert query.all() == []
 
 
+def test_break_lines():
+    string = "MAGICMAGICMAGIC"
+    expected = "MAGIC\nMAGIC\nMAGIC"
+    result = search.break_lines(string, width=5)
+    assert result == expected
+
+
 def test_cluster_query_from_term_expression():
     term = QueryTerm('expression', category='type', term='lantipeptide')
     ret = search.cluster_query_from_term(term)

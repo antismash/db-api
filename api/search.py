@@ -116,14 +116,24 @@ def clusters_to_fasta(clusters):
     fasta_records = []
     for cluster in clusters:
         compiled_type = '-'.join([t.term for t in cluster.bgc_types])
+        seq = break_lines(cluster.locus.sequence.dna)
         fasta = '>{c.locus.sequence.acc}.{c.locus.sequence.version}|Cluster {c.cluster_number}|' \
                 '{compiled_type}|{c.locus.start_pos}-{c.locus.end_pos}|' \
                 '{c.locus.sequence.genome.tax.genus} {c.locus.sequence.genome.tax.species} ' \
-                '{c.locus.sequence.genome.tax.strain}\n{c.locus.sequence.dna}' \
-                .format(c=cluster, compiled_type=compiled_type)
+                '{c.locus.sequence.genome.tax.strain}\n{seq}' \
+                .format(c=cluster, compiled_type=compiled_type, seq=seq)
         fasta_records.append(fasta)
 
     return fasta_records
+
+
+def break_lines(string, width=80):
+    '''Break up a long string to lines of width (default: 80)'''
+    parts = []
+    for w in range(0, len(string), width):
+        parts.append(string[w:w + width])
+
+    return '\n'.join(parts)
 
 
 def cluster_query_from_term(term):
