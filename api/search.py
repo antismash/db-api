@@ -22,6 +22,7 @@ from .models import (
 
 AVAILABLE = {}
 CLUSTERS = {}
+CLUSTER_FORMATTERS = {}
 
 
 class NoneQuery(object):
@@ -55,6 +56,7 @@ def core_search(query):
     return results
 
 
+@register_handler(CLUSTER_FORMATTERS)
 def clusters_to_json(clusters):
     '''Convert model.BiosyntheticGeneClusters into JSON'''
     json_clusters = []
@@ -95,6 +97,7 @@ def clusters_to_json(clusters):
     return json_clusters
 
 
+@register_handler(CLUSTER_FORMATTERS)
 def clusters_to_csv(clusters):
     '''Convert model.BiosyntheticGeneClusters into CSV'''
     json_clusters = clusters_to_json(clusters)
@@ -106,6 +109,7 @@ def clusters_to_csv(clusters):
     return csv_lines
 
 
+@register_handler(CLUSTER_FORMATTERS)
 def clusters_to_fasta(clusters):
     '''Convert model.BiosyntheticGeneCluster into FASTA'''
     fasta_records = []

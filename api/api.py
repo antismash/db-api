@@ -20,10 +20,8 @@ from . import app, taxtree
 from .search import (
     core_search,
     json_stats,
-    clusters_to_csv,
-    clusters_to_fasta,
-    clusters_to_json,
     available_term_by_category,
+    CLUSTER_FORMATTERS,
 )
 from .search_parser import Query
 from .models import (
@@ -176,7 +174,7 @@ def search():
     if query.return_type != 'json':
         abort(400)
 
-    clusters = clusters_to_json(core_search(query))
+    clusters = CLUSTER_FORMATTERS['json'](core_search(query))
     stats = json_stats(clusters)
 
     result = {
@@ -204,14 +202,10 @@ def export():
     if query.return_type not in ('json', 'csv', 'fasta'):
         abort(400)
 
-    found_bgcs = core_search(query)
+    found_bgcs = CLUSTER_FORMATTERS[query.return_type](core_search(query))
     filename = 'asdb_search_results.{}'.format(query.return_type)
-    if query.return_type == 'csv':
-        found_bgcs = clusters_to_csv(found_bgcs)
-    elif query.return_type == 'json':
-        found_bgcs = [json.dumps(clusters_to_json(found_bgcs))]
-    elif query.return_type == 'fasta':
-        found_bgcs = clusters_to_fasta(found_bgcs)
+    if query.return_type == 'json':
+        found_bgcs = [json.dumps(found_bgcs)]
 
 
     handle = StringIO.StringIO()
@@ -228,7 +222,7 @@ def export():
 def show_genome(identifier):
     '''show information for a genome by identifier'''
     query = Query.from_string('[acc]{}'.format(identifier))
-    found_bgcs = clusters_to_json(core_search(query))
+    found_bgcs = CLUSTER_FORMATTERS['json'](core_search(query))
 
     return jsonify(found_bgcs)
 
