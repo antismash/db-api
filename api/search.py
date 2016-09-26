@@ -10,6 +10,7 @@ from .models import (
     BgcType,
     BiosyntheticGeneCluster as Bgc,
     Compound,
+    Gene,
     Genome,
     DnaSequence,
     Locus,
@@ -24,6 +25,7 @@ from .models import (
 AVAILABLE = {}
 CLUSTERS = {}
 CLUSTER_FORMATTERS = {}
+GENE_QUERIES = {}
 
 
 class NoneQuery(object):
@@ -51,6 +53,8 @@ def core_search(query):
 
     if query.search_type == 'cluster':
         sql_query = cluster_query_from_term(query.terms)
+    elif query.search_type == 'gene':
+        sql_query = gene_query_from_term(query.terms)
 
     results = sql_query.all()
 
@@ -170,6 +174,26 @@ def guess_cluster_category(term):
         return 'species'
 
     return term.category
+
+
+def gene_query_from_term(term):
+    '''Recursively generate an SQL query from the search terms'''
+    if term.kind == 'expression':
+        if term.category in GENE_QUERIES:
+            return GENE_QUERIES[term.category](term.term)
+        else:
+            return Gene.query.filter(sql.false())
+    elif term.kind == 'operation':
+        left_query = gene_query_from_term(term.left)
+        right_query = gene_query_from_term(term.right)
+        if term.operation == 'except':
+            return left_query.except_(right_query)
+        elif term.operation == 'or':
+            return left_query.union(right_query)
+        elif term.operation == 'and':
+            return left_query.intersect(right_query)
+
+    return Gene.query.filter(sql.false())
 
 
 def json_stats(json_clusters):
