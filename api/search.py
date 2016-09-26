@@ -140,15 +140,7 @@ def cluster_query_from_term(term):
     '''Recursively generate an SQL query from the search terms'''
     if term.kind == 'expression':
         if term.category == 'unknown':
-            if BgcType.query.filter(BgcType.term.ilike(term.term)).count() > 0:
-                term.category = 'type'
-            elif DnaSequence.query.filter(DnaSequence.acc.ilike(term.term)).count() > 0:
-                term.category = 'acc'
-            elif Taxa.query.filter(Taxa.genus.ilike(term.term)).count() > 0:
-                term.category = 'genus'
-            elif Taxa.query.filter(Taxa.species.ilike(term.term)).count() > 0:
-                term.category = 'species'
-
+            term.category = guess_cluster_category(term)
         if term.category in CLUSTERS:
             return CLUSTERS[term.category](term.term)
         else:
@@ -164,6 +156,20 @@ def cluster_query_from_term(term):
             return left_query.intersect(right_query)
 
     return Bgc.query.filter(sql.false())
+
+
+def guess_cluster_category(term):
+    '''Guess cluster search category from term'''
+    if BgcType.query.filter(BgcType.term.ilike(term.term)).count() > 0:
+        return 'type'
+    if DnaSequence.query.filter(DnaSequence.acc.ilike(term.term)).count() > 0:
+        return 'acc'
+    if Taxa.query.filter(Taxa.genus.ilike(term.term)).count() > 0:
+        return 'genus'
+    if Taxa.query.filter(Taxa.species.ilike(term.term)).count() > 0:
+        return 'species'
+
+    return term.category
 
 
 def json_stats(json_clusters):
