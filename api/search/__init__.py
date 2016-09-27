@@ -6,7 +6,7 @@ from sqlalchemy import (
     or_,
     sql,
 )
-from .models import (
+from api.models import (
     db,
     AsDomain,
     AsDomainProfile,
