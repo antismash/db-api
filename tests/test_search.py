@@ -11,7 +11,7 @@ def test_none_query():
 def test_break_lines():
     string = "MAGICMAGICMAGIC"
     expected = "MAGIC\nMAGIC\nMAGIC"
-    result = search.break_lines(string, width=5)
+    result = search.helpers.break_lines(string, width=5)
     assert result == expected
 
 
