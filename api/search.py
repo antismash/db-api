@@ -16,7 +16,10 @@ from .models import (
     DnaSequence,
     Locus,
     Monomer,
+    Profile,
+    ProfileHit,
     Taxa,
+    t_gene_cluster_map,
     t_rel_clusters_compounds,
     t_rel_clusters_types,
     RelCompoundsMonomer,
@@ -301,6 +304,15 @@ def clusters_by_compoundseq(term):
     return Bgc.query.join(t_rel_clusters_compounds).join(Compound).filter(Compound.peptide_sequence.ilike('%{}%'.format(term)))
 
 
+@register_handler(CLUSTERS)
+def cluster_by_profile(term):
+    '''Return a query for a bgc by profile name'''
+    return Bgc.query.join(t_gene_cluster_map, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                    .join(Gene, t_gene_cluster_map.c.gene_id == Gene.gene_id) \
+                    .join(ProfileHit).join(Profile) \
+                    .filter(Profile.name.ilike('%{}%'.format(term)))
+
+
 WHITELIST = set()
 for item in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
     WHITELIST.add(item)
@@ -413,3 +425,10 @@ def available_monomer(term):
 def available_type(term):
     '''Generate query for available type'''
     return db.session.query(distinct(BgcType.term), BgcType.description).filter(or_(BgcType.term.ilike('{}%'.format(term)), BgcType.description.ilike('{}%'.format(term))))
+
+
+@register_handler(AVAILABLE)
+def available_profile(term):
+    '''Generate query for available asDomain profile'''
+    return db.session.query(distinct(Profile.name), Profile.description) \
+             .filter(or_(Profile.name.ilike('{}%'.format(term)), Profile.description.ilike('%{}%'.format(term))))
