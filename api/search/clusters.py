@@ -215,6 +215,12 @@ def clusters_by_compoundseq(term):
 
 
 @register_handler(CLUSTERS)
+def clusters_by_compoundclass(term):
+    '''Return a query for a bgc by compound class'''
+    return Bgc.query.join(t_rel_clusters_compounds).join(Compound).filter(Compound._class.ilike(term))
+
+
+@register_handler(CLUSTERS)
 def cluster_by_profile(term):
     '''Return a query for a bgc by profile name'''
     return Bgc.query.join(t_gene_cluster_map, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \

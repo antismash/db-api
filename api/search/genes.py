@@ -16,6 +16,7 @@ from api.models import (
     db,
     BgcType,
     BiosyntheticGeneCluster as Bgc,
+    Compound,
     DnaSequence,
     Gene,
     t_gene_cluster_map,
@@ -53,6 +54,12 @@ def query_type(term):
                      .join(Bgc, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
                      .join(t_rel_clusters_types).join(BgcType) \
                      .filter(or_(BgcType.term.ilike('%{}%'.format(term)), BgcType.description.ilike('%{}%'.format(term))))
+
+
+@register_handler(GENE_QUERIES)
+def query_compoundclass(term):
+    '''Generate Gene query by compund class'''
+    return Gene.query.join(Compound, Gene.locus_tag == Compound.locus_tag).filter(Compound._class.ilike(term))
 
 
 
