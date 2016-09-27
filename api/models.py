@@ -9,13 +9,21 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 
+class AsDomainProfile(db.Model):
+    __tablename__ = 'as_domain_profiles'
+    __table_args__ = {u'schema': 'antismash'}
+
+    as_domain_profile_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
+    name = db.Column(db.Text)
+    description = db.Column(db.Text)
+    database = db.Column(db.Text)
+
+
 class AsDomain(db.Model):
     __tablename__ = 'as_domains'
     __table_args__ = {u'schema': 'antismash'}
 
     as_domain_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
-    name = db.Column(db.Text)
-    database = db.Column(db.Text)
     detection = db.Column(db.Text)
     score = db.Column(db.Float(53))
     evalue = db.Column(db.Float(53))
@@ -27,9 +35,11 @@ class AsDomain(db.Model):
     consensus = db.Column(db.Text)
     kr_activity = db.Column(db.Boolean)
     kr_stereochemistry = db.Column(db.Text)
+    as_domain_profile_id = db.Column(db.ForeignKey(u'antismash.as_domain_profiles.as_domain_profile_id', ondelete=u'CASCADE'))
     locus_id = db.Column(db.ForeignKey(u'antismash.loci.locus_id', ondelete=u'CASCADE'), index=True)
     gene_id = db.Column(db.ForeignKey(u'antismash.genes.gene_id', ondelete=u'CASCADE'), index=True)
 
+    as_domain_profile = db.relationship(u'AsDomainProfile', primaryjoin='AsDomain.as_domain_profile_id == AsDomainProfile.as_domain_profile_id', backref=u'as_domains')
     gene = db.relationship(u'Gene', primaryjoin='AsDomain.gene_id == Gene.gene_id', backref=u'as_domains')
     locus = db.relationship(u'Locus', primaryjoin='AsDomain.locus_id == Locus.locus_id', backref=u'as_domains')
 
