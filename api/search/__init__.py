@@ -14,16 +14,21 @@ from api.models import (
     Taxa,
     t_rel_clusters_types,
 )
-from .clusters import cluster_query_from_term
+from .clusters import (
+    cluster_query_from_term,
+    CLUSTER_FORMATTERS,
+)
 
 #######
 # The following imports are just so the code depending on search doesn't need changes
 from .available import available_term_by_category  # noqa: F401
-from .clusters import CLUSTER_FORMATTERS  # noqa: F401
 #######
 
 GENE_QUERIES = {}
 GENE_FORMATTERS = {}
+FORMATTERS = {
+    'cluster': CLUSTER_FORMATTERS,
+}
 
 
 class NoneQuery(object):
@@ -65,6 +70,15 @@ def gene_query_from_term(term):
             return left_query.intersect(right_query)
 
     return Gene.query.filter(sql.false())
+
+
+def format_results(query, results):
+    '''Get the appropriate formatter for the query'''
+    try:
+        fmt_func = FORMATTERS[query.search_type][query.return_type]
+        return fmt_func(results)
+    except KeyError:
+        return []
 
 
 def json_stats(json_clusters):

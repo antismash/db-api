@@ -19,9 +19,9 @@ from sqlalchemy import (
 from . import app, taxtree
 from .search import (
     core_search,
+    format_results,
     json_stats,
     available_term_by_category,
-    CLUSTER_FORMATTERS,
 )
 from .search_parser import Query
 from .models import (
@@ -181,7 +181,7 @@ def search():
     if query.return_type != 'json':
         abort(400)
 
-    clusters = CLUSTER_FORMATTERS['json'](core_search(query))
+    clusters = format_results(query, core_search(query))
     stats = json_stats(clusters)
 
     result = {
@@ -209,7 +209,7 @@ def export():
     if query.return_type not in ('json', 'csv', 'fasta'):
         abort(400)
 
-    found_bgcs = CLUSTER_FORMATTERS[query.return_type](core_search(query))
+    found_bgcs = format_results(query, core_search(query))
     filename = 'asdb_search_results.{}'.format(query.return_type)
     if query.return_type == 'json':
         found_bgcs = [json.dumps(found_bgcs)]
@@ -230,7 +230,7 @@ def export():
 def show_genome(identifier):
     '''show information for a genome by identifier'''
     query = Query.from_string('[acc]{}'.format(identifier))
-    found_bgcs = CLUSTER_FORMATTERS['json'](core_search(query))
+    found_bgcs = format_results(query, core_search(query))
 
     return jsonify(found_bgcs)
 
