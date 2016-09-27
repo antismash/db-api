@@ -122,6 +122,7 @@ class Compound(db.Model):
     bridges = db.Column(db.Integer)
     _class = db.Column('class', db.Text)
     score = db.Column(db.Float(53))
+    locus_tag = db.Column(db.Text, index=True)
 
 
 class DnaSequence(db.Model):
