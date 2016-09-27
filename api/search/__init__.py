@@ -6,6 +6,7 @@ from api.models import (
     db,
     BgcType,
     BiosyntheticGeneCluster as Bgc,
+    Gene,
     Genome,
     DnaSequence,
     Locus,
@@ -44,9 +45,9 @@ def core_search(query):
     sql_query = NoneQuery()
 
     if query.search_type == 'cluster':
-        sql_query = cluster_query_from_term(query.terms)
+        sql_query = cluster_query_from_term(query.terms).order_by(Bgc.bgc_id)
     elif query.search_type == 'gene':
-        sql_query = gene_query_from_term(query.terms)
+        sql_query = gene_query_from_term(query.terms).order_by(Gene.gene_id)
 
     results = sql_query.all()
 
