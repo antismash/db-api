@@ -101,6 +101,12 @@ def available_compoundseq(term):
 
 
 @register_handler(AVAILABLE)
+def available_compoundclass(term):
+    '''Generate query for available compound by class'''
+    return db.session.query(distinct(Compound._class), null()).filter(Compound._class.ilike('{}%'.format(term)))
+
+
+@register_handler(AVAILABLE)
 def available_monomer(term):
     '''Generate query for available monomer'''
     return db.session.query(distinct(Monomer.name), Monomer.description).filter(or_(Monomer.name.ilike('{}%'.format(term)), Monomer.description.ilike('{}%'.format(term))))
