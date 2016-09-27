@@ -1,13 +1,11 @@
 '''Search-related functions'''
 from sqlalchemy import (
     func,
-    sql,
 )
 from api.models import (
     db,
     BgcType,
     BiosyntheticGeneCluster as Bgc,
-    Gene,
     Genome,
     DnaSequence,
     Locus,
@@ -18,16 +16,19 @@ from .clusters import (
     cluster_query_from_term,
     CLUSTER_FORMATTERS,
 )
+from .genes import (
+    gene_query_from_term,
+    GENE_FORMATTERS,
+)
 
 #######
 # The following imports are just so the code depending on search doesn't need changes
 from .available import available_term_by_category  # noqa: F401
 #######
 
-GENE_QUERIES = {}
-GENE_FORMATTERS = {}
 FORMATTERS = {
     'cluster': CLUSTER_FORMATTERS,
+    'gene': GENE_FORMATTERS,
 }
 
 
@@ -50,26 +51,6 @@ def core_search(query):
     results = sql_query.all()
 
     return results
-
-
-def gene_query_from_term(term):
-    '''Recursively generate an SQL query from the search terms'''
-    if term.kind == 'expression':
-        if term.category in GENE_QUERIES:
-            return GENE_QUERIES[term.category](term.term)
-        else:
-            return Gene.query.filter(sql.false())
-    elif term.kind == 'operation':
-        left_query = gene_query_from_term(term.left)
-        right_query = gene_query_from_term(term.right)
-        if term.operation == 'except':
-            return left_query.except_(right_query)
-        elif term.operation == 'or':
-            return left_query.union(right_query)
-        elif term.operation == 'and':
-            return left_query.intersect(right_query)
-
-    return Gene.query.filter(sql.false())
 
 
 def format_results(query, results):
