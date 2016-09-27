@@ -8,6 +8,8 @@ from sqlalchemy import (
 )
 from .models import (
     db,
+    AsDomain,
+    AsDomainProfile,
     BgcType,
     BiosyntheticGeneCluster as Bgc,
     Compound,
@@ -313,6 +315,15 @@ def cluster_by_profile(term):
                     .filter(Profile.name.ilike('%{}%'.format(term)))
 
 
+@register_handler(CLUSTERS)
+def cluster_by_asdomain(term):
+    '''Return a query for a bgc by asdomain name'''
+    return Bgc.query.join(t_gene_cluster_map, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                    .join(Gene, t_gene_cluster_map.c.gene_id == Gene.gene_id) \
+                    .join(AsDomain).join(AsDomainProfile) \
+                    .filter(AsDomainProfile.name.ilike(term))
+
+
 WHITELIST = set()
 for item in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
     WHITELIST.add(item)
@@ -432,3 +443,10 @@ def available_profile(term):
     '''Generate query for available asDomain profile'''
     return db.session.query(distinct(Profile.name), Profile.description) \
              .filter(or_(Profile.name.ilike('{}%'.format(term)), Profile.description.ilike('%{}%'.format(term))))
+
+
+@register_handler(AVAILABLE)
+def available_asdomain(term):
+    '''Generate query for available asDomain profile'''
+    return db.session.query(distinct(AsDomainProfile.name), AsDomainProfile.description) \
+             .filter(or_(AsDomainProfile.name.ilike('{}%'.format(term)), AsDomainProfile.description.ilike('%{}%'.format(term))))
