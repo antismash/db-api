@@ -4,6 +4,7 @@ from sqlalchemy import (
 )
 from api.models import (
     db,
+    AsDomain,
     BgcType,
     BiosyntheticGeneCluster as Bgc,
     Gene,
@@ -21,6 +22,10 @@ from .genes import (
     gene_query_from_term,
     GENE_FORMATTERS,
 )
+from .domains import (
+    domain_query_from_term,
+    DOMAIN_FORMATTERS,
+)
 
 #######
 # The following imports are just so the code depending on search doesn't need changes
@@ -30,6 +35,7 @@ from .available import available_term_by_category  # noqa: F401
 FORMATTERS = {
     'cluster': CLUSTER_FORMATTERS,
     'gene': GENE_FORMATTERS,
+    'domain': DOMAIN_FORMATTERS,
 }
 
 
@@ -48,6 +54,8 @@ def core_search(query):
         sql_query = cluster_query_from_term(query.terms).order_by(Bgc.bgc_id)
     elif query.search_type == 'gene':
         sql_query = gene_query_from_term(query.terms).order_by(Gene.gene_id)
+    elif query.search_type == 'domain':
+        sql_query = domain_query_from_term(query.terms).order_by(AsDomain.as_domain_id)
 
     results = sql_query.all()
 
