@@ -95,7 +95,7 @@ def available_acc(term):
 
 
 @register_handler(AVAILABLE)
-def available_compound(term):
+def available_compoundseq(term):
     '''Generate query for available compound by peptide sequence'''
     return db.session.query(distinct(Compound.peptide_sequence), null()).filter(Compound.peptide_sequence.ilike('{}%'.format(term)))
 
