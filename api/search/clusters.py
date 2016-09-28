@@ -14,6 +14,8 @@ from api.models import (
     AsDomainProfile,
     BgcType,
     BiosyntheticGeneCluster as Bgc,
+    ClusterblastAlgorithm,
+    ClusterblastHit,
     Compound,
     Gene,
     Genome,
@@ -236,3 +238,28 @@ def cluster_by_asdomain(term):
                     .join(Gene, t_gene_cluster_map.c.gene_id == Gene.gene_id) \
                     .join(AsDomain).join(AsDomainProfile) \
                     .filter(AsDomainProfile.name.ilike(term))
+
+
+def cluster_by_x_clusterblast(term, algorithm):
+    '''Generic query for XClusterBlast hits'''
+    return Bgc.query.join(ClusterblastHit).join(ClusterblastAlgorithm) \
+                    .filter(ClusterblastAlgorithm.name == algorithm) \
+                    .filter(ClusterblastHit.acc.ilike(term))
+
+
+@register_handler(CLUSTERS)
+def cluster_by_clusterblast(term):
+    '''Return a query for a bgc by ClusterBlast hit'''
+    return cluster_by_x_clusterblast(term, 'clusterblast')
+
+
+@register_handler(CLUSTERS)
+def cluster_by_knowncluster(term):
+    '''Return a query for a bgc by KnownClusterBlast hit'''
+    return cluster_by_x_clusterblast(term, 'knownclusterblast')
+
+
+@register_handler(CLUSTERS)
+def cluster_by_subcluster(term):
+    '''Return a query for a bgc by SubClusterBlast hit'''
+    return cluster_by_x_clusterblast(term, 'subclusterblast')

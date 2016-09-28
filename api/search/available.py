@@ -18,6 +18,8 @@ from api.models import (
     db,
     AsDomainProfile,
     BgcType,
+    ClusterblastAlgorithm,
+    ClusterblastHit,
     Compound,
     DnaSequence,
     Monomer,
@@ -130,3 +132,27 @@ def available_asdomain(term):
     '''Generate query for available asDomain profile'''
     return db.session.query(distinct(AsDomainProfile.name), AsDomainProfile.description) \
              .filter(or_(AsDomainProfile.name.ilike('{}%'.format(term)), AsDomainProfile.description.ilike('%{}%'.format(term))))
+
+
+@register_handler(AVAILABLE)
+def available_clusterblast(term):
+    '''Generate query for available ClusterBlast hits'''
+    return db.session.query(distinct(ClusterblastHit.acc), ClusterblastHit.description) \
+             .join(ClusterblastAlgorithm).filter(ClusterblastAlgorithm.name == 'clusterblast') \
+             .filter(or_(ClusterblastHit.acc.ilike('{}%'.format(term)), ClusterblastHit.description.ilike('%{}%'.format(term))))
+
+
+@register_handler(AVAILABLE)
+def available_knowncluster(term):
+    '''Generate query for available KnownClusterBlast hits'''
+    return db.session.query(distinct(ClusterblastHit.acc), ClusterblastHit.description) \
+             .join(ClusterblastAlgorithm).filter(ClusterblastAlgorithm.name == 'knownclusterblast') \
+             .filter(or_(ClusterblastHit.acc.ilike('{}%'.format(term)), ClusterblastHit.description.ilike('%{}%'.format(term))))
+
+
+@register_handler(AVAILABLE)
+def available_subcluster(term):
+    '''Generate query for available SubClusterBlast hits'''
+    return db.session.query(distinct(ClusterblastHit.acc), ClusterblastHit.description) \
+             .join(ClusterblastAlgorithm).filter(ClusterblastAlgorithm.name == 'subclusterblast') \
+             .filter(or_(ClusterblastHit.acc.ilike('{}%'.format(term)), ClusterblastHit.description.ilike('%{}%'.format(term))))
