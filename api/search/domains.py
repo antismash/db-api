@@ -17,6 +17,9 @@ from api.models import (
     BiosyntheticGeneCluster as Bgc,
     Compound,
     DnaSequence,
+    Genome,
+    Locus,
+    Taxa,
     t_gene_cluster_map,
     t_rel_clusters_types,
 )
@@ -43,6 +46,59 @@ def domain_query_from_term(term):
             return left_query.intersect(right_query)
 
     return AsDomain.query.filter(sql.false())
+
+
+def query_taxon_generic():
+    '''Generic query for asDomain by taxon'''
+    return AsDomain.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa)
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_strain(term):
+    '''Generate asDomain query by strain'''
+    return query_taxon_generic().filter(Taxa.strain.ilike(term))
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_species(term):
+    '''Generate asDomain query by species'''
+    return query_taxon_generic().filter(Taxa.species.ilike(term))
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_genus(term):
+    '''Generate asDomain query by genus'''
+    return query_taxon_generic().filter(Taxa.genus.ilike(term))
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_family(term):
+    '''Generate asDomain query by family'''
+    return query_taxon_generic().filter(Taxa.family.ilike(term))
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_order(term):
+    '''Generate asDomain query by order'''
+    return query_taxon_generic().filter(Taxa.order.ilike(term))
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_class(term):
+    '''Generate asDomain query by class'''
+    return query_taxon_generic().filter(Taxa._class.ilike(term))
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_phylum(term):
+    '''Generate asDomain query by phylum'''
+    return query_taxon_generic().filter(Taxa.phylum.ilike(term))
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_superkingdom(term):
+    '''Generate asDomain query by superkingdom'''
+    return query_taxon_generic().filter(Taxa.superkingdom.ilike(term))
 
 
 @register_handler(DOMAIN_QUERIES)

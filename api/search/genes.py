@@ -19,6 +19,9 @@ from api.models import (
     Compound,
     DnaSequence,
     Gene,
+    Genome,
+    Locus,
+    Taxa,
     t_gene_cluster_map,
     t_rel_clusters_types,
 )
@@ -45,6 +48,59 @@ def gene_query_from_term(term):
             return left_query.intersect(right_query)
 
     return Gene.query.filter(sql.false())
+
+
+def query_taxon_generic():
+    '''Generate Gene query by taxonomy'''
+    return Gene.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa)
+
+
+@register_handler(GENE_QUERIES)
+def query_strain(term):
+    '''Generate Gene query by strain'''
+    return query_taxon_generic().filter(Taxa.strain.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
+def query_species(term):
+    '''Generate Gene query by species'''
+    return query_taxon_generic().filter(Taxa.species.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
+def query_genus(term):
+    '''Generate Gene query by genus'''
+    return query_taxon_generic().filter(Taxa.genus.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
+def query_family(term):
+    '''Generate Gene query by family'''
+    return query_taxon_generic().filter(Taxa.family.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
+def query_order(term):
+    '''Generate Gene query by order'''
+    return query_taxon_generic().filter(Taxa.order.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
+def query_class(term):
+    '''Generate Gene query by class'''
+    return query_taxon_generic().filter(Taxa._class.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
+def query_phylum(term):
+    '''Generate Gene query by phylum'''
+    return query_taxon_generic().filter(Taxa.phylum.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
+def query_superkingdom(term):
+    '''Generate Gene query by superkingdom'''
+    return query_taxon_generic().filter(Taxa.superkingdom.ilike(term))
 
 
 @register_handler(GENE_QUERIES)
