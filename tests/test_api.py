@@ -169,7 +169,7 @@ def test_search(client):
                 "acc": "CP010849",
                 "bgc_id": 54,
                 "cbh_acc": "BGC0000709_c1",
-                "cbh_description": "Neomycin_biosynthetic_gene_cluster",
+                "cbh_description": "Neomycin biosynthetic gene cluster",
                 "cluster_number": 13,
                 "description": "Lasso peptide",
                 "end_pos": 4616468,
@@ -218,14 +218,14 @@ def test_search(client):
 def test_export(client):
     '''Test /api/v1.0/export endpoint'''
     expected_csv = '''#Genus\tSpecies\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL
-Streptomyces\tcyaneogriseus\tCP010849.1\t13\tlassopeptide\t4593898\t4616468\tNeomycin_biosynthetic_gene_cluster\t8\tBGC0000709_c1\thttp://antismash-db.secondarymetabolites.org/output/CP010849/index.html#cluster-13
+Streptomyces\tcyaneogriseus\tCP010849.1\t13\tlassopeptide\t4593898\t4616468\tNeomycin biosynthetic gene cluster\t8\tBGC0000709_c1\thttp://antismash-db.secondarymetabolites.org/output/CP010849/index.html#cluster-13
 '''
 
     expected_json = [{
         "acc": "CP010849",
         "bgc_id": 54,
         "cbh_acc": "BGC0000709_c1",
-        "cbh_description": "Neomycin_biosynthetic_gene_cluster",
+        "cbh_description": "Neomycin biosynthetic gene cluster",
         "cluster_number": 13,
         "description": "Lasso peptide",
         "end_pos": 4616468,
@@ -275,7 +275,7 @@ def test_genome(client):
         "acc": "NC_017486",
         "bgc_id": 1,
         "cbh_acc": "BGC0000535_c1",
-        "cbh_description": "Nisin_A_biosynthetic_gene_cluster",
+        "cbh_description": "Nisin A biosynthetic gene cluster",
         "cluster_number": 1,
         "description": "Lanthipeptide",
         "end_pos": 620999,
