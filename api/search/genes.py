@@ -133,6 +133,16 @@ def format_fasta(genes):
     return fasta_records
 
 
+@register_handler(GENE_FORMATTERS)
+def format_csv(genes):
+    '''Generate CSV records for a list of genes'''
+    csv_lines = ['#Locus tag\tAccession\tStart\tEnd\tStrand']
+    for gene in genes:
+        csv_lines.append('{g.locus_tag}\t{g.locus.sequence.acc}.{g.locus.sequence.version}\t'
+                         '{g.locus.start_pos}\t{g.locus.end_pos}\t{g.locus.strand}'.format(g=gene))
+    return csv_lines
+
+
 def _extract_sequence(gene):
     '''Extract the sequence of a Gene'''
     sequence = db.session.query(func.substr(DnaSequence.dna, gene.locus.start_pos + 1, gene.locus.end_pos - gene.locus.start_pos)) \

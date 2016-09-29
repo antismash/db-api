@@ -119,3 +119,15 @@ def format_fasta(domains):
         fasta_records.append(record)
 
     return fasta_records
+
+
+@register_handler(DOMAIN_FORMATTERS)
+def format_csv(domains):
+    '''Generate CSV records for a list of domains'''
+    csv_lines = ['#Locus tag\tDomain type\tAccession\tStart\tEnd\tStrand\tSequence']
+    for domain in domains:
+        csv_lines.append('{d.gene.locus_tag}\t{d.as_domain_profile.name}\t'
+                         '{d.locus.sequence.acc}.{d.locus.sequence.version}\t'
+                         '{d.locus.start_pos}\t{d.locus.end_pos}\t{d.locus.strand}\t'
+                         '{d.translation}'.format(d=domain))
+    return csv_lines
