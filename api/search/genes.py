@@ -14,14 +14,21 @@ from .helpers import (
 
 from api.models import (
     db,
+    AsDomain,
     BgcType,
     BiosyntheticGeneCluster as Bgc,
+    ClusterblastAlgorithm,
+    ClusterblastHit,
     Compound,
     DnaSequence,
     Gene,
     Genome,
     Locus,
+    Monomer,
+    Profile,
+    ProfileHit,
     Taxa,
+    RelAsDomainsMonomer,
     t_gene_cluster_map,
     t_rel_clusters_types,
 )
@@ -104,6 +111,12 @@ def query_superkingdom(term):
 
 
 @register_handler(GENE_QUERIES)
+def query_acc(term):
+    '''Generate Gene query by NCBI accession number'''
+    return Gene.query.join(Locus).join(DnaSequence).filter(DnaSequence.acc.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
 def query_type(term):
     '''Generate Gene query by cluster type'''
     return Gene.query.join(t_gene_cluster_map, Gene.gene_id == t_gene_cluster_map.c.gene_id) \
@@ -113,11 +126,69 @@ def query_type(term):
 
 
 @register_handler(GENE_QUERIES)
+def query_monomer(term):
+    '''Generate Gene query by monomer'''
+    return Gene.query.join(AsDomain).join(RelAsDomainsMonomer).join(Monomer) \
+                     .filter(Monomer.name.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
+def query_compoundseq(term):
+    '''Generate Gene query by compound sequence'''
+    return Gene.query.join(Compound, Gene.locus_tag == Compound.locus_tag) \
+                     .filter(Compound.peptide_sequence.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
 def query_compoundclass(term):
-    '''Generate Gene query by compund class'''
-    return Gene.query.join(Compound, Gene.locus_tag == Compound.locus_tag).filter(Compound._class.ilike(term))
+    '''Generate Gene query by compound class'''
+    return Gene.query.join(Compound, Gene.locus_tag == Compound.locus_tag) \
+                     .filter(Compound._class.ilike(term))
 
 
+@register_handler(GENE_QUERIES)
+def query_profile(term):
+    '''Generate Gene query by BGC profile'''
+    return Gene.query.join(ProfileHit).join(Profile) \
+                     .filter(Profile.name.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
+def query_asdomain(term):
+    '''Generate Gene query by AsDomain'''
+    return Gene.query.join(AsDomain).filter(AsDomain.name.ilike(term))
+
+
+def gene_by_x_clusterblast(term, algorithm):
+    '''Generic search for gene by XClusterBlast match'''
+    return Gene.query.join(t_gene_cluster_map, Gene.gene_id == t_gene_cluster_map.c.gene_id) \
+                     .join(Bgc, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                     .join(ClusterblastHit).join(ClusterblastAlgorithm) \
+                     .filter(ClusterblastAlgorithm.name == algorithm) \
+                     .filter(ClusterblastHit.acc.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
+def query_clusterblast(term):
+    '''Generate Gene query by ClusterBlast hit'''
+    return gene_by_x_clusterblast(term, 'clusterblast')
+
+
+@register_handler(GENE_QUERIES)
+def query_knowncluster(term):
+    '''Generate Gene query by KnownClusterBlast hit'''
+    return gene_by_x_clusterblast(term, 'knownclusterblast')
+
+
+@register_handler(GENE_QUERIES)
+def query_subcluster(term):
+    '''Generate Gene query by SubClusterBlast hit'''
+    return gene_by_x_clusterblast(term, 'subclusterblast')
+
+
+##############
+# Formatters #
+#############
 
 @register_handler(GENE_FORMATTERS)
 def format_fasta(genes):

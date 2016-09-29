@@ -1,7 +1,5 @@
 '''Search functions related to asDomain searches'''
 from sqlalchemy import (
-    func,
-    or_,
     sql,
 )
 from .helpers import (
@@ -10,18 +8,25 @@ from .helpers import (
 )
 
 from api.models import (
-    db,
     AsDomain,
     AsDomainProfile,
     BgcType,
     BiosyntheticGeneCluster as Bgc,
+    ClusterblastAlgorithm,
+    ClusterblastHit,
     Compound,
+    Gene,
     DnaSequence,
     Genome,
     Locus,
+    Monomer,
+    Profile,
+    ProfileHit,
     Taxa,
+    RelAsDomainsMonomer,
     t_gene_cluster_map,
     t_rel_clusters_types,
+    RelCompoundsMonomer,
 )
 
 DOMAIN_QUERIES = {}
@@ -102,10 +107,90 @@ def query_superkingdom(term):
 
 
 @register_handler(DOMAIN_QUERIES)
+def query_acc(term):
+    '''Generate asDomain query by NCBI accession'''
+    return AsDomain.query.join(Locus).join(DnaSequence).filter(DnaSequence.acc.ilike(term))
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_type(term):
+    '''Generate asDomain query by BGC type'''
+    return AsDomain.query.join(Gene) \
+                   .join(t_gene_cluster_map, Gene.gene_id == t_gene_cluster_map.c.gene_id) \
+                   .join(Bgc, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                   .join(t_rel_clusters_types).join(BgcType) \
+                   .filter(BgcType.term.ilike(term))
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_monomer(term):
+    '''Generate asDomain query by monomer'''
+    return AsDomain.query.join(RelAsDomainsMonomer).join(Monomer) \
+                   .filter(Monomer.name.ilike(term))
+
+
+def query_compound():
+    '''Generate AsDomain query with appropriate joins to reach Compound'''
+    return AsDomain.query.join(RelAsDomainsMonomer).join(Monomer) \
+                   .join(RelCompoundsMonomer).join(Compound)
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_compoundseq(term):
+    '''Generate asDomain query by compound sequence'''
+    return query_compound().filter(Compound.peptide_sequence == term)
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_compoundclass(term):
+    '''Generate asDomain query by compound class'''
+    return query_compound().filter(Compound._class.ilike(term))
+
+
+@register_handler(DOMAIN_QUERIES)
+def query_profile(term):
+    '''Generate asDomain query by BGC profile hit'''
+    return AsDomain.query.join(Gene).join(ProfileHit).join(Profile) \
+                   .filter(Profile.name.ilike(term))
+
+
+@register_handler(DOMAIN_QUERIES)
 def query_asdomain(term):
     '''Generate asDomain query by cluster type'''
     return AsDomain.query.join(AsDomainProfile).filter(AsDomainProfile.name.ilike(term))
 
+
+def domain_by_x_clusterblast(term, algorithm):
+    '''Generic search for domain by XClusterBlast and hit id'''
+    return AsDomain.query.join(Gene) \
+                   .join(t_gene_cluster_map, Gene.gene_id == t_gene_cluster_map.c.gene_id) \
+                   .join(Bgc, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                   .join(ClusterblastHit).join(ClusterblastAlgorithm) \
+                   .filter(ClusterblastAlgorithm.name == algorithm) \
+                   .filter(ClusterblastHit.acc.ilike(term))
+
+
+@register_handler
+def query_clusterblast(term):
+    '''Generate asDomain query by ClusterBlast hit'''
+    return domain_by_x_clusterblast(term, 'clusterblast')
+
+
+@register_handler
+def query_knowncluster(term):
+    '''Generate asDomain query by KnownClusterBlast hit'''
+    return domain_by_x_clusterblast(term, 'knownclusterblast')
+
+
+@register_handler
+def query_subcluster(term):
+    '''Generate asDomain query by SubClusterBlast hit'''
+    return domain_by_x_clusterblast(term, 'subclusterblast')
+
+
+##############
+# Formatters #
+##############
 
 @register_handler(DOMAIN_FORMATTERS)
 def format_fasta(domains):
