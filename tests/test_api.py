@@ -215,6 +215,15 @@ def test_search(client):
     assert results.status_code == 400
 
 
+def test_search_paginate(client):
+    query = {'query': {'search': 'cluster', 'return_type': 'json', 'terms': {'term_type': 'expr', 'category': 'genus', 'term': 'Streptomyces'}},
+             'paginate': 5}
+    results = client.post(url_for('search'), data=json.dumps(query), content_type="application/json")
+    assert results.status_code == 200
+    assert len(results.json['clusters']) == 5
+    assert results.json['paginate'] == 5
+
+
 def test_export(client):
     '''Test /api/v1.0/export endpoint'''
     expected_csv = '''#Genus\tSpecies\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL

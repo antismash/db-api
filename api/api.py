@@ -181,14 +181,32 @@ def search():
     if query.return_type != 'json':
         abort(400)
 
+    try:
+        offset = int(request.json.get('offset', '0'))
+    except ValueError:
+        offset = 0
+
+    try:
+        paginate = int(request.json.get('paginate', '50'))
+    except ValueError:
+        paginate = 50
+
     clusters = format_results(query, core_search(query))
     stats = json_stats(clusters)
 
+    total = len(clusters)
+
+    if paginate > 0:
+        end = min(offset + paginate, total)
+    else:
+        end = total
+
+
     result = {
-        'total': len(clusters),
-        'clusters': clusters,
-        'offset': 0,
-        'paginate': 50,
+        'total': total,
+        'clusters': clusters[offset:end],
+        'offset': offset,
+        'paginate': paginate,
         'stats': stats,
     }
 
