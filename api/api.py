@@ -76,16 +76,20 @@ def get_stats():
                     .join(Genome).join(DnaSequence) \
                     .group_by(Taxa.tax_id).order_by(sql_desc('tax_count')).limit(1).first()
     top_seq_taxon = ret.tax_id
+    top_seq_species = '{r.genus} {r.species}'.format(r=ret)
     top_seq_taxon_count = ret.tax_count
 
 
-    ret = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, func.count(distinct(Bgc.bgc_id)).label('bgc_count'),
+    ret = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain,
+                           DnaSequence.acc,
+                           func.count(distinct(Bgc.bgc_id)).label('bgc_count'),
                            func.count(distinct(DnaSequence.acc)).label('seq_count'),
                            (cast(func.count(distinct(Bgc.bgc_id)), Float) / func.count(distinct(DnaSequence.acc))).label('clusters_per_seq')) \
                     .join(Genome).join(DnaSequence).join(Locus).join(Bgc) \
-                    .group_by(Taxa.tax_id).order_by(sql_desc('clusters_per_seq')).limit(1).first()
+                    .group_by(Taxa.tax_id, DnaSequence.acc).order_by(sql_desc('clusters_per_seq')).limit(1).first()
     top_secmet_taxon = ret.tax_id
-    top_secmet_species = ret.species
+    top_secmet_species = '{r.genus} {r.species} {r.strain}'.format(r=ret)
+    top_secmet_acc = ret.acc
     top_secmet_taxon_count = ret.clusters_per_seq
 
     stats = {
@@ -94,9 +98,11 @@ def get_stats():
         'num_sequences': num_sequences,
         'top_seq_taxon': top_seq_taxon,
         'top_seq_taxon_count': top_seq_taxon_count,
+        'top_seq_species': top_seq_species,
         'top_secmet_taxon': top_secmet_taxon,
         'top_secmet_taxon_count': top_secmet_taxon_count,
         'top_secmet_species': top_secmet_species,
+        'top_secmet_acc': top_secmet_acc,
         'clusters': clusters,
     }
 
