@@ -111,9 +111,11 @@ def test_stats(client):
         "num_clusters": 73,
         "num_genomes": 4,
         "num_sequences": 6,
-        "top_secmet_species": "cyaneogriseus",
+        "top_secmet_acc": "CP010849",
+        "top_secmet_species": "Streptomyces cyaneogriseus NMWT 1",
         "top_secmet_taxon": 477245,
         "top_secmet_taxon_count": 32.0,
+        "top_seq_species": "Rhodococcus pyridinivorans",
         "top_seq_taxon": 1435356,
         "top_seq_taxon_count": 3
     }
