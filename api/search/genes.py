@@ -63,6 +63,12 @@ def query_taxon_generic():
 
 
 @register_handler(GENE_QUERIES)
+def query_taxid(term):
+    '''Generate Gene query by NCBI taxid'''
+    return query_taxon_generic().filter(Taxa.tax_id == term)
+
+
+@register_handler(GENE_QUERIES)
 def query_strain(term):
     '''Generate Gene query by strain'''
     return query_taxon_generic().filter(Taxa.strain.ilike(term))

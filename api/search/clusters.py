@@ -150,6 +150,12 @@ def clusters_by_type(term):
 
 
 @register_handler(CLUSTERS)
+def clusters_by_taxid(term):
+    '''Return a query for a bgc by NCBI taxid'''
+    return Bgc.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.tax_id == term)
+
+
+@register_handler(CLUSTERS)
 def clusters_by_strain(term):
     '''Return a query for a bgc by strain search'''
     return Bgc.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.strain.ilike('%{}%'.format(term)))
