@@ -4,6 +4,7 @@ from sqlalchemy import (
     or_,
     sql,
 )
+from sqlalchemy.orm import joinedload
 from .helpers import (
     break_lines,
     register_handler,
@@ -38,25 +39,28 @@ CLUSTER_FORMATTERS = {}
 @register_handler(CLUSTER_FORMATTERS)
 def clusters_to_json(clusters):
     '''Convert model.BiosyntheticGeneClusters into JSON'''
+    query = db.session.query(Bgc, Locus.start_pos, Locus.end_pos, DnaSequence.acc, DnaSequence.version, Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain)
+    query = query.options(joinedload('bgc_types')).options(joinedload('clusterblast_hits'))
+    query = query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Bgc.bgc_id.in_(map(lambda x: x.bgc_id, clusters))).order_by(Bgc.bgc_id)
     json_clusters = []
-    for cluster in clusters:
+    for cluster in query.all():
         json_cluster = {}
-        json_cluster['bgc_id'] = cluster.bgc_id
-        json_cluster['cluster_number'] = cluster.cluster_number
+        json_cluster['bgc_id'] = cluster.BiosyntheticGeneCluster.bgc_id
+        json_cluster['cluster_number'] = cluster.BiosyntheticGeneCluster.cluster_number
 
-        json_cluster['start_pos'] = cluster.locus.start_pos
-        json_cluster['end_pos'] = cluster.locus.end_pos
+        json_cluster['start_pos'] = cluster.start_pos
+        json_cluster['end_pos'] = cluster.end_pos
 
-        json_cluster['acc'] = cluster.locus.sequence.acc
-        json_cluster['version'] = cluster.locus.sequence.version
+        json_cluster['acc'] = cluster.acc
+        json_cluster['version'] = cluster.version
 
-        json_cluster['genus'] = cluster.locus.sequence.genome.tax.genus
-        json_cluster['species'] = cluster.locus.sequence.genome.tax.species
-        json_cluster['strain'] = cluster.locus.sequence.genome.tax.strain
+        json_cluster['genus'] = cluster.genus
+        json_cluster['species'] = cluster.species
+        json_cluster['strain'] = cluster.strain
 
-        term = '-'.join([t.term for t in cluster.bgc_types])
-        if len(cluster.bgc_types) == 1:
-            json_cluster['description'] = cluster.bgc_types[0].description
+        term = '-'.join([t.term for t in cluster.BiosyntheticGeneCluster.bgc_types])
+        if len(cluster.BiosyntheticGeneCluster.bgc_types) == 1:
+            json_cluster['description'] = cluster.BiosyntheticGeneCluster.bgc_types[0].description
             json_cluster['term'] = term
         else:
             json_cluster['description'] = 'Hybrid cluster: {}'.format(term)
@@ -66,7 +70,7 @@ def clusters_to_json(clusters):
         json_cluster['cbh_description'] = None
         json_cluster['cbh_acc'] = None
 
-        knownclusterblasts = [hit for hit in cluster.clusterblast_hits if hit.algorithm.name == 'knownclusterblast']
+        knownclusterblasts = [hit for hit in cluster.BiosyntheticGeneCluster.clusterblast_hits if hit.algorithm.name == 'knownclusterblast']
         if len(knownclusterblasts) > 0:
             json_cluster['similarity'] = knownclusterblasts[0].similarity
             json_cluster['cbh_description'] = knownclusterblasts[0].description
