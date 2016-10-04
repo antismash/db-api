@@ -124,7 +124,7 @@ def get_sec_met_tree():
     ret = db.session.query(Bgc.bgc_id, Bgc.cluster_number,
                            DnaSequence.acc,
                            BgcType.term, BgcType.description,
-                           Taxa.genus, Taxa.species) \
+                           Taxa.genus, Taxa.species, Taxa.strain) \
                     .join(t_rel_clusters_types).join(BgcType).join(Locus) \
                     .join(DnaSequence).join(Genome).join(Taxa) \
                     .order_by(Taxa.genus, Taxa.species, DnaSequence.acc, Bgc.cluster_number) \
@@ -135,10 +135,12 @@ def get_sec_met_tree():
 
     for entry in ret:
         types[entry.term] = entry.description
+        species = entry.species if entry.species != 'Unclassified' else 'sp.'
+        name = '{} {} {}'.format(entry.genus, species, entry.strain)
         clusters.append({
             "id": "{}_c{}_{}".format(entry.acc, entry.cluster_number, entry.term),
             "parent": entry.term,
-            "text": "{} {} Cluster {}".format(entry.species, entry.acc, entry.cluster_number),
+            "text": "{} {} Cluster {}".format(name, entry.acc, entry.cluster_number),
             "type": "cluster",
         })
 
