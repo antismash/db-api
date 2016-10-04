@@ -47,8 +47,8 @@ MIME_TYPE_MAP = {
 
 FASTA_LIMITS = {
     'cluster': 100,
-    'gene': 1000,
-    'domain': 5000
+    'gene': 500,
+    'domain': 500
 }
 
 
