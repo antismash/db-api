@@ -6,7 +6,9 @@ from flask import (
     abort,
     jsonify,
     request,
+    Response,
     send_file,
+    stream_with_context,
 )
 import sqlalchemy
 from sqlalchemy import (
@@ -251,6 +253,36 @@ def export():
     mime_type = MIME_TYPE_MAP.get(query.return_type, None)
 
     return send_file(handle, mimetype=mime_type, attachment_filename=filename, as_attachment=True)
+
+
+@app.route('/api/v1.0/export/<search_type>/<return_type>')
+def export_get(search_type, return_type):
+    '''Export the search results as a file'''
+
+    search_string = request.args.get('search', '')
+    if search_string == '':
+        abort(400)
+
+    if return_type not in ('json', 'csv', 'fasta'):
+        abort(400)
+
+    query = Query.from_string(search_string, search_type=search_type, return_type=return_type)
+
+    search_results = core_search(query)
+    if len(search_results) > 100 and search_type == 'cluster' and return_type == 'fasta':
+        raise TooManyResults('More than 100 search results for FASTA cluster download, please specify a smaller query.')
+    found_bgcs = format_results(query, search_results)
+    if query.return_type == 'json':
+        found_bgcs = [json.dumps(found_bgcs)]
+
+
+    def generate():
+        for line in found_bgcs:
+            yield line + '\n'
+
+    mime_type = MIME_TYPE_MAP.get(query.return_type, None)
+
+    return Response(stream_with_context(generate()), mimetype=mime_type)
 
 
 @app.route('/api/v1.0/genome/<identifier>')
