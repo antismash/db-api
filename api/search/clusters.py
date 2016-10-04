@@ -1,6 +1,7 @@
 '''Cluster-related search options'''
 
 from sqlalchemy import (
+    func,
     or_,
     sql,
 )
@@ -95,18 +96,22 @@ def clusters_to_csv(clusters):
 @register_handler(CLUSTER_FORMATTERS)
 def clusters_to_fasta(clusters):
     '''Convert model.BiosyntheticGeneCluster into FASTA'''
-    fasta_records = []
-    for cluster in clusters:
-        compiled_type = '-'.join([t.term for t in cluster.bgc_types])
-        seq = break_lines(cluster.locus.sequence.dna)
-        fasta = '>{c.locus.sequence.acc}.{c.locus.sequence.version}|Cluster {c.cluster_number}|' \
-                '{compiled_type}|{c.locus.start_pos}-{c.locus.end_pos}|' \
-                '{c.locus.sequence.genome.tax.genus} {c.locus.sequence.genome.tax.species} ' \
-                '{c.locus.sequence.genome.tax.strain}\n{seq}' \
-                .format(c=cluster, compiled_type=compiled_type, seq=seq)
-        fasta_records.append(fasta)
+    query = db.session.query(Bgc, Locus.start_pos, Locus.end_pos, DnaSequence.acc, DnaSequence.version,
+                             func.substr(DnaSequence.dna, Locus.start_pos + 1, Locus.end_pos).label('sequence'),
+                             Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain)
+    query = query.options(joinedload('bgc_types'))
+    query = query.join(Locus).join(DnaSequence).join(Genome).join(Taxa)
+    query = query.filter(Bgc.bgc_id.in_(map(lambda x: x.bgc_id, clusters))).order_by(Bgc.bgc_id)
+    for cluster in query:
+        seq = break_lines(cluster.sequence)
+        compiled_type = '-'.join([t.term for t in cluster.BiosyntheticGeneCluster.bgc_types])
+        fasta = '>{c.acc}.{c.version}|Cluster {cluster_number}|' \
+                '{compiled_type}|{c.start_pos}-{c.end_pos}|' \
+                '{c.genus} {c.species} {c.strain}\n{seq}' \
+                .format(c=cluster, cluster_number=cluster.BiosyntheticGeneCluster.cluster_number,
+                        compiled_type=compiled_type, seq=seq)
+        yield fasta
 
-    return fasta_records
 
 
 def cluster_query_from_term(term):

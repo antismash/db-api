@@ -250,7 +250,7 @@ Streptomyces\tcyaneogriseus\tCP010849.1\t13\tlassopeptide\t4593898\t4616468\tNeo
     }]
 
     expected_fasta = '''>CP010849.1|Cluster 13|lassopeptide|4593898-4616468|Streptomyces cyaneogriseus NMWT 1
-TGACGGCACGACTGTGTGTCAGGTGCCAGGGTTGGCCCTGGCGGGCCAAC'''
+ACCTGCGAGTCCGCCGTCGGCACCTGCGCGATGTGCTACGGCCGTTCGCTGGCCA'''
 
     results = client.post(url_for('export'), data='{"search_string": "[type]lassopeptide"}', content_type="application/json")
     assert results.status_code == 200
