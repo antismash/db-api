@@ -1,4 +1,5 @@
 '''general helper functions for search'''
+import string
 
 
 def register_handler(handler):
@@ -50,3 +51,18 @@ def sanitise_string(search_string):
             cleaned.append(symbol)
 
     return ''.join(cleaned)
+
+
+def calculate_sequence(strand, sequence):
+    '''Calculate strand-aware sequence'''
+    if strand == '-':
+        sequence = reverse_completement(sequence)
+    return sequence
+
+
+TRANS_TABLE = string.maketrans('ATGCatgc', 'TACGtacg')
+
+
+def reverse_completement(sequence):
+    '''return the reverse complement of a sequence'''
+    return str(sequence).translate(TRANS_TABLE)[::-1]

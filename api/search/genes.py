@@ -1,7 +1,5 @@
 '''Gene-related search functions'''
 
-import string
-
 from sqlalchemy import (
     func,
     or_,
@@ -9,6 +7,7 @@ from sqlalchemy import (
 )
 from .helpers import (
     break_lines,
+    calculate_sequence,
     register_handler,
 )
 
@@ -206,7 +205,7 @@ def format_fasta(genes):
     query = query.filter(Gene.gene_id.in_(map(lambda x: x.gene_id, genes))).order_by(Gene.gene_id)
     fasta_records = []
     for gene in query:
-        sequence = break_lines(_extract_sequence(gene))
+        sequence = break_lines(calculate_sequence(gene.strand, gene.sequence))
         record = '>{g.locus_tag}|{g.acc}.{g.version}|' \
                  '{g.start_pos}-{g.end_pos}({g.strand})\n' \
                  '{sequence}'.format(g=gene, sequence=sequence)
@@ -226,19 +225,3 @@ def format_csv(genes):
         csv_lines.append('{g.locus_tag}\t{g.acc}.{g.version}\t'
                          '{g.start_pos}\t{g.end_pos}\t{g.strand}'.format(g=gene))
     return csv_lines
-
-
-def _extract_sequence(gene):
-    '''Extract the sequence of a Gene'''
-    sequence = gene.sequence
-    if gene.strand == '-':
-        sequence = reverse_completement(sequence)
-    return sequence
-
-
-TRANS_TABLE = string.maketrans('ATGCatgc', 'TACGtacg')
-
-
-def reverse_completement(sequence):
-    '''return the reverse complement of a sequence'''
-    return str(sequence).translate(TRANS_TABLE)[::-1]
