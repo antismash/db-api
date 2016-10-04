@@ -97,7 +97,7 @@ def clusters_to_csv(clusters):
 def clusters_to_fasta(clusters):
     '''Convert model.BiosyntheticGeneCluster into FASTA'''
     query = db.session.query(Bgc, Locus.start_pos, Locus.end_pos, DnaSequence.acc, DnaSequence.version,
-                             func.substr(DnaSequence.dna, Locus.start_pos + 1, Locus.end_pos).label('sequence'),
+                             func.substr(DnaSequence.dna, Locus.start_pos + 1, Locus.end_pos - Locus.start_pos).label('sequence'),
                              Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain)
     query = query.options(joinedload('bgc_types'))
     query = query.join(Locus).join(DnaSequence).join(Genome).join(Taxa)

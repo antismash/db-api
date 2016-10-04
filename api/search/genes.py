@@ -200,7 +200,7 @@ def format_fasta(genes):
     '''Generate FASTA records for a list of genes'''
     query = db.session.query(Gene.gene_id, Gene.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
                              DnaSequence.acc, DnaSequence.version,
-                             func.substr(DnaSequence.dna, Locus.start_pos + 1, Locus.end_pos).label('sequence'))
+                             func.substr(DnaSequence.dna, Locus.start_pos + 1, Locus.end_pos - Locus.start_pos).label('sequence'))
     query = query.join(Locus).join(DnaSequence)
     query = query.filter(Gene.gene_id.in_(map(lambda x: x.gene_id, genes))).order_by(Gene.gene_id)
     fasta_records = []
