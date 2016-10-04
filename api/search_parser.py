@@ -38,10 +38,10 @@ class Query(object):
         return cls(terms, **extra_args)
 
     @classmethod
-    def from_string(cls, string, return_type='json'):
+    def from_string(cls, string, search_type='cluster', return_type='json'):
         '''Generate query from a string'''
         terms = QueryTerm.from_string(string)
-        return cls(terms, return_type=return_type)
+        return cls(terms, search_type=search_type, return_type=return_type)
 
 
 class QueryTerm(object):
