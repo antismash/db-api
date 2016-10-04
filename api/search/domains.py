@@ -1,9 +1,11 @@
 '''Search functions related to asDomain searches'''
 from sqlalchemy import (
+    func,
     sql,
 )
 from .helpers import (
     break_lines,
+    calculate_sequence,
     register_handler,
 )
 
@@ -200,8 +202,8 @@ def query_subcluster(term):
 ##############
 
 @register_handler(DOMAIN_FORMATTERS)
-def format_fasta(domains):
-    '''Generate FASTA records for a list of domains'''
+def format_fastaa(domains):
+    '''Generate protein FASTA records for a list of domains'''
     query = db.session.query(AsDomain.as_domain_id, AsDomain.translation, AsDomainProfile.name,
                              Gene.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
                              DnaSequence.acc, DnaSequence.version)
@@ -210,6 +212,26 @@ def format_fasta(domains):
     fasta_records = []
     for domain in query:
         sequence = break_lines(domain.translation)
+        record = '>{d.locus_tag}|{d.name}|{d.acc}.{d.version}|' \
+                 '{d.start_pos}-{d.end_pos}({d.strand})\n' \
+                 '{sequence}'.format(d=domain, sequence=sequence)
+        fasta_records.append(record)
+
+    return fasta_records
+
+
+@register_handler(DOMAIN_FORMATTERS)
+def format_fasta(domains):
+    '''Generate DNA FASTA records for a list of domains'''
+    query = db.session.query(AsDomain.as_domain_id, AsDomainProfile.name,
+                             Gene.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
+                             func.substr(DnaSequence.dna, Locus.start_pos + 1, Locus.end_pos - Locus.start_pos).label('sequence'),
+                             DnaSequence.acc, DnaSequence.version)
+    query = query.join(AsDomainProfile).join(Locus, AsDomain.locus_id == Locus.locus_id).join(DnaSequence).join(Gene, AsDomain.gene_id == Gene.gene_id)
+    query = query.filter(AsDomain.as_domain_id.in_(map(lambda x: x.as_domain_id, domains))).order_by(AsDomain.as_domain_id)
+    fasta_records = []
+    for domain in query:
+        sequence = break_lines(calculate_sequence(domain.strand, domain.sequence))
         record = '>{d.locus_tag}|{d.name}|{d.acc}.{d.version}|' \
                  '{d.start_pos}-{d.end_pos}({d.strand})\n' \
                  '{sequence}'.format(d=domain, sequence=sequence)

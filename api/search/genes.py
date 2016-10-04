@@ -197,7 +197,7 @@ def query_subcluster(term):
 
 @register_handler(GENE_FORMATTERS)
 def format_fasta(genes):
-    '''Generate FASTA records for a list of genes'''
+    '''Generate DNA FASTA records for a list of genes'''
     query = db.session.query(Gene.gene_id, Gene.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
                              DnaSequence.acc, DnaSequence.version,
                              func.substr(DnaSequence.dna, Locus.start_pos + 1, Locus.end_pos - Locus.start_pos).label('sequence'))
@@ -206,6 +206,24 @@ def format_fasta(genes):
     fasta_records = []
     for gene in query:
         sequence = break_lines(calculate_sequence(gene.strand, gene.sequence))
+        record = '>{g.locus_tag}|{g.acc}.{g.version}|' \
+                 '{g.start_pos}-{g.end_pos}({g.strand})\n' \
+                 '{sequence}'.format(g=gene, sequence=sequence)
+        fasta_records.append(record)
+
+    return fasta_records
+
+
+@register_handler(GENE_FORMATTERS)
+def format_fastaa(genes):
+    '''Generate protein FASTA records for a list of genes'''
+    query = db.session.query(Gene.gene_id, Gene.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
+                             DnaSequence.acc, DnaSequence.version, Gene.translation)
+    query = query.join(Locus).join(DnaSequence)
+    query = query.filter(Gene.gene_id.in_(map(lambda x: x.gene_id, genes))).order_by(Gene.gene_id)
+    fasta_records = []
+    for gene in query:
+        sequence = break_lines(gene.translation)
         record = '>{g.locus_tag}|{g.acc}.{g.version}|' \
                  '{g.start_pos}-{g.end_pos}({g.strand})\n' \
                  '{sequence}'.format(g=gene, sequence=sequence)

@@ -252,7 +252,7 @@ def export():
     return_type = query.return_type
     search_type = query.search_type
 
-    if return_type not in ('json', 'csv', 'fasta'):
+    if return_type not in ('json', 'csv', 'fasta', 'fastaa'):
         abort(400)
 
     search_results = core_search(query)
@@ -296,7 +296,7 @@ def export_get(search_type, return_type):
     if search_string == '':
         abort(400)
 
-    if return_type not in ('json', 'csv', 'fasta'):
+    if return_type not in ('json', 'csv', 'fasta', 'fastaa'):
         abort(400)
 
     query = Query.from_string(search_string, search_type=search_type, return_type=return_type)
