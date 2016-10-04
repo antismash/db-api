@@ -235,8 +235,8 @@ def export():
         abort(400)
 
     search_results = core_search(query)
-    if len(search_results) > 2:
-        raise TooManyResults('More than 100 search results, specify a smaller query')
+    if len(search_results) > 100 and query.search_type == 'cluster' and query.return_type == 'fasta':
+        raise TooManyResults('More than 100 search results for FASTA cluster download, please specify a smaller query.')
     found_bgcs = format_results(query, search_results)
     filename = 'asdb_search_results.{}'.format(query.return_type)
     if query.return_type == 'json':
