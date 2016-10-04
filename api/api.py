@@ -34,6 +34,7 @@ from .models import (
     Taxa,
     t_rel_clusters_types,
 )
+from .errors import TooManyResults
 
 
 MIME_TYPE_MAP = {
@@ -233,11 +234,13 @@ def export():
     if query.return_type not in ('json', 'csv', 'fasta'):
         abort(400)
 
-    found_bgcs = format_results(query, core_search(query))
+    search_results = core_search(query)
+    if len(search_results) > 2:
+        raise TooManyResults('More than 100 search results, specify a smaller query')
+    found_bgcs = format_results(query, search_results)
     filename = 'asdb_search_results.{}'.format(query.return_type)
     if query.return_type == 'json':
         found_bgcs = [json.dumps(found_bgcs)]
-
 
     handle = StringIO.StringIO()
     for line in found_bgcs:
