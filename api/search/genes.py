@@ -199,11 +199,16 @@ def query_subcluster(term):
 @register_handler(GENE_FORMATTERS)
 def format_fasta(genes):
     '''Generate FASTA records for a list of genes'''
+    query = db.session.query(Gene.gene_id, Gene.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
+                             DnaSequence.acc, DnaSequence.version,
+                             func.substr(DnaSequence.dna, Locus.start_pos + 1, Locus.end_pos).label('sequence'))
+    query = query.join(Locus).join(DnaSequence)
+    query = query.filter(Gene.gene_id.in_(map(lambda x: x.gene_id, genes))).order_by(Gene.gene_id)
     fasta_records = []
-    for gene in genes:
+    for gene in query:
         sequence = break_lines(_extract_sequence(gene))
-        record = '>{g.locus_tag}|{g.locus.sequence.acc}.{g.locus.sequence.version}|' \
-                 '{g.locus.start_pos}-{g.locus.end_pos}({g.locus.strand})\n' \
+        record = '>{g.locus_tag}|{g.acc}.{g.version}|' \
+                 '{g.start_pos}-{g.end_pos}({g.strand})\n' \
                  '{sequence}'.format(g=gene, sequence=sequence)
         fasta_records.append(record)
 
@@ -213,18 +218,20 @@ def format_fasta(genes):
 @register_handler(GENE_FORMATTERS)
 def format_csv(genes):
     '''Generate CSV records for a list of genes'''
+    query = db.session.query(Gene.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand, DnaSequence.acc, DnaSequence.version)
+    query = query.join(Locus).join(DnaSequence)
+    query = query.filter(Gene.gene_id.in_(map(lambda x: x.gene_id, genes))).order_by(Gene.gene_id)
     csv_lines = ['#Locus tag\tAccession\tStart\tEnd\tStrand']
-    for gene in genes:
-        csv_lines.append('{g.locus_tag}\t{g.locus.sequence.acc}.{g.locus.sequence.version}\t'
-                         '{g.locus.start_pos}\t{g.locus.end_pos}\t{g.locus.strand}'.format(g=gene))
+    for gene in query:
+        csv_lines.append('{g.locus_tag}\t{g.acc}.{g.version}\t'
+                         '{g.start_pos}\t{g.end_pos}\t{g.strand}'.format(g=gene))
     return csv_lines
 
 
 def _extract_sequence(gene):
     '''Extract the sequence of a Gene'''
-    sequence = db.session.query(func.substr(DnaSequence.dna, gene.locus.start_pos + 1, gene.locus.end_pos - gene.locus.start_pos)) \
-                         .filter_by(sequence_id=gene.locus.sequence_id).one()[0]
-    if gene.locus.strand == '-':
+    sequence = gene.sequence
+    if gene.strand == '-':
         sequence = reverse_completement(sequence)
     return sequence
 
