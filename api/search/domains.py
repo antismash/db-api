@@ -8,6 +8,7 @@ from .helpers import (
 )
 
 from api.models import (
+    db,
     AsDomain,
     AsDomainProfile,
     BgcType,
@@ -201,11 +202,16 @@ def query_subcluster(term):
 @register_handler(DOMAIN_FORMATTERS)
 def format_fasta(domains):
     '''Generate FASTA records for a list of domains'''
+    query = db.session.query(AsDomain.as_domain_id, AsDomain.translation, AsDomainProfile.name,
+                             Gene.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
+                             DnaSequence.acc, DnaSequence.version)
+    query = query.join(AsDomainProfile).join(Locus).join(DnaSequence).join(Gene, AsDomain.gene_id == Gene.gene_id)
+    query = query.filter(AsDomain.as_domain_id.in_(map(lambda x: x.as_domain_id, domains))).order_by(AsDomain.as_domain_id)
     fasta_records = []
-    for domain in domains:
+    for domain in query:
         sequence = break_lines(domain.translation)
-        record = '>{d.gene.locus_tag}|{d.as_domain_profile.name}|{d.locus.sequence.acc}.{d.locus.sequence.version}|' \
-                 '{d.locus.start_pos}-{d.locus.end_pos}({d.locus.strand})\n' \
+        record = '>{d.locus_tag}|{d.name}|{d.acc}.{d.version}|' \
+                 '{d.start_pos}-{d.end_pos}({d.strand})\n' \
                  '{sequence}'.format(d=domain, sequence=sequence)
         fasta_records.append(record)
 
@@ -215,10 +221,15 @@ def format_fasta(domains):
 @register_handler(DOMAIN_FORMATTERS)
 def format_csv(domains):
     '''Generate CSV records for a list of domains'''
+    query = db.session.query(AsDomain.as_domain_id, AsDomain.translation, AsDomainProfile.name,
+                             Gene.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
+                             DnaSequence.acc, DnaSequence.version)
+    query = query.join(AsDomainProfile).join(Locus).join(DnaSequence).join(Gene, AsDomain.gene_id == Gene.gene_id)
+    query = query.filter(AsDomain.as_domain_id.in_(map(lambda x: x.as_domain_id, domains))).order_by(AsDomain.as_domain_id)
     csv_lines = ['#Locus tag\tDomain type\tAccession\tStart\tEnd\tStrand\tSequence']
-    for domain in domains:
-        csv_lines.append('{d.gene.locus_tag}\t{d.as_domain_profile.name}\t'
-                         '{d.locus.sequence.acc}.{d.locus.sequence.version}\t'
-                         '{d.locus.start_pos}\t{d.locus.end_pos}\t{d.locus.strand}\t'
+    for domain in query:
+        csv_lines.append('{d.locus_tag}\t{d.name}\t'
+                         '{d.acc}.{d.version}\t'
+                         '{d.start_pos}\t{d.end_pos}\t{d.strand}\t'
                          '{d.translation}'.format(d=domain))
     return csv_lines
