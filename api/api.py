@@ -45,6 +45,12 @@ MIME_TYPE_MAP = {
     'fasta': 'application/fasta',
 }
 
+FASTA_LIMITS = {
+    'cluster': 100,
+    'gene': 1000,
+    'domain': 5000
+}
+
 
 @app.route('/api/v1.0/version')
 def get_version():
@@ -233,12 +239,39 @@ def export():
     except ValueError:
         abort(400)
 
-    if query.return_type not in ('json', 'csv', 'fasta'):
+    try:
+        offset = int(request.json.get('offset', '0'))
+    except ValueError:
+        offset = 0
+
+    try:
+        paginate = int(request.json.get('paginate', '0'))
+    except ValueError:
+        paginate = 0
+
+    return_type = query.return_type
+    search_type = query.search_type
+
+    if return_type not in ('json', 'csv', 'fasta'):
         abort(400)
 
     search_results = core_search(query)
-    if len(search_results) > 100 and query.search_type == 'cluster' and query.return_type == 'fasta':
-        raise TooManyResults('More than 100 search results for FASTA cluster download, please specify a smaller query.')
+
+    total = len(search_results)
+
+    if paginate > 0:
+        end = min(offset + paginate, total)
+    else:
+        end = total
+
+    search_results = search_results[offset:end]
+
+    limit = FASTA_LIMITS.get(search_type, 100)
+
+    if return_type == 'fasta' and len(search_results) > limit:
+        raise TooManyResults('More than {limit} search results for FASTA {search} download, please specify a smaller query.'.format(
+            limit=limit, search=search_type))
+
     found_bgcs = format_results(query, search_results)
     filename = 'asdb_search_results.{}'.format(query.return_type)
     if query.return_type == 'json':
