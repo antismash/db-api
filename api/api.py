@@ -43,6 +43,7 @@ MIME_TYPE_MAP = {
     'json': 'application/json',
     'csv': 'text/csv',
     'fasta': 'application/fasta',
+    'fastaa': 'application/fasta',
 }
 
 FASTA_LIMITS = {
