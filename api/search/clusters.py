@@ -238,7 +238,7 @@ def clusters_by_compoundclass(term):
 
 
 @register_handler(CLUSTERS)
-def cluster_by_profile(term):
+def clusters_by_profile(term):
     '''Return a query for a bgc by profile name'''
     return Bgc.query.join(t_gene_cluster_map, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
                     .join(Gene, t_gene_cluster_map.c.gene_id == Gene.gene_id) \
@@ -247,7 +247,7 @@ def cluster_by_profile(term):
 
 
 @register_handler(CLUSTERS)
-def cluster_by_asdomain(term):
+def clusters_by_asdomain(term):
     '''Return a query for a bgc by asdomain name'''
     return Bgc.query.join(t_gene_cluster_map, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
                     .join(Gene, t_gene_cluster_map.c.gene_id == Gene.gene_id) \
@@ -255,7 +255,7 @@ def cluster_by_asdomain(term):
                     .filter(AsDomainProfile.name.ilike(term))
 
 
-def cluster_by_x_clusterblast(term, algorithm):
+def clusters_by_x_clusterblast(term, algorithm):
     '''Generic query for XClusterBlast hits'''
     return Bgc.query.join(ClusterblastHit).join(ClusterblastAlgorithm) \
                     .filter(ClusterblastAlgorithm.name == algorithm) \
@@ -263,18 +263,18 @@ def cluster_by_x_clusterblast(term, algorithm):
 
 
 @register_handler(CLUSTERS)
-def cluster_by_clusterblast(term):
+def clusters_by_clusterblast(term):
     '''Return a query for a bgc by ClusterBlast hit'''
-    return cluster_by_x_clusterblast(term, 'clusterblast')
+    return clusters_by_x_clusterblast(term, 'clusterblast')
 
 
 @register_handler(CLUSTERS)
-def cluster_by_knowncluster(term):
+def clusters_by_knowncluster(term):
     '''Return a query for a bgc by KnownClusterBlast hit'''
-    return cluster_by_x_clusterblast(term, 'knownclusterblast')
+    return clusters_by_x_clusterblast(term, 'knownclusterblast')
 
 
 @register_handler(CLUSTERS)
-def cluster_by_subcluster(term):
+def clusters_by_subcluster(term):
     '''Return a query for a bgc by SubClusterBlast hit'''
-    return cluster_by_x_clusterblast(term, 'subclusterblast')
+    return clusters_by_x_clusterblast(term, 'subclusterblast')
