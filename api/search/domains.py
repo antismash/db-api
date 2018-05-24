@@ -18,7 +18,7 @@ from api.models import (
     ClusterblastAlgorithm,
     ClusterblastHit,
     Compound,
-    Gene,
+    Cds,
     DnaSequence,
     Genome,
     Locus,
@@ -27,7 +27,7 @@ from api.models import (
     ProfileHit,
     Taxa,
     RelAsDomainsMonomer,
-    t_gene_cluster_map,
+    t_cds_cluster_map,
     t_rel_clusters_types,
     RelCompoundsMonomer,
 )
@@ -125,8 +125,8 @@ def query_acc(term):
 def query_type(term):
     '''Generate asDomain query by BGC type'''
     return AsDomain.query.join(Gene) \
-                   .join(t_gene_cluster_map, Gene.gene_id == t_gene_cluster_map.c.gene_id) \
-                   .join(Bgc, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                   .join(t_cds_cluster_map, Cds.cds_id == t_cds_cluster_map.c.cds_id) \
+                   .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
                    .join(t_rel_clusters_types).join(BgcType) \
                    .filter(BgcType.term.ilike(term))
 
@@ -172,8 +172,8 @@ def query_asdomain(term):
 def domain_by_x_clusterblast(term, algorithm):
     '''Generic search for domain by XClusterBlast and hit id'''
     return AsDomain.query.join(Gene) \
-                   .join(t_gene_cluster_map, Gene.gene_id == t_gene_cluster_map.c.gene_id) \
-                   .join(Bgc, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                   .join(t_cds_cluster_map, Cds.cds_id == t_cds_cluster_map.c.cds_id) \
+                   .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
                    .join(ClusterblastHit).join(ClusterblastAlgorithm) \
                    .filter(ClusterblastAlgorithm.name == algorithm) \
                    .filter(ClusterblastHit.acc.ilike(term))
@@ -205,9 +205,9 @@ def query_subcluster(term):
 def format_fastaa(domains):
     '''Generate protein FASTA records for a list of domains'''
     query = db.session.query(AsDomain.as_domain_id, AsDomain.translation, AsDomainProfile.name,
-                             Gene.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
+                             Cds.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
                              DnaSequence.acc, DnaSequence.version)
-    query = query.join(AsDomainProfile).join(Locus).join(DnaSequence).join(Gene, AsDomain.gene_id == Gene.gene_id)
+    query = query.join(AsDomainProfile).join(Locus).join(DnaSequence).join(Cds, AsDomain.cds_id == Cds.cds_id)
     query = query.filter(AsDomain.as_domain_id.in_(map(lambda x: x.as_domain_id, domains))).order_by(AsDomain.as_domain_id)
     fasta_records = []
     for domain in query:
@@ -224,10 +224,10 @@ def format_fastaa(domains):
 def format_fasta(domains):
     '''Generate DNA FASTA records for a list of domains'''
     query = db.session.query(AsDomain.as_domain_id, AsDomainProfile.name,
-                             Gene.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
+                             Cds.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
                              func.substr(DnaSequence.dna, Locus.start_pos + 1, Locus.end_pos - Locus.start_pos).label('sequence'),
                              DnaSequence.acc, DnaSequence.version)
-    query = query.join(AsDomainProfile).join(Locus, AsDomain.locus_id == Locus.locus_id).join(DnaSequence).join(Gene, AsDomain.gene_id == Gene.gene_id)
+    query = query.join(AsDomainProfile).join(Locus, AsDomain.locus_id == Locus.locus_id).join(DnaSequence).join(Cds, AsDomain.cds_id == Cds.cds_id)
     query = query.filter(AsDomain.as_domain_id.in_(map(lambda x: x.as_domain_id, domains))).order_by(AsDomain.as_domain_id)
     fasta_records = []
     for domain in query:
@@ -244,9 +244,9 @@ def format_fasta(domains):
 def format_csv(domains):
     '''Generate CSV records for a list of domains'''
     query = db.session.query(AsDomain.as_domain_id, AsDomain.translation, AsDomainProfile.name,
-                             Gene.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
+                             Cds.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
                              DnaSequence.acc, DnaSequence.version)
-    query = query.join(AsDomainProfile).join(Locus).join(DnaSequence).join(Gene, AsDomain.gene_id == Gene.gene_id)
+    query = query.join(AsDomainProfile).join(Locus).join(DnaSequence).join(Cds, AsDomain.cds_id == Cds.cds_id)
     query = query.filter(AsDomain.as_domain_id.in_(map(lambda x: x.as_domain_id, domains))).order_by(AsDomain.as_domain_id)
     csv_lines = ['#Locus tag\tDomain type\tAccession\tStart\tEnd\tStrand\tSequence']
     for domain in query:

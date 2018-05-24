@@ -19,7 +19,7 @@ from api.models import (
     ClusterblastAlgorithm,
     ClusterblastHit,
     Compound,
-    Gene,
+    Cds,
     Genome,
     DnaSequence,
     Locus,
@@ -27,7 +27,7 @@ from api.models import (
     Profile,
     ProfileHit,
     Taxa,
-    t_gene_cluster_map,
+    t_cds_cluster_map,
     t_rel_clusters_compounds,
     t_rel_clusters_types,
     RelCompoundsMonomer,
@@ -240,8 +240,8 @@ def clusters_by_compoundclass(term):
 @register_handler(CLUSTERS)
 def clusters_by_profile(term):
     '''Return a query for a bgc by profile name'''
-    return Bgc.query.join(t_gene_cluster_map, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
-                    .join(Gene, t_gene_cluster_map.c.gene_id == Gene.gene_id) \
+    return Bgc.query.join(t_cds_cluster_map, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                    .join(Cds, t_cds_cluster_map.c.cds_id == Cds.cds_id) \
                     .join(ProfileHit).join(Profile) \
                     .filter(Profile.name.ilike('%{}%'.format(term)))
 
@@ -249,8 +249,8 @@ def clusters_by_profile(term):
 @register_handler(CLUSTERS)
 def clusters_by_asdomain(term):
     '''Return a query for a bgc by asdomain name'''
-    return Bgc.query.join(t_gene_cluster_map, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
-                    .join(Gene, t_gene_cluster_map.c.gene_id == Gene.gene_id) \
+    return Bgc.query.join(t_cds_cluster_map, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                    .join(Cds, t_cds_cluster_map.c.cds_id == Cds.cds_id) \
                     .join(AsDomain).join(AsDomainProfile) \
                     .filter(AsDomainProfile.name.ilike(term))
 
