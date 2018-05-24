@@ -27,6 +27,8 @@ from api.models import (
     Profile,
     ProfileHit,
     Taxa,
+    Smcog,
+    SmcogHit,
     t_cds_cluster_map,
     t_rel_clusters_compounds,
     t_rel_clusters_types,
@@ -244,6 +246,15 @@ def clusters_by_profile(term):
                     .join(Cds, t_cds_cluster_map.c.cds_id == Cds.cds_id) \
                     .join(ProfileHit).join(Profile) \
                     .filter(Profile.name.ilike('%{}%'.format(term)))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_smcog(term):
+    '''Return a query for a bgc by smcog'''
+    return Bgc.query.join(t_cds_cluster_map, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                    .join(Cds, t_cds_cluster_map.c.cds_id == Cds.cds_id) \
+                    .join(SmcogHit).join(Smcog) \
+                    .filter(Smcog.name.ilike('%{}%'.format(term)))
 
 
 @register_handler(CLUSTERS)
