@@ -1,11 +1,10 @@
 '''general helper functions for search'''
-import string
 
 
 def register_handler(handler):
     '''Decorator to register a function as a handler'''
     def real_decorator(function):
-        name = function.func_name.split('_')[-1]
+        name = function.__name__.split('_')[-1]
         handler[name] = function
 
         def inner(*args, **kwargs):
@@ -60,7 +59,7 @@ def calculate_sequence(strand, sequence):
     return sequence
 
 
-TRANS_TABLE = string.maketrans('ATGCatgc', 'TACGtacg')
+TRANS_TABLE = str.maketrans('ATGCatgc', 'TACGtacg')
 
 
 def reverse_completement(sequence):

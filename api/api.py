@@ -1,6 +1,6 @@
 '''The API calls'''
 
-import StringIO
+from io import BytesIO
 import json
 from flask import (
     abort,
@@ -280,9 +280,9 @@ def export():
     if query.return_type == 'json':
         found_bgcs = [json.dumps(found_bgcs)]
 
-    handle = StringIO.StringIO()
+    handle = BytesIO()
     for line in found_bgcs:
-        handle.write('{}\n'.format(line))
+        handle.write('{}\n'.format(line).encode('utf-8'))
 
     handle.seek(0)
 

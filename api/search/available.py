@@ -37,7 +37,7 @@ def available_term_by_category(category, term):
 
     if cleaned_category in AVAILABLE:
         query = AVAILABLE[cleaned_category](cleaned_term).limit(50)
-        return map(lambda x: {'val': x[0], 'desc': x[1]}, query.all())
+        return list(map(lambda x: {'val': x[0], 'desc': x[1]}, query.all()))
 
     return []
 
