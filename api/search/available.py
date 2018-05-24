@@ -25,6 +25,7 @@ from api.models import (
     Monomer,
     Profile,
     Taxa,
+    Smcog,
 )
 
 AVAILABLE = {}
@@ -187,3 +188,11 @@ def available_subcluster(term):
              .join(ClusterblastAlgorithm).filter(ClusterblastAlgorithm.name == 'subclusterblast') \
              .filter(or_(ClusterblastHit.acc.ilike('{}%'.format(term)), ClusterblastHit.description.ilike('%{}%'.format(term)))) \
              .order_by(ClusterblastHit.acc)
+
+
+@register_handler(AVAILABLE)
+def available_smcog(term):
+    """Generate query for available smCoG."""
+    return db.session.query(distinct(Smcog.name), Smcog.description) \
+             .filter(or_(Smcog.name.ilike('{}%'.format(term)), Smcog.description.ilike('%{}%'.format(term)))) \
+             .order_by(Smcog.name)
