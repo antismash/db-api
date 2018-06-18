@@ -160,6 +160,14 @@ def query_profile(term):
 
 
 @register_handler(GENE_QUERIES)
+def query_smcog(term):
+    '''Generate Gene query by smCoG hit'''
+    return Cds.query.join(SmcogHit, Cds.cds_id == SmcogHit.cds_id) \
+                     .join(Smcog, SmcogHit.smcog_id == Smcog.smcog_id) \
+                     .filter(Smcog.name.ilike(term))
+
+
+@register_handler(GENE_QUERIES)
 def query_asdomain(term):
     '''Generate Gene query by AsDomain'''
     return Cds.query.join(AsDomain).join(AsDomainProfile) \
