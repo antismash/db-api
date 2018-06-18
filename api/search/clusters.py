@@ -74,11 +74,12 @@ def clusters_to_json(clusters):
         json_cluster['cbh_description'] = None
         json_cluster['cbh_acc'] = None
 
-        knownclusterblasts = [hit for hit in cluster.BiosyntheticGeneCluster.clusterblast_hits if hit.algorithm.name == 'knownclusterblast']
+        knownclusterblasts = [hit for hit in cluster.BiosyntheticGeneCluster.clusterblast_hits if hit.algorithm.name == 'knownclusterblast' and hit.rank == 1]
         if len(knownclusterblasts) > 0:
             json_cluster['similarity'] = knownclusterblasts[0].similarity
             json_cluster['cbh_description'] = knownclusterblasts[0].description
             json_cluster['cbh_acc'] = knownclusterblasts[0].acc
+            json_cluster['cbh_rank'] = knownclusterblasts[0].rank
 
         json_clusters.append(json_cluster)
     return json_clusters
