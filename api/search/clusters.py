@@ -66,7 +66,8 @@ def clusters_to_json(clusters):
             json_cluster['description'] = cluster.BiosyntheticGeneCluster.bgc_types[0].description
             json_cluster['term'] = term
         else:
-            json_cluster['description'] = 'Hybrid cluster: {}'.format(term)
+            descs = '-'.join([t.description for t in cluster.BiosyntheticGeneCluster.bgc_types])
+            json_cluster['description'] = 'Hybrid cluster: {}'.format(descs)
             json_cluster['term'] = '{} hybrid'.format(term)
 
         json_cluster['similarity'] = None
