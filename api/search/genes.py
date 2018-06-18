@@ -14,6 +14,7 @@ from .helpers import (
 from api.models import (
     db,
     AsDomain,
+    AsDomainProfile,
     BgcType,
     BiosyntheticGeneCluster as Bgc,
     ClusterblastAlgorithm,
@@ -161,7 +162,8 @@ def query_profile(term):
 @register_handler(GENE_QUERIES)
 def query_asdomain(term):
     '''Generate Gene query by AsDomain'''
-    return Cds.query.join(AsDomain).filter(AsDomain.name.ilike(term))
+    return Cds.query.join(AsDomain).join(AsDomainProfile) \
+              .filter(AsDomainProfile.name.ilike(term))
 
 
 def gene_by_x_clusterblast(term, algorithm):
