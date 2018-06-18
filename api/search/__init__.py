@@ -7,7 +7,7 @@ from api.models import (
     AsDomain,
     BgcType,
     BiosyntheticGeneCluster as Bgc,
-    Gene,
+    Cds,
     Genome,
     DnaSequence,
     Locus,
@@ -53,7 +53,7 @@ def core_search(query):
     if query.search_type == 'cluster':
         sql_query = cluster_query_from_term(query.terms).order_by(Bgc.bgc_id)
     elif query.search_type == 'gene':
-        sql_query = gene_query_from_term(query.terms).order_by(Gene.gene_id)
+        sql_query = gene_query_from_term(query.terms).order_by(Cds.cds_id)
     elif query.search_type == 'domain':
         sql_query = domain_query_from_term(query.terms).order_by(AsDomain.as_domain_id)
 
