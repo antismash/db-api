@@ -122,7 +122,7 @@ def get_strains(params):
     '''Get list of strains per kingdom/phylum/class/order/family/genus/species'''
     tree = []
     strains = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain,
-                               DnaSequence.acc, DnaSequence.version) \
+                               DnaSequence.acc, DnaSequence.version, Genome.assembly_id) \
                         .join(Genome).join(DnaSequence) \
                         .filter(Taxa.superkingdom.ilike(params[0])) \
                         .filter(Taxa.phylum.ilike(params[1])) \
@@ -136,11 +136,12 @@ def get_strains(params):
         tree.append(_create_tree_node('{}'.format(strain.acc.lower()),
                                       'species_{}'.format('_'.join(params)),
                                       '{s.genus} {s.species} {s.strain} {s.acc}.{s.version}'.format(s=strain),
+                                      assembly_id=strain.assembly_id,
                                       disabled=False, leaf=True))
     return tree
 
 
-def _create_tree_node(node_id, parent, text, disabled=True, leaf=False):
+def _create_tree_node(node_id, parent, text, assembly_id=None, disabled=True, leaf=False):
     '''create a jsTree node structure'''
     ret = {}
     ret['id'] = node_id
@@ -150,6 +151,7 @@ def _create_tree_node(node_id, parent, text, disabled=True, leaf=False):
         ret['state'] = {'disabled': True}
     if leaf:
         ret['type'] = 'strain'
+        ret['assembly_id'] = assembly_id
     else:
         ret['children'] = True
     return ret

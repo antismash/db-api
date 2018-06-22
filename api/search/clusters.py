@@ -42,7 +42,7 @@ CLUSTER_FORMATTERS = {}
 @register_handler(CLUSTER_FORMATTERS)
 def clusters_to_json(clusters):
     '''Convert model.BiosyntheticGeneClusters into JSON'''
-    query = db.session.query(Bgc, Locus.start_pos, Locus.end_pos, DnaSequence.acc, DnaSequence.version, Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain)
+    query = db.session.query(Bgc, Genome.assembly_id, Locus.start_pos, Locus.end_pos, DnaSequence.acc, DnaSequence.version, Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain)
     query = query.options(joinedload('bgc_types')).options(joinedload('clusterblast_hits'))
     query = query.join(Locus).join(DnaSequence).join(Genome).join(Taxa).filter(Bgc.bgc_id.in_(map(lambda x: x.bgc_id, clusters))).order_by(Bgc.bgc_id)
     json_clusters = []
@@ -55,6 +55,7 @@ def clusters_to_json(clusters):
         json_cluster['end_pos'] = cluster.end_pos
 
         json_cluster['acc'] = cluster.acc
+        json_cluster['assembly_id'] = cluster.assembly_id.split('.')[0]
         json_cluster['version'] = cluster.version
 
         json_cluster['genus'] = cluster.genus
