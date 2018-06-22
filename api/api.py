@@ -128,7 +128,7 @@ def get_sec_met_tree():
                            Taxa.genus, Taxa.species, Taxa.strain, Genome.assembly_id) \
                     .join(t_rel_clusters_types).join(BgcType).join(Locus) \
                     .join(DnaSequence).join(Genome).join(Taxa) \
-                    .order_by(Taxa.genus, Taxa.species, DnaSequence.acc, Bgc.cluster_number) \
+                    .order_by(BgcType.description, Taxa.genus, Taxa.species, DnaSequence.acc, Bgc.cluster_number) \
                     .all()
 
     clusters = []
@@ -148,7 +148,7 @@ def get_sec_met_tree():
             "type": "cluster",
         })
 
-    for name, desc in types.items():
+    for name, desc in reversed(list(types.items())):
         clusters.insert(0, {
             "id": name,
             "parent": "#",
