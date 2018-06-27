@@ -274,6 +274,36 @@ class Operon(db.Model):
     locus = db.relationship('Locus', primaryjoin='Operon.locus_id == Locus.locus_id', backref='operons')
 
 
+class PfamDomain(db.Model):
+    __tablename__ = 'pfam_domains'
+    __table_args__ = {'schema': 'antismash'}
+
+    pfam_domain_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
+    database = db.Column(db.Text)
+    detection = db.Column(db.Text)
+    score = db.Column(db.Float(53))
+    evalue = db.Column(db.Float(53))
+    translation = db.Column(db.Text)
+    pfam_id = db.Column(db.ForeignKey('antismash.pfams.pfam_id', ondelete='CASCADE'))
+    locus_id = db.Column(db.ForeignKey('antismash.loci.locus_id', ondelete='CASCADE'), index=True)
+    cds_id = db.Column(db.ForeignKey('antismash.cdss.cds_id', ondelete='CASCADE'), index=True)
+
+    cds = db.relationship('Cds', primaryjoin='PfamDomain.cds_id == Cds.cds_id', backref='pfam_domains')
+    locus = db.relationship('Locus', primaryjoin='PfamDomain.locus_id == Locus.locus_id', backref='pfam_domains')
+    pfam = db.relationship('Pfam', primaryjoin='PfamDomain.pfam_id == Pfam.pfam_id', backref='pfam_domains')
+
+
+class Pfam(db.Model):
+    __tablename__ = 'pfams'
+    __table_args__ = {'schema': 'antismash'}
+
+    pfam_id = db.Column(db.Text, primary_key=True)
+    name = db.Column(db.Text)
+    description = db.Column(db.Text)
+    trusted_cutoff = db.Column(db.Float(53))
+    version = db.Column(db.Integer)
+
+
 class ProfileHit(db.Model):
     __tablename__ = 'profile_hits'
     __table_args__ = {'schema': 'antismash'}
