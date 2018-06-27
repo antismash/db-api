@@ -27,7 +27,7 @@ from api.models import (
     ProfileHit,
     Taxa,
     RelAsDomainsMonomer,
-    t_gene_cluster_map,
+    t_cds_cluster_map,
     t_rel_clusters_types,
     RelCompoundsMonomer,
 )
@@ -125,8 +125,8 @@ def query_acc(term):
 def query_type(term):
     '''Generate asDomain query by BGC type'''
     return AsDomain.query.join(Gene) \
-                   .join(t_gene_cluster_map, Gene.gene_id == t_gene_cluster_map.c.gene_id) \
-                   .join(Bgc, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                   .join(t_cds_cluster_map, Gene.gene_id == t_cds_cluster_map.c.gene_id) \
+                   .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
                    .join(t_rel_clusters_types).join(BgcType) \
                    .filter(BgcType.term.ilike(term))
 
@@ -172,8 +172,8 @@ def query_asdomain(term):
 def domain_by_x_clusterblast(term, algorithm):
     '''Generic search for domain by XClusterBlast and hit id'''
     return AsDomain.query.join(Gene) \
-                   .join(t_gene_cluster_map, Gene.gene_id == t_gene_cluster_map.c.gene_id) \
-                   .join(Bgc, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                   .join(t_cds_cluster_map, Gene.gene_id == t_cds_cluster_map.c.gene_id) \
+                   .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
                    .join(ClusterblastHit).join(ClusterblastAlgorithm) \
                    .filter(ClusterblastAlgorithm.name == algorithm) \
                    .filter(ClusterblastHit.acc.ilike(term))

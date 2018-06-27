@@ -32,15 +32,19 @@ class AsDomain(db.Model):
     minowa = db.Column(db.Text)
     nrps_predictor = db.Column(db.Text)
     stachelhaus = db.Column(db.Text)
+    phmm = db.Column(db.Text)
+    predicat = db.Column(db.Text)
+    pid = db.Column(db.Float(53))
+    snn_score = db.Column(db.Float(53))
     consensus = db.Column(db.Text)
     kr_activity = db.Column(db.Boolean)
     kr_stereochemistry = db.Column(db.Text)
     as_domain_profile_id = db.Column(db.ForeignKey(u'antismash.as_domain_profiles.as_domain_profile_id', ondelete=u'CASCADE'))
     locus_id = db.Column(db.ForeignKey(u'antismash.loci.locus_id', ondelete=u'CASCADE'), index=True)
-    gene_id = db.Column(db.ForeignKey(u'antismash.genes.gene_id', ondelete=u'CASCADE'), index=True)
+    cds_id = db.Column(db.ForeignKey(u'antismash.cdss.cds_id', ondelete=u'CASCADE'), index=True)
 
     as_domain_profile = db.relationship(u'AsDomainProfile', primaryjoin='AsDomain.as_domain_profile_id == AsDomainProfile.as_domain_profile_id', backref=u'as_domains')
-    gene = db.relationship(u'Gene', primaryjoin='AsDomain.gene_id == Gene.gene_id', backref=u'as_domains')
+    cds = db.relationship(u'Cds', primaryjoin='AsDomain.cds_id == Cds.cds_id', backref=u'as_domains')
     locus = db.relationship(u'Locus', primaryjoin='AsDomain.locus_id == Locus.locus_id', backref=u'as_domains')
 
 
@@ -80,6 +84,36 @@ class BiosyntheticGeneCluster(db.Model):
     locus = db.relationship(u'Locus', primaryjoin='BiosyntheticGeneCluster.locus_id == Locus.locus_id', backref=u'biosynthetic_gene_clusters')
     compounds = db.relationship(u'Compound', secondary=u'antismash.rel_clusters_compounds', backref=u'biosynthetic_gene_clusters')
     bgc_types = db.relationship(u'BgcType', secondary=u'antismash.rel_clusters_types', backref=u'biosynthetic_gene_clusters')
+
+
+t_cds_cluster_map = db.Table(
+    'cds_cluster_map',
+    db.Column('sequence_id', db.Integer),
+    db.Column('bgc_id', db.Integer),
+    db.Column('cds_id', db.Integer),
+    schema='antismash'
+)
+
+
+class Cds(db.Model):
+    __tablename__ = 'cdss'
+    __table_args__ = {u'schema': 'antismash'}
+
+    cds_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
+    functional_class_id = db.Column(db.ForeignKey(u'antismash.functional_classes.functional_class_id'))
+    evidence_id = db.Column(db.ForeignKey(u'antismash.evidences.evidence_id'))
+    locus_tag = db.Column(db.Text, index=True)
+    name = db.Column(db.Text)
+    product = db.Column(db.Text)
+    protein_id = db.Column(db.Text)
+    translation = db.Column(db.Text)
+    locus_id = db.Column(db.ForeignKey(u'antismash.loci.locus_id', ondelete=u'CASCADE'), index=True)
+    operon_id = db.Column(db.ForeignKey(u'antismash.operons.operon_id'))
+
+    evidence = db.relationship(u'Evidence', primaryjoin='Cds.evidence_id == Evidence.evidence_id', backref=u'cdss')
+    functional_class = db.relationship(u'FunctionalClass', primaryjoin='Cds.functional_class_id == FunctionalClass.functional_class_id', backref=u'cdss')
+    locus = db.relationship(u'Locus', primaryjoin='Cds.locus_id == Locus.locus_id', backref=u'cdss')
+    operon = db.relationship(u'Operon', primaryjoin='Cds.operon_id == Operon.operon_id', backref=u'cdss')
 
 
 class ClusterblastAlgorithm(db.Model):
@@ -161,32 +195,15 @@ class FunctionalClass(db.Model):
     parent = db.relationship(u'FunctionalClass', remote_side=[functional_class_id], primaryjoin='FunctionalClass.parent_id == FunctionalClass.functional_class_id', backref=u'functional_classes')
 
 
-t_gene_cluster_map = db.Table(
-    'gene_cluster_map',
-    db.Column('sequence_id', db.Integer),
-    db.Column('bgc_id', db.Integer),
-    db.Column('gene_id', db.Integer),
-    schema='antismash'
-)
-
-
 class Gene(db.Model):
     __tablename__ = 'genes'
     __table_args__ = {u'schema': 'antismash'}
 
     gene_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
-    functional_class_id = db.Column(db.ForeignKey(u'antismash.functional_classes.functional_class_id'))
-    evidence_id = db.Column(db.ForeignKey(u'antismash.evidences.evidence_id'))
     locus_tag = db.Column(db.Text, index=True)
-    name = db.Column(db.Text)
-    product = db.Column(db.Text)
-    protein_id = db.Column(db.Text)
-    translation = db.Column(db.Text)
     locus_id = db.Column(db.ForeignKey(u'antismash.loci.locus_id', ondelete=u'CASCADE'), index=True)
     operon_id = db.Column(db.ForeignKey(u'antismash.operons.operon_id'))
 
-    evidence = db.relationship(u'Evidence', primaryjoin='Gene.evidence_id == Evidence.evidence_id', backref=u'genes')
-    functional_class = db.relationship(u'FunctionalClass', primaryjoin='Gene.functional_class_id == FunctionalClass.functional_class_id', backref=u'genes')
     locus = db.relationship(u'Locus', primaryjoin='Gene.locus_id == Locus.locus_id', backref=u'genes')
     operon = db.relationship(u'Operon', primaryjoin='Gene.operon_id == Operon.operon_id', backref=u'genes')
 
@@ -200,6 +217,7 @@ class Genome(db.Model):
     bio_project = db.Column(db.Text)
     bio_sample = db.Column(db.Text)
     isolate_id = db.Column(db.ForeignKey(u'antismash.isolates.isolate_id', ondelete=u'CASCADE'))
+    assembly_id = db.Column(db.Text)
 
     isolate = db.relationship(u'Isolate', primaryjoin='Genome.isolate_id == Isolate.isolate_id', backref=u'genomes')
     tax = db.relationship(u'Taxa', primaryjoin='Genome.tax_id == Taxa.tax_id', backref=u'genomes')
@@ -256,18 +274,48 @@ class Operon(db.Model):
     locus = db.relationship(u'Locus', primaryjoin='Operon.locus_id == Locus.locus_id', backref=u'operons')
 
 
+class PfamDomain(db.Model):
+    __tablename__ = 'pfam_domains'
+    __table_args__ = {u'schema': 'antismash'}
+
+    pfam_domain_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
+    database = db.Column(db.Text)
+    detection = db.Column(db.Text)
+    score = db.Column(db.Float(53))
+    evalue = db.Column(db.Float(53))
+    translation = db.Column(db.Text)
+    pfam_id = db.Column(db.ForeignKey(u'antismash.pfams.pfam_id', ondelete=u'CASCADE'))
+    locus_id = db.Column(db.ForeignKey(u'antismash.loci.locus_id', ondelete=u'CASCADE'), index=True)
+    cds_id = db.Column(db.ForeignKey(u'antismash.cdss.cds_id', ondelete=u'CASCADE'), index=True)
+
+    cds = db.relationship(u'Cds', primaryjoin='PfamDomain.cds_id == Cds.cds_id', backref=u'pfam_domains')
+    locus = db.relationship(u'Locus', primaryjoin='PfamDomain.locus_id == Locus.locus_id', backref=u'pfam_domains')
+    pfam = db.relationship(u'Pfam', primaryjoin='PfamDomain.pfam_id == Pfam.pfam_id', backref=u'pfam_domains')
+
+
+class Pfam(db.Model):
+    __tablename__ = 'pfams'
+    __table_args__ = {u'schema': 'antismash'}
+
+    pfam_id = db.Column(db.Text, primary_key=True)
+    name = db.Column(db.Text)
+    description = db.Column(db.Text)
+    trusted_cutoff = db.Column(db.Float(53))
+    version = db.Column(db.Integer)
+
+
 class ProfileHit(db.Model):
     __tablename__ = 'profile_hits'
     __table_args__ = {u'schema': 'antismash'}
 
     profile_hit_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
-    gene_id = db.Column(db.ForeignKey(u'antismash.genes.gene_id', ondelete=u'CASCADE'), index=True)
+    cds_id = db.Column(db.ForeignKey(u'antismash.cdss.cds_id', ondelete=u'CASCADE'), index=True)
     name = db.Column(db.ForeignKey(u'antismash.profiles.name'))
     evalue = db.Column(db.Float(53))
     bitscore = db.Column(db.Float(53))
     seeds = db.Column(db.Integer)
 
-    gene = db.relationship(u'Gene', primaryjoin='ProfileHit.gene_id == Gene.gene_id', backref=u'profile_hits')
+    cds = db.relationship(u'Cds', primaryjoin='ProfileHit.cds_id == Cds.cds_id', backref=u'profile_hits')
     profile = db.relationship(u'Profile', primaryjoin='ProfileHit.name == Profile.name', backref=u'profile_hits')
 
 
@@ -348,17 +396,25 @@ t_sequence_gc_content = db.Table(
 )
 
 
+t_sequence_lengths = db.Table(
+    'sequence_lengths',
+    db.Column('sequence_id', db.Integer),
+    db.Column('seq_length', db.Integer),
+    schema='antismash'
+)
+
+
 class SmcogHit(db.Model):
     __tablename__ = 'smcog_hits'
     __table_args__ = {u'schema': 'antismash'}
 
     smcog_id = db.Column(db.ForeignKey(u'antismash.smcogs.smcog_id'), primary_key=True, nullable=False)
-    gene_id = db.Column(db.ForeignKey(u'antismash.genes.gene_id', ondelete=u'CASCADE'), primary_key=True, nullable=False, index=True)
+    cds_id = db.Column(db.ForeignKey(u'antismash.cdss.cds_id', ondelete=u'CASCADE'), primary_key=True, nullable=False, index=True)
     score = db.Column(db.Float(53))
     evalue = db.Column(db.Float(53))
     image_path = db.Column(db.Text)
 
-    gene = db.relationship(u'Gene', primaryjoin='SmcogHit.gene_id == Gene.gene_id', backref=u'smcog_hits')
+    cds = db.relationship(u'Cds', primaryjoin='SmcogHit.cds_id == Cds.cds_id', backref=u'smcog_hits')
     smcog = db.relationship(u'Smcog', primaryjoin='SmcogHit.smcog_id == Smcog.smcog_id', backref=u'smcog_hits')
 
 
@@ -387,3 +443,35 @@ class Taxa(db.Model):
     genus = db.Column(db.Text)
     species = db.Column(db.Text)
     strain = db.Column(db.Text)
+
+
+class TerpeneCyclisation(db.Model):
+    __tablename__ = 'terpene_cyclisations'
+    __table_args__ = {u'schema': 'antismash'}
+
+    terpene_id = db.Column(db.ForeignKey(u'antismash.terpenes.terpene_id'), primary_key=True, nullable=False)
+    cds_id = db.Column(db.ForeignKey(u'antismash.cdss.cds_id', ondelete=u'CASCADE'), primary_key=True, nullable=False, index=True)
+    from_carbon = db.Column(db.Integer)
+    to_carbon = db.Column(db.Integer)
+
+    cds = db.relationship(u'Cds', primaryjoin='TerpeneCyclisation.cds_id == Cds.cds_id', backref=u'terpene_cyclisations')
+    terpene = db.relationship(u'Terpene', primaryjoin='TerpeneCyclisation.terpene_id == Terpene.terpene_id', backref=u'terpene_cyclisations')
+
+
+class Terpene(db.Model):
+    __tablename__ = 'terpenes'
+    __table_args__ = {u'schema': 'antismash'}
+
+    terpene_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
+    name = db.Column(db.Text)
+    description = db.Column(db.Text)
+
+
+class TtaCodon(db.Model):
+    __tablename__ = 'tta_codons'
+    __table_args__ = {u'schema': 'antismash'}
+
+    tta_codon_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
+    locus_id = db.Column(db.ForeignKey(u'antismash.loci.locus_id', ondelete=u'CASCADE'), index=True)
+
+    locus = db.relationship(u'Locus', primaryjoin='TtaCodon.locus_id == Locus.locus_id', backref=u'tta_codons')
