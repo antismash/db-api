@@ -28,7 +28,7 @@ from api.models import (
     ProfileHit,
     Taxa,
     RelAsDomainsMonomer,
-    t_gene_cluster_map,
+    t_cds_cluster_map,
     t_rel_clusters_types,
 )
 
@@ -124,8 +124,8 @@ def query_acc(term):
 @register_handler(GENE_QUERIES)
 def query_type(term):
     '''Generate Gene query by cluster type'''
-    return Gene.query.join(t_gene_cluster_map, Gene.gene_id == t_gene_cluster_map.c.gene_id) \
-                     .join(Bgc, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
+    return Gene.query.join(t_cds_cluster_map, Gene.gene_id == t_cds_cluster_map.c.gene_id) \
+                     .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
                      .join(t_rel_clusters_types).join(BgcType) \
                      .filter(or_(BgcType.term.ilike('%{}%'.format(term)), BgcType.description.ilike('%{}%'.format(term))))
 
@@ -166,8 +166,8 @@ def query_asdomain(term):
 
 def gene_by_x_clusterblast(term, algorithm):
     '''Generic search for gene by XClusterBlast match'''
-    return Gene.query.join(t_gene_cluster_map, Gene.gene_id == t_gene_cluster_map.c.gene_id) \
-                     .join(Bgc, t_gene_cluster_map.c.bgc_id == Bgc.bgc_id) \
+    return Gene.query.join(t_cds_cluster_map, Gene.gene_id == t_cds_cluster_map.c.gene_id) \
+                     .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
                      .join(ClusterblastHit).join(ClusterblastAlgorithm) \
                      .filter(ClusterblastAlgorithm.name == algorithm) \
                      .filter(ClusterblastHit.acc.ilike(term))
