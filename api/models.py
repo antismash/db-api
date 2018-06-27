@@ -443,3 +443,35 @@ class Taxa(db.Model):
     genus = db.Column(db.Text)
     species = db.Column(db.Text)
     strain = db.Column(db.Text)
+
+
+class TerpeneCyclisation(db.Model):
+    __tablename__ = 'terpene_cyclisations'
+    __table_args__ = {'schema': 'antismash'}
+
+    terpene_id = db.Column(db.ForeignKey('antismash.terpenes.terpene_id'), primary_key=True, nullable=False)
+    cds_id = db.Column(db.ForeignKey('antismash.cdss.cds_id', ondelete='CASCADE'), primary_key=True, nullable=False, index=True)
+    from_carbon = db.Column(db.Integer)
+    to_carbon = db.Column(db.Integer)
+
+    cds = db.relationship('Cds', primaryjoin='TerpeneCyclisation.cds_id == Cds.cds_id', backref='terpene_cyclisations')
+    terpene = db.relationship('Terpene', primaryjoin='TerpeneCyclisation.terpene_id == Terpene.terpene_id', backref='terpene_cyclisations')
+
+
+class Terpene(db.Model):
+    __tablename__ = 'terpenes'
+    __table_args__ = {'schema': 'antismash'}
+
+    terpene_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
+    name = db.Column(db.Text)
+    description = db.Column(db.Text)
+
+
+class TtaCodon(db.Model):
+    __tablename__ = 'tta_codons'
+    __table_args__ = {'schema': 'antismash'}
+
+    tta_codon_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
+    locus_id = db.Column(db.ForeignKey('antismash.loci.locus_id', ondelete='CASCADE'), index=True)
+
+    locus = db.relationship('Locus', primaryjoin='TtaCodon.locus_id == Locus.locus_id', backref='tta_codons')
