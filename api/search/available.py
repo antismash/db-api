@@ -26,6 +26,7 @@ from api.models import (
     ClusterblastHit,
     Compound,
     DnaSequence,
+    Genome,
     Monomer,
     Profile,
     Taxa,
@@ -119,6 +120,14 @@ def available_acc(term):
     return db.session.query(distinct(DnaSequence.acc), null()) \
              .filter(DnaSequence.acc.ilike('{}%'.format(term))) \
              .order_by(DnaSequence.acc)
+
+
+@register_handler(AVAILABLE)
+def available_assembly(term):
+    """Generate query for available accession"""
+    return db.session.query(distinct(Genome.assembly_id), null()) \
+             .filter(Genome.assembly_id.ilike('{}%'.format(term))) \
+             .order_by(Genome.assembly_id)
 
 
 @register_handler(AVAILABLE)

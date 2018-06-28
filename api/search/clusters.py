@@ -233,6 +233,12 @@ def clusters_by_acc(term):
 
 
 @register_handler(CLUSTERS)
+def clusters_by_assembly(term):
+    """Return a query for a bgc by assembly_id search"""
+    return Bgc.query.join(Locus).join(DnaSequence).join(Genome).filter(Genome.assembly_id.ilike('%{}%'.format(term)))
+
+
+@register_handler(CLUSTERS)
 def clusters_by_compoundseq(term):
     '''Return a query for a bgc by compound sequence search'''
     return Bgc.query.join(t_rel_clusters_compounds).join(Compound).filter(Compound.peptide_sequence.ilike('%{}%'.format(term)))

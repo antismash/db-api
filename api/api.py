@@ -333,6 +333,15 @@ def show_genome(identifier):
     return jsonify(found_bgcs)
 
 
+@app.route('/api/v1.0/assembly/<identifier>')
+def show_assembly(identifier):
+    """show information for an assembly by identifier"""
+    query = Query.from_string('[assembly]{}'.format(identifier))
+    found_bgcs = format_results(query, core_search(query))
+
+    return jsonify(found_bgcs)
+
+
 @app.route('/api/v1.0/available/<category>/<term>')
 def list_available(category, term):
     '''list available terms for a given category'''
