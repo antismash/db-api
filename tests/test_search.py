@@ -18,11 +18,11 @@ def test_break_lines():
 def test_cluster_query_from_term_expression():
     term = QueryTerm('expression', category='type', term='lantipeptide')
     ret = search.cluster_query_from_term(term)
-    assert ret.count() == 4
+    assert ret.count() == 3
 
     term.category = 'unknown'
     ret = search.cluster_query_from_term(term)
-    assert ret.count() == 4
+    assert ret.count() == 3
 
     term.category = 'type'
     term.term = 'bogus'
@@ -36,19 +36,19 @@ def test_cluster_query_from_term_expression():
 
 def test_cluster_query_from_term_operation():
     left = QueryTerm('expression', category='type', term='lantipeptide')
-    right = QueryTerm('expression', category='genus', term='Lactococcus')
+    right = QueryTerm('expression', category='genus', term='Streptomyces')
     term = QueryTerm('operation', operation='and', left=left, right=right)
 
     ret = search.cluster_query_from_term(term)
-    assert ret.count() == 1
+    assert ret.count() == 3
 
     term.operation = 'or'
     ret = search.cluster_query_from_term(term)
-    assert ret.count() == 4
+    assert ret.count() == 29
 
     term.operation = 'except'
     ret = search.cluster_query_from_term(term)
-    assert ret.count() == 3
+    assert ret.count() == 0
 
     left.category = 'bogus'
     term.operation = 'and'
@@ -57,7 +57,7 @@ def test_cluster_query_from_term_operation():
 
     term.operation = 'or'
     ret = search.cluster_query_from_term(term)
-    assert ret.count() == 1
+    assert ret.count() == 29
 
     term.operation = 'except'
     ret = search.cluster_query_from_term(term)
@@ -71,11 +71,11 @@ def test_cluster_query_from_term_operation():
 
     term.operation = 'or'
     ret = search.cluster_query_from_term(term)
-    assert ret.count() == 4
+    assert ret.count() == 3
 
     term.operation = 'except'
     ret = search.cluster_query_from_term(term)
-    assert ret.count() == 4
+    assert ret.count() == 3
 
 
 def test_cluster_query_from_term_invalid():

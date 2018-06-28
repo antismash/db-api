@@ -31,11 +31,6 @@ def test_get_phylum(session):
          'parent': 'superkingdom_bacteria',
          'state': {'disabled': True},
          'text': 'Actinobacteria'},
-        {'children': True,
-         'id': 'phylum_bacteria_firmicutes',
-         'parent': 'superkingdom_bacteria',
-         'state': {'disabled': True},
-         'text': 'Firmicutes'},
     ]
     ret = get_phylum(['bacteria'])
     assert ret == expected
@@ -44,71 +39,72 @@ def test_get_phylum(session):
 def test_get_class(session):
     expected = [{
         'children': True,
-        'id': 'class_bacteria_firmicutes_bacilli',
-        'parent': 'phylum_bacteria_firmicutes',
+        'id': 'class_bacteria_actinobacteria_actinobacteria',
+        'parent': 'phylum_bacteria_actinobacteria',
         'state': {'disabled': True},
-        'text': 'Bacilli'
+        'text': 'Actinobacteria'
     }]
-    ret = get_class(['bacteria', 'firmicutes'])
+    ret = get_class(['bacteria', 'actinobacteria'])
     assert ret == expected
 
 
 def test_get_order(session):
     expected = [{
         'children': True,
-        'id': 'order_bacteria_firmicutes_bacilli_lactobacillales',
-        'parent': 'class_bacteria_firmicutes_bacilli',
+        'id': 'order_bacteria_actinobacteria_actinobacteria_streptomycetales',
+        'parent': 'class_bacteria_actinobacteria_actinobacteria',
         'state': {'disabled': True},
-        'text': 'Lactobacillales'
+        'text': 'Streptomycetales'
     }]
-    ret = get_order(['bacteria', 'firmicutes', 'bacilli'])
+    ret = get_order(['bacteria', 'actinobacteria', 'actinobacteria'])
     assert ret == expected
 
 
 def test_get_family(session):
     expected = [{
         'children': True,
-        'id': 'family_bacteria_firmicutes_bacilli_lactobacillales_streptococcaceae',
-        'parent': 'order_bacteria_firmicutes_bacilli_lactobacillales',
+        'id': 'family_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae',
+        'parent': 'order_bacteria_actinobacteria_actinobacteria_streptomycetales',
         'state': {'disabled': True},
-        'text': 'Streptococcaceae'
+        'text': 'Streptomycetaceae'
     }]
-    ret = get_family(['bacteria', 'firmicutes', 'bacilli', 'lactobacillales'])
+    ret = get_family(['bacteria', 'actinobacteria', 'actinobacteria', 'streptomycetales'])
     assert ret == expected
 
 
 def test_get_genus(session):
     expected = [{
         'children': True,
-        'id': 'genus_bacteria_firmicutes_bacilli_lactobacillales_streptococcaceae_lactococcus',
-        'parent': 'family_bacteria_firmicutes_bacilli_lactobacillales_streptococcaceae',
+        'id': 'genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces',
+        'parent': 'family_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae',
         'state': {'disabled': True},
-        'text': 'Lactococcus'
+        'text': 'Streptomyces'
     }]
-    ret = get_genus(['bacteria', 'firmicutes', 'bacilli', 'lactobacillales', 'streptococcaceae'])
+    ret = get_genus(['bacteria', 'actinobacteria', 'actinobacteria', 'streptomycetales', 'streptomycetaceae'])
     assert ret == expected
 
 
 def test_get_species(session):
     expected = [{
         'children': True,
-        'id': 'species_bacteria_firmicutes_bacilli_lactobacillales_streptococcaceae_lactococcus_lactis',
-        'parent': 'genus_bacteria_firmicutes_bacilli_lactobacillales_streptococcaceae_lactococcus',
+        'id': 'species_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces_coelicolor',
+        'parent': 'genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces',
         'state': {'disabled': True},
-        'text': 'lactis'
+        'text': 'coelicolor'
     }]
-    ret = get_species(['bacteria', 'firmicutes', 'bacilli', 'lactobacillales', 'streptococcaceae', 'lactococcus'])
+    ret = get_species(['bacteria', 'actinobacteria', 'actinobacteria', 'streptomycetales', 'streptomycetaceae', 'streptomyces'])
     assert ret == expected
 
 
 def test_get_strain(session):
     expected = [{
-        'id': 'nc_017486',
-        'parent': 'species_bacteria_firmicutes_bacilli_lactobacillales_streptococcaceae_lactococcus_lactis',
-        'text': 'Lactococcus lactis CV56 NC_017486.1',
+        'assembly_id': 'GCF_000203835.1',
+        'id': 'gcf_000203835.1',
+        'parent': 'species_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces_coelicolor',
+        'text': 'Streptomyces coelicolor A3(2) GCF_000203835.1',
         'type': 'strain'
     }]
-    ret = get_strains(['bacteria', 'firmicutes', 'bacilli', 'lactobacillales', 'streptococcaceae', 'lactococcus', 'lactis'])
+    ret = get_strains(['bacteria', 'actinobacteria', 'actinobacteria', 'streptomycetales', 'streptomycetaceae', 'streptomyces', 'coelicolor'])
     assert ret == expected
 
 
@@ -124,10 +120,11 @@ def test__create_tree_node(session):
     assert node == expected
 
     expected = {
+        'assembly_id': 'testid',
         'id': 'testid',
         'parent': 'parent',
         'text': 'cool text',
         'type': 'strain'
     }
-    node = _create_tree_node(expected['id'], expected['parent'], expected['text'], disabled=False, leaf=True)
+    node = _create_tree_node(expected['id'], expected['parent'], expected['text'], assembly_id=expected['assembly_id'], disabled=False, leaf=True)
     assert node == expected

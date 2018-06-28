@@ -122,8 +122,8 @@ def get_strains(params):
     '''Get list of strains per kingdom/phylum/class/order/family/genus/species'''
     tree = []
     strains = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain,
-                               DnaSequence.acc, DnaSequence.version, Genome.assembly_id) \
-                        .join(Genome).join(DnaSequence) \
+                               Genome.assembly_id) \
+                        .join(Genome) \
                         .filter(Taxa.superkingdom.ilike(params[0])) \
                         .filter(Taxa.phylum.ilike(params[1])) \
                         .filter(Taxa._class.ilike(params[2])) \
@@ -133,9 +133,9 @@ def get_strains(params):
                         .filter(Taxa.species.ilike(params[6])) \
                         .order_by(Taxa.strain)
     for strain in strains:
-        tree.append(_create_tree_node('{}'.format(strain.acc.lower()),
+        tree.append(_create_tree_node('{}'.format(strain.assembly_id.lower()),
                                       'species_{}'.format('_'.join(params)),
-                                      '{s.genus} {s.species} {s.strain} {s.acc}.{s.version}'.format(s=strain),
+                                      '{s.genus} {s.species} {s.strain} {s.assembly_id}'.format(s=strain),
                                       assembly_id=strain.assembly_id,
                                       disabled=False, leaf=True))
     return tree

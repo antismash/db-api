@@ -20,7 +20,7 @@ def test_query_from_json():
     assert query.return_type == 'json'
     assert isinstance(query.terms, QueryTerm)
 
-    extended = dict(minimal.iteritems())
+    extended = dict(minimal.items())
     extended['search'] = 'gene'
     extended['return_type'] = 'csv'
     query = Query.from_json(extended)

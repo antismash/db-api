@@ -8,13 +8,13 @@ def test_available_term_by_category_invalid():
 def test_available_term_by_category_taxonomy():
     tests = [
         (('superkingdom', 'b'), [{'val': 'Bacteria', 'desc': None}]),
-        (('phylum', 'f'), [{'val': 'Firmicutes', 'desc': None}]),
-        (('class', 'b'), [{'val': 'Bacilli', 'desc': None}]),
-        (('order', 'l'), [{'val': 'Lactobacillales', 'desc': None}]),
-        (('family', 's'), [{'val': 'Streptococcaceae', 'desc': None}, {'val': 'Streptomycetaceae', 'desc': None}]),
-        (('genus', 'l'), [{'val': 'Lactococcus', 'desc': None}]),
-        (('species', 'l'), [{'val': 'lactis', 'desc': None}]),
-        (('strain', 'c'), [{'val': 'CV56', 'desc': None}]),
+        (('phylum', 'a'), [{'val': 'Actinobacteria', 'desc': None}]),
+        (('class', 'a'), [{'val': 'Actinobacteria', 'desc': None}]),
+        (('order', 's'), [{'val': 'Streptomycetales', 'desc': None}]),
+        (('family', 's'), [{'val': 'Streptomycetaceae', 'desc': None}]),
+        (('genus', 's'), [{'val': 'Streptomyces', 'desc': None}]),
+        (('species', 'c'), [{'val': 'coelicolor', 'desc': None}]),
+        (('strain', 'a'), [{'val': 'A3(2)', 'desc': None}]),
     ]
 
     for args, expected in tests:
@@ -23,16 +23,16 @@ def test_available_term_by_category_taxonomy():
 
 def test_available_term_by_category():
     tests = [
-        (('acc', 'nc_01'), [{'val': 'NC_017486', 'desc': None}]),
+        (('acc', 'nc_003888'), [{'val': 'NC_003888', 'desc': None}]),
         (('compoundseq', 'a'), [{'val': 'ASFGEGTFTSPSSYAIGTRCPICC', 'desc': None}]),
         (('compoundclass', 'c'), [{'val': 'Class-I', 'desc': None}, {'val': 'Class-III', 'desc': None}]),
-        (('monomer', 'ala'), [{'val': 'ala', 'desc': 'Alanine'}]),
+        (('monomer', 'ala'), [{'val': 'ala', 'desc': 'Alanine'}, {'desc': 'Alanine-thiazole', 'val': 'ala-thz'}]),
         (('type', 'lanti'), [{'val': 'lantipeptide', 'desc': 'Lanthipeptide'}]),
         (('profile', 'fabf'), [{'val': 'FabF', 'desc': 'FabF'}]),
         (('asdomain', 'PKS_DH2'), [{'val': 'PKS_DH2', 'desc': 'Dehydrogenase-2 domain'}]),
-        (('clusterblast', 'HM219853'), [{'val': 'HM219853_c1', 'desc': 'Lactococcus lactis subsp. lactis nisin biosynthetic gene clust...'}]),
-        (('knowncluster', 'kirro'), [{'val': 'BGC0001070_c1', 'desc': 'Kirromycin biosynthetic gene cluster'}]),
-        (('subcluster', 'novobiocin'), [{'val': 'AF170880_2_c2', 'desc': 'novobiocin noviose deoxysugar'}]),
+        (('clusterblast', 'AB469822'), [{'val': 'AB469822_c1', 'desc': 'Streptomyces griseoviridis DNA, includes prodigiosin biosynthe...'}]),
+        (('knowncluster', 'kendo'), [{'val': 'BGC0001066_c1', 'desc': 'Kendomycin'}]),
+        (('subcluster', 'bal'), [{'val': 'Y16952_2_c2', 'desc': 'balhimycin hydroxyphenylglycine'}]),
     ]
     for args, expected in tests:
         assert available.available_term_by_category(*args) == expected, args
