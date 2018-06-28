@@ -6,10 +6,10 @@ pipeline:
         - pip install -r requirements.txt
         - pip install -r tests/requirements.txt
         - pip install -e .
-        - echo "localhost:5432:*:postgres:secret" > ~/.pgpass
+        - echo "database:5432:*:postgres:secret" > ~/.pgpass
         - chmod 600 ~/.pgpass
-        - psql -h localhost -U postgres -c 'CREATE DATABASE antismash'
-        - xzcat tests/test.sql.xz | psql -h localhost -U postgres antismash > /dev/null
+        - psql -h database -U postgres -c 'CREATE DATABASE antismash'
+        - xzcat tests/test.sql.xz | psql -h database -U postgres antismash > /dev/null
         - py.test -v
 
   slack:
