@@ -13,7 +13,7 @@ def test_version(client):
 
 
 def test_stats(client):
-    '''Test /api/v1.0/stats endpoint'''
+    '''Test /api/v2.0/stats endpoint'''
 
     expected = {
         "clusters": [
@@ -96,10 +96,10 @@ def test_stats(client):
         "num_clusters": 29,
         "num_genomes": 1,
         "num_sequences": 3,
-        "top_secmet_acc": "NC_003888",
+        "top_secmet_assembly_id": "GCF_000203835.1",
         "top_secmet_species": "Streptomyces coelicolor A3(2)",
         "top_secmet_taxon": 100226,
-        "top_secmet_taxon_count": 27.0,
+        "top_secmet_taxon_count": 29.0,
         "top_seq_species": "Streptomyces coelicolor",
         "top_seq_taxon": 100226,
         "top_seq_taxon_count": 3,
@@ -107,7 +107,7 @@ def test_stats(client):
     }
 
 
-    results = client.get(url_for('get_stats'))
+    results = client.get(url_for('get_stats_v2'))
     assert results.status_code == 200
     assert results.json == expected
 
