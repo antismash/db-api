@@ -1,6 +1,8 @@
 pipeline:
   build:
     image: alpine:latest
+    environment:
+      - AS_DB_URI=postgres://postgres:secret@database:5432/antismash
     commands:
         - apk --no-cache add python3 ca-certificates py3-psycopg2 postgresql-client xz
         - pip3 install -r requirements.txt
