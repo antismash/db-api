@@ -290,14 +290,14 @@ def test_genome(client):
         "cbh_description": "Leinamycin",
         "cbh_rank": 1,
         "cluster_number": 1,
-        "description": "Hybrid cluster: Type I polyketide-hglE-type polyketide",
+        "description": "Hybrid cluster: hglE-type polyketide-Type I polyketide",
         "end_pos": 139654,
         "genus": "Streptomyces",
         "similarity": 2,
         "species": "coelicolor",
         "start_pos": 86636,
         "strain": "A3(2)",
-        "term": "t1pks-otherks hybrid",
+        "term": "otherks-t1pks hybrid",
         "version": 3
     }
 
