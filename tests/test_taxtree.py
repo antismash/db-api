@@ -18,7 +18,7 @@ def test_get_superkingdom(session):
         'id': 'superkingdom_bacteria',
         'parent': '#',
         'state': {'disabled': True},
-        'text': 'Bacteria'
+        'text': 'Bacteria (1)'
     }]
     ret = get_superkingdom()
     assert ret == expected
@@ -30,8 +30,8 @@ def test_get_phylum(session):
          'id': 'phylum_bacteria_actinobacteria',
          'parent': 'superkingdom_bacteria',
          'state': {'disabled': True},
-         'text': 'Actinobacteria'},
-    ]
+         'text': 'Actinobacteria (1)'
+    }]
     ret = get_phylum(['bacteria'])
     assert ret == expected
 
@@ -42,7 +42,7 @@ def test_get_class(session):
         'id': 'class_bacteria_actinobacteria_actinobacteria',
         'parent': 'phylum_bacteria_actinobacteria',
         'state': {'disabled': True},
-        'text': 'Actinobacteria'
+        'text': 'Actinobacteria (1)'
     }]
     ret = get_class(['bacteria', 'actinobacteria'])
     assert ret == expected
@@ -54,7 +54,7 @@ def test_get_order(session):
         'id': 'order_bacteria_actinobacteria_actinobacteria_streptomycetales',
         'parent': 'class_bacteria_actinobacteria_actinobacteria',
         'state': {'disabled': True},
-        'text': 'Streptomycetales'
+        'text': 'Streptomycetales (1)'
     }]
     ret = get_order(['bacteria', 'actinobacteria', 'actinobacteria'])
     assert ret == expected
@@ -66,7 +66,7 @@ def test_get_family(session):
         'id': 'family_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae',
         'parent': 'order_bacteria_actinobacteria_actinobacteria_streptomycetales',
         'state': {'disabled': True},
-        'text': 'Streptomycetaceae'
+        'text': 'Streptomycetaceae (1)'
     }]
     ret = get_family(['bacteria', 'actinobacteria', 'actinobacteria', 'streptomycetales'])
     assert ret == expected
@@ -78,7 +78,7 @@ def test_get_genus(session):
         'id': 'genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces',
         'parent': 'family_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae',
         'state': {'disabled': True},
-        'text': 'Streptomyces'
+        'text': 'Streptomyces (1)'
     }]
     ret = get_genus(['bacteria', 'actinobacteria', 'actinobacteria', 'streptomycetales', 'streptomycetaceae'])
     assert ret == expected
@@ -90,7 +90,7 @@ def test_get_species(session):
         'id': 'species_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces_coelicolor',
         'parent': 'genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces',
         'state': {'disabled': True},
-        'text': 'coelicolor'
+        'text': 'coelicolor (1)'
     }]
     ret = get_species(['bacteria', 'actinobacteria', 'actinobacteria', 'streptomycetales', 'streptomycetaceae', 'streptomyces'])
     assert ret == expected
