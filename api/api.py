@@ -5,11 +5,13 @@ import json
 from flask import (
     abort,
     jsonify,
+    redirect,
     request,
     Response,
     send_file,
     stream_with_context,
 )
+import re
 import sqlalchemy
 from sqlalchemy import (
     cast,
@@ -18,6 +20,7 @@ from sqlalchemy import (
     Float,
     func,
 )
+import string
 from . import app, taxtree
 from .search import (
     core_search,
@@ -52,6 +55,7 @@ FASTA_LIMITS = {
     'domain': 500
 }
 
+SAFE_IDENTIFIER_PATTERN = re.compile('[^A-Za-z0-9_.]+', re.UNICODE)
 
 @app.route('/api/v1.0/version')
 def get_version():
@@ -402,3 +406,9 @@ def show_assembly(identifier):
 def list_available(category, term):
     '''list available terms for a given category'''
     return jsonify(available_term_by_category(category, term))
+
+
+@app.route('/api/v1.0/goto/<identifier>')
+def goto(identifier):
+    safe_id = SAFE_IDENTIFIER_PATTERN.sub('', identifier).split('.')[0]
+    return redirect("https://antismash-db.secondarymetabolites.org/output/{}/index.html".format(safe_id))
