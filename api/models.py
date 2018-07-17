@@ -184,6 +184,14 @@ class Evidence(db.Model):
     description = db.Column(db.Text)
 
 
+class Filename(db.Model):
+    __tablename__ = 'filenames'
+    __table_args__ = {'schema': 'antismash'}
+
+    assembly_id = db.Column(db.Text, primary_key=True)
+    base_filename = db.Column(db.Text)
+
+
 class FunctionalClass(db.Model):
     __tablename__ = 'functional_classes'
     __table_args__ = {'schema': 'antismash'}
