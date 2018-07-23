@@ -41,6 +41,7 @@ from .models import (
     t_rel_clusters_types,
 )
 from .errors import TooManyResults
+from .legacy import dbv1_accessions
 
 
 MIME_TYPE_MAP = {
@@ -424,6 +425,9 @@ def list_available(category, term):
 @app.route('/go/<identifier>')
 def goto(identifier):
     safe_id = SAFE_IDENTIFIER_PATTERN.sub('', identifier).split('.')[0]
+    if safe_id in dbv1_accessions:
+        return redirect("https://antismash-dbv1.secondarymetabolites.org/output/{}/index.html".format(safe_id))
+
     return redirect("https://antismash-db.secondarymetabolites.org/output/{}/index.html".format(safe_id))
 
 
