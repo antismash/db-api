@@ -34,6 +34,7 @@ from .models import (
     BgcType,
     BiosyntheticGeneCluster as Bgc,
     DnaSequence,
+    Filename,
     Genome,
     Locus,
     Taxa,
@@ -409,6 +410,34 @@ def list_available(category, term):
 
 
 @app.route('/api/v1.0/goto/<identifier>')
+@app.route('/go/<identifier>')
 def goto(identifier):
     safe_id = SAFE_IDENTIFIER_PATTERN.sub('', identifier).split('.')[0]
     return redirect("https://antismash-db.secondarymetabolites.org/output/{}/index.html".format(safe_id))
+
+
+def _get_base_url(identifier):
+    safe_id = SAFE_IDENTIFIER_PATTERN.sub('', identifier).split('.')[0]
+    ret = db.session.query(Filename.assembly_id, Filename.base_filename) \
+            .filter(Filename.assembly_id == safe_id).first()
+    if not ret:
+        abort(404)
+
+    return "https://antismash-db.secondarymetabolites.org/output/{r.assembly_id}/{r.base_filename}".format(r=ret)
+
+@app.route('/api/v1.0/download/genbank/<identifier>')
+def download_genbank(identifier):
+    url = _get_base_url(identifier)
+    return redirect("{}.final.gbk".format(url))
+
+
+@app.route('/api/v1.0/download/table/<identifier>')
+def download_table(identifier):
+    url = _get_base_url(identifier)
+    return redirect("{}.geneclusters.xls".format(url))
+
+
+@app.route('/api/v1.0/download/genbank/<identifier>/cluster/<int:number>')
+def download_cluster(identifier, number):
+    url = _get_base_url(identifier)
+    return redirect("{}.cluster{:03d}.gbk".format(url, number))
