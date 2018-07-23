@@ -431,6 +431,16 @@ def goto(identifier):
     return redirect("https://antismash-db.secondarymetabolites.org/output/{}/index.html".format(safe_id))
 
 
+@app.route('/api/v1.0/goto/<identifier>/cluster/<int:number>')
+@app.route('/go/<identifier>/<int:number>')
+def goto_cluster(identifier, number):
+    safe_id = SAFE_IDENTIFIER_PATTERN.sub('', identifier).split('.')[0]
+    if safe_id in dbv1_accessions:
+        return redirect("https://antismash-dbv1.secondarymetabolites.org/output/{}/index.html#cluster-{}".format(safe_id, number))
+
+    return redirect("https://antismash-db.secondarymetabolites.org/output/{}/index.html#cluster-{}".format(safe_id, number))
+
+
 def _get_base_url(identifier):
     safe_id = SAFE_IDENTIFIER_PATTERN.sub('', identifier).split('.')[0]
     ret = db.session.query(Filename.assembly_id, Filename.base_filename) \
