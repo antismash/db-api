@@ -421,11 +421,32 @@ def list_available(category, term):
     return jsonify(available_term_by_category(category, term))
 
 
+def _canonical_assembly_id(identifier):
+    """Turn the identifier into an ID usable for lookups."""
+    safe_id = SAFE_IDENTIFIER_PATTERN.sub('', identifier).split('.')[0]
+    if safe_id in dbv1_accessions:
+        return safe_id, True
+
+    res = db.session.query(Genome.assembly_id).filter(Genome.assembly_id.ilike("{}%".format(safe_id))).first()
+    if res:
+        return res.assembly_id.split('.')[0], False
+
+
+    res = db.session.query(Genome.assembly_id) \
+                    .join(DnaSequence) \
+                    .filter(DnaSequence.acc.ilike("{}%".format(safe_id))) \
+                    .first()
+    if res:
+        return res.assembly_id.split('.')[0], False
+
+    abort(404)
+
+
 @app.route('/api/v1.0/goto/<identifier>')
 @app.route('/go/<identifier>')
 def goto(identifier):
-    safe_id = SAFE_IDENTIFIER_PATTERN.sub('', identifier).split('.')[0]
-    if safe_id in dbv1_accessions:
+    safe_id, is_v1 = _canonical_assembly_id(identifier)
+    if is_v1:
         return redirect("https://antismash-dbv1.secondarymetabolites.org/output/{}/index.html".format(safe_id))
 
     return redirect("https://antismash-db.secondarymetabolites.org/output/{}/index.html".format(safe_id))
@@ -434,8 +455,8 @@ def goto(identifier):
 @app.route('/api/v1.0/goto/<identifier>/cluster/<int:number>')
 @app.route('/go/<identifier>/<int:number>')
 def goto_cluster(identifier, number):
-    safe_id = SAFE_IDENTIFIER_PATTERN.sub('', identifier).split('.')[0]
-    if safe_id in dbv1_accessions:
+    safe_id, is_v1 = _canonical_assembly_id(identifier)
+    if is_v1:
         return redirect("https://antismash-dbv1.secondarymetabolites.org/output/{}/index.html#cluster-{}".format(safe_id, number))
 
     return redirect("https://antismash-db.secondarymetabolites.org/output/{}/index.html#cluster-{}".format(safe_id, number))
