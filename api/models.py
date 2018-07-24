@@ -79,6 +79,9 @@ class BiosyntheticGeneCluster(db.Model):
     cluster_number = db.Column(db.Integer)
     locus_id = db.Column(db.ForeignKey('antismash.loci.locus_id', ondelete='CASCADE'), index=True)
     evidence_id = db.Column(db.ForeignKey('antismash.evidences.evidence_id'))
+    contig_edge = db.Column(db.Boolean, server_default=db.FetchedValue())
+    minimal = db.Column(db.Boolean, server_default=db.FetchedValue())
+    visibility_id = db.Column(db.Integer, server_default=db.FetchedValue())
 
     evidence = db.relationship('Evidence', primaryjoin='BiosyntheticGeneCluster.evidence_id == Evidence.evidence_id', backref='biosynthetic_gene_clusters')
     locus = db.relationship('Locus', primaryjoin='BiosyntheticGeneCluster.locus_id == Locus.locus_id', backref='biosynthetic_gene_clusters')
@@ -483,3 +486,12 @@ class TtaCodon(db.Model):
     locus_id = db.Column(db.ForeignKey('antismash.loci.locus_id', ondelete='CASCADE'), index=True)
 
     locus = db.relationship('Locus', primaryjoin='TtaCodon.locus_id == Locus.locus_id', backref='tta_codons')
+
+
+class Visibility(db.Model):
+    __tablename__ = 'visibilities'
+    __table_args__ = {'schema': 'antismash'}
+
+    visibility_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
+    name = db.Column(db.Text, unique=True)
+    description = db.Column(db.Text)
