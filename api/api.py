@@ -250,6 +250,17 @@ def get_taxon_tree():
     return jsonify(tree)
 
 
+@app.route('/api/v1.0/tree/taxa/search')
+def search_taxon_tree():
+    search = request.args.get('str', None)
+    if not search:
+        return jsonify([])
+
+    search_path = taxtree.search(search)
+
+    return jsonify(search_path)
+
+
 @app.route('/api/v1.0/search', methods=['POST'])
 def search():
     try:

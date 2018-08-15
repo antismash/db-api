@@ -1,5 +1,5 @@
 '''Functions related to building the taxonomic tree data'''
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 from .models import (
     db,
@@ -7,6 +7,45 @@ from .models import (
     Genome,
     Taxa,
 )
+
+
+def search(search_term):
+    """Get a taxtree path where genus, species or strain matches the search term."""
+    kingdoms = set()
+    phyla = set()
+    classes = set()
+    orders = set()
+    families = set()
+    genera = set()
+    species = set()
+
+    filters = [
+       Taxa.genus.ilike('%{}%'.format(search_term)),
+       Taxa.species.ilike('%{}%'.format(search_term)),
+       Taxa.strain.ilike('%{}%'.format(search_term)),
+    ]
+
+    hits = db.session.query(Taxa.superkingdom, Taxa.phylum, Taxa._class, Taxa.taxonomic_order,
+                            Taxa.family, Taxa.genus, Taxa.species) \
+                     .filter(or_(*filters))
+    for hit in hits.all():
+        kingdoms.add('superkingdom_{}'.format(hit[0]).lower())
+        phyla.add('phylum_{}'.format('_'.join(hit[0:2])).lower())
+        classes.add('class_{}'.format('_'.join(hit[0:3])).lower())
+        orders.add('order_{}'.format('_'.join(hit[0:4])).lower())
+        families.add('family_{}'.format('_'.join(hit[0:5])).lower())
+        genera.add('genus_{}'.format('_'.join(hit[0:6])).lower())
+        species.add('species_{}'.format('_'.join(hit[0:7])).lower())
+
+    tax_path = sorted(list(kingdoms))
+    tax_path.extend(sorted(list(phyla)))
+    tax_path.extend(sorted(list(classes)))
+    tax_path.extend(sorted(list(orders)))
+    tax_path.extend(sorted(list(families)))
+    tax_path.extend(sorted(list(genera)))
+    tax_path.extend(sorted(list(species)))
+
+    return tax_path
 
 
 def get_superkingdom():
