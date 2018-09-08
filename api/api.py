@@ -459,7 +459,7 @@ def goto_cluster(identifier, number):
     if is_v1:
         return redirect("https://antismash-dbv1.secondarymetabolites.org/output/{}/index.html#cluster-{}".format(safe_id, number))
 
-    return redirect("https://antismash-db.secondarymetabolites.org/output/{}/index.html#cluster-{}".format(safe_id, number))
+    return redirect("/output/{}/index.html#cluster-{}".format(safe_id, number))
 
 
 def _get_base_url(identifier):
