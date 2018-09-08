@@ -304,6 +304,16 @@ def clusters_by_terpenetocarbon(term):
                     .filter(TerpeneCyclisation.to_carbon == term)
 
 
+@register_handler(CLUSTERS)
+def clusters_by_contigedge(term):
+    return Bgc.query.filter(Bgc.contig_edge.is_(term))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_minimal(term):
+    return Bgc.query.filter(Bgc.minimal.is_(term))
+
+
 def clusters_by_x_clusterblast(term, algorithm):
     '''Generic query for XClusterBlast hits'''
     return Bgc.query.join(ClusterblastHit).join(ClusterblastAlgorithm) \
