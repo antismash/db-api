@@ -417,7 +417,7 @@ def goto(identifier):
     if is_v1:
         return redirect("https://antismash-dbv1.secondarymetabolites.org/output/{}/index.html".format(safe_id))
 
-    return redirect("https://antismash-db.secondarymetabolites.org/output/{}/index.html".format(safe_id))
+    return redirect("/output/{}/index.html".format(safe_id))
 
 
 @app.route('/api/v1.0/goto/<identifier>/cluster/<int:number>')
@@ -437,7 +437,7 @@ def _get_base_url(identifier):
     if not ret:
         abort(404)
 
-    return "https://antismash-db.secondarymetabolites.org/output/{r.assembly_id}/{r.base_filename}".format(r=ret)
+    return "/output/{r.assembly_id}/{r.base_filename}".format(r=ret)
 
 @app.route('/api/v1.0/download/genbank/<identifier>')
 def download_genbank(identifier):
