@@ -70,10 +70,10 @@ def get_version():
     return jsonify(ret)
 
 
-@app.route('/api/v1.0/stats')
-def get_stats_v1():
-    '''contents for the stats page'''
-    num_clusters = Bgc.query.count()
+def _common_stats():
+    """Get the stats shared by the v1 and v2 version of the call"""
+
+    num_clusters = Bgc.query.filter(Bgc.minimal.is_(False)).count()
 
     num_genomes = Genome.query.count()
 
@@ -82,6 +82,7 @@ def get_stats_v1():
     clusters = []
 
     sub = db.session.query(t_rel_clusters_types.c.bgc_type_id, func.count(1).label('count')) \
+                    .join(Bgc).filter(Bgc.minimal.is_(False)) \
                     .group_by(t_rel_clusters_types.c.bgc_type_id).subquery()
     ret = db.session.query(BgcType.term, BgcType.description, sub.c.count).join(sub) \
                     .order_by(sub.c.count.desc(), BgcType.term)
@@ -95,6 +96,22 @@ def get_stats_v1():
     top_seq_species = '{r.genus} {r.species}'.format(r=ret)
     top_seq_taxon_count = ret.tax_count
 
+    stats = {
+        'num_clusters': num_clusters,
+        'num_genomes': num_genomes,
+        'num_sequences': num_sequences,
+        'top_seq_taxon': top_seq_taxon,
+        'top_seq_taxon_count': top_seq_taxon_count,
+        'top_seq_species': top_seq_species,
+        'clusters': clusters,
+    }
+    return stats
+
+
+@app.route('/api/v1.0/stats')
+def get_stats_v1():
+    '''contents for the stats page'''
+    stats = _common_stats()
 
     ret = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain,
                            DnaSequence.acc,
@@ -103,24 +120,10 @@ def get_stats_v1():
                            (cast(func.count(distinct(Bgc.bgc_id)), Float) / func.count(distinct(DnaSequence.acc))).label('clusters_per_seq')) \
                     .join(Genome).join(DnaSequence).join(Locus).join(Bgc) \
                     .group_by(Taxa.tax_id, DnaSequence.acc).order_by(sql_desc('clusters_per_seq')).limit(1).first()
-    top_secmet_taxon = ret.tax_id
-    top_secmet_species = '{r.genus} {r.species} {r.strain}'.format(r=ret)
-    top_secmet_acc = ret.acc
-    top_secmet_taxon_count = ret.clusters_per_seq
-
-    stats = {
-        'num_clusters': num_clusters,
-        'num_genomes': num_genomes,
-        'num_sequences': num_sequences,
-        'top_seq_taxon': top_seq_taxon,
-        'top_seq_taxon_count': top_seq_taxon_count,
-        'top_seq_species': top_seq_species,
-        'top_secmet_taxon': top_secmet_taxon,
-        'top_secmet_taxon_count': top_secmet_taxon_count,
-        'top_secmet_species': top_secmet_species,
-        'top_secmet_acc': top_secmet_acc,
-        'clusters': clusters,
-    }
+    stats['top_secmet_taxon'] = ret.tax_id
+    stats['top_secmet_species'] = '{r.genus} {r.species} {r.strain}'.format(r=ret)
+    stats['top_secmet_acc'] = ret.acc
+    stats['top_secmet_taxon_count'] = ret.clusters_per_seq
 
     return jsonify(stats)
 
@@ -128,28 +131,7 @@ def get_stats_v1():
 @app.route('/api/v2.0/stats')
 def get_stats_v2():
     """contents for the stats page"""
-    num_clusters = Bgc.query.count()
-
-    num_genomes = Genome.query.count()
-
-    num_sequences = DnaSequence.query.count()
-
-    clusters = []
-
-    sub = db.session.query(t_rel_clusters_types.c.bgc_type_id, func.count(1).label('count')) \
-                    .group_by(t_rel_clusters_types.c.bgc_type_id).subquery()
-    ret = db.session.query(BgcType.term, BgcType.description, sub.c.count).join(sub) \
-                    .order_by(sub.c.count.desc(), BgcType.term)
-    for cluster in ret:
-        clusters.append({'name': cluster.term, 'description': cluster.description, 'count': cluster.count})
-
-    ret = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, func.count(DnaSequence.acc).label('tax_count')) \
-                    .join(Genome).join(DnaSequence) \
-                    .group_by(Taxa.tax_id).order_by(sql_desc('tax_count')).limit(1).first()
-    top_seq_taxon = ret.tax_id
-    top_seq_species = '{r.genus} {r.species}'.format(r=ret)
-    top_seq_taxon_count = ret.tax_count
-
+    stats = _common_stats()
 
     ret = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain,
                            Genome.assembly_id,
@@ -157,26 +139,12 @@ def get_stats_v2():
                            func.count(distinct(Genome.assembly_id)).label('seq_count'),
                            (cast(func.count(distinct(Bgc.bgc_id)), Float) / func.count(distinct(Genome.assembly_id))).label('clusters_per_seq')) \
                     .join(Genome).join(DnaSequence).join(Locus).join(Bgc) \
-                    .filter(Genome.assembly_id != None) \
+                    .filter(Genome.assembly_id != None).filter(Bgc.minimal.is_(False)) \
                     .group_by(Taxa.tax_id, Genome.assembly_id).order_by(sql_desc('clusters_per_seq')).limit(1).first()
-    top_secmet_taxon = ret.tax_id
-    top_secmet_species = '{r.genus} {r.species} {r.strain}'.format(r=ret)
-    top_secmet_assembly_id = ret.assembly_id
-    top_secmet_taxon_count = ret.bgc_count
-
-    stats = {
-        'num_clusters': num_clusters,
-        'num_genomes': num_genomes,
-        'num_sequences': num_sequences,
-        'top_seq_taxon': top_seq_taxon,
-        'top_seq_taxon_count': top_seq_taxon_count,
-        'top_seq_species': top_seq_species,
-        'top_secmet_taxon': top_secmet_taxon,
-        'top_secmet_taxon_count': top_secmet_taxon_count,
-        'top_secmet_species': top_secmet_species,
-        'top_secmet_assembly_id': top_secmet_assembly_id,
-        'clusters': clusters,
-    }
+    stats['top_secmet_taxon'] = ret.tax_id
+    stats['top_secmet_species'] = '{r.genus} {r.species} {r.strain}'.format(r=ret)
+    stats['top_secmet_assembly_id'] = ret.assembly_id
+    stats['top_secmet_taxon_count'] = ret.bgc_count
 
     return jsonify(stats)
 
