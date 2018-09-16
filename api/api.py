@@ -178,7 +178,7 @@ def get_sec_met_tree():
             "type": "cluster",
         })
 
-    for name, desc in reversed(list(types.items())):
+    for name, desc in sorted(list(types.items()), reverse=True):
         clusters.insert(0, {
             "id": name,
             "parent": "#",
