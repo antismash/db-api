@@ -2,6 +2,7 @@ import os
 from flask import Flask
 
 SQLALCHEMY_DATABASE_URI = os.getenv('AS_DB_URI', 'postgres://postgres:secret@localhost:5432/antismash')
+SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 app = Flask(__name__)
 app.config.from_object(__name__)
