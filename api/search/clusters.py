@@ -92,9 +92,9 @@ def clusters_to_json(clusters):
 def clusters_to_csv(clusters):
     '''Convert model.BiosyntheticGeneClusters into CSV'''
     json_clusters = clusters_to_json(clusters)
-    csv_lines = ['#Genus\tSpecies\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL']
+    csv_lines = ['#Genus\tSpecies\tStrain\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL']
     for cluster in json_clusters:
-        csv_lines.append('{genus}\t{species}\t{acc}.{version}\t{cluster_number}\t{term}\t{start_pos}\t{end_pos}\t'
+        csv_lines.append('{genus}\t{species}\t{strain}\t{acc}.{version}\t{cluster_number}\t{term}\t{start_pos}\t{end_pos}\t'
                          '{cbh_description}\t{similarity}\t{cbh_acc}\t'
                          'https://antismash-db.secondarymetabolites.org/go/{assembly_id}/{cluster_number}\t'
                          'https://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/{assembly_id}/cluster/{cluster_number}'.format(**cluster))
