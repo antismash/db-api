@@ -226,8 +226,8 @@ def test_search_paginate(client):
 
 def test_export(client):
     '''Test /api/v1.0/export endpoint'''
-    expected_csv = b'''#Genus\tSpecies\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL
-Streptomyces\tcoelicolor\tNC_003903.1\t29\tfuran-butyrolactone hybrid\t239259\t253262\tMethylenomycin\t61\tBGC0000914_c1\thttps://antismash-db.secondarymetabolites.org/output/GCF_000203835/index.html#cluster-29
+    expected_csv = b'''#Genus\tSpecies\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL
+Streptomyces\tcoelicolor\tNC_003903.1\t29\tfuran-butyrolactone hybrid\t239259\t253262\tMethylenomycin\t61\tBGC0000914_c1\thttps://antismash-db.secondarymetabolites.org/go/GCF_000203835/29\thttps://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/GCF_000203835/cluster/29
 '''
 
     expected_json = [{
