@@ -94,15 +94,15 @@ def test_stats(client):
             }
         ],
         "num_clusters": 29,
-        "num_genomes": 1,
-        "num_sequences": 3,
+        "num_genomes": 2,
+        "num_sequences": 293,
         "top_secmet_assembly_id": "GCF_000203835.1",
         "top_secmet_species": "Streptomyces coelicolor A3(2)",
         "top_secmet_taxon": 100226,
-        "top_secmet_taxon_count": 29.0,
-        "top_seq_species": "Streptomyces coelicolor",
-        "top_seq_taxon": 100226,
-        "top_seq_taxon_count": 3,
+        "top_secmet_taxon_count": 29,
+        "top_seq_species": "Streptomyces Unclassified",
+        "top_seq_taxon": 1158056,
+        "top_seq_taxon_count": 290,
 
     }
 
@@ -117,12 +117,12 @@ def test_sec_met_tree(client):
 
     expected = [
         {
-            "id": "bacteriocin",
+            "id": "arylpolyene",
             "parent": "#",
             "state": {
                 "disabled": True
             },
-            "text": "Bacteriocin or other unspecified RiPP"
+            "text": "Aryl polyene"
         },
     ]
 
@@ -161,14 +161,14 @@ def test_search(client):
 		"cbh_description": "Methylenomycin",
 		"cbh_rank": 1,
 		"cluster_number": 29,
-		"description": "Hybrid cluster: Furan-Butyrolactone",
+		"description": "Hybrid cluster: Butyrolactone-Furan",
 		"end_pos": 253262,
 		"genus": "Streptomyces",
 		"similarity": 61,
 		"species": "coelicolor",
 		"start_pos": 239259,
 		"strain": "A3(2)",
-		"term": "furan-butyrolactone hybrid",
+		"term": "butyrolactone-furan hybrid",
 		"version": 1
 	    }
 	],
@@ -189,8 +189,8 @@ def test_search(client):
 		    1
 		],
 		"labels": [
-		    "furan",
-		    "butyrolactone"
+		    "butyrolactone",
+		    "furan"
 		]
 	    }
 	},
@@ -227,7 +227,7 @@ def test_search_paginate(client):
 def test_export(client):
     '''Test /api/v1.0/export endpoint'''
     expected_csv = b'''#Genus\tSpecies\tStrain\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL
-Streptomyces\tcoelicolor\tA3(2)\tNC_003903.1\t29\tfuran-butyrolactone hybrid\t239259\t253262\tMethylenomycin\t61\tBGC0000914_c1\thttps://antismash-db.secondarymetabolites.org/go/GCF_000203835/29\thttps://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/GCF_000203835/cluster/29
+Streptomyces\tcoelicolor\tA3(2)\tNC_003903.1\t29\tbutyrolactone-furan hybrid\t239259\t253262\tMethylenomycin\t61\tBGC0000914_c1\thttps://antismash-db.secondarymetabolites.org/go/GCF_000203835/29\thttps://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/GCF_000203835/cluster/29
 '''
 
     expected_json = [{
@@ -238,18 +238,18 @@ Streptomyces\tcoelicolor\tA3(2)\tNC_003903.1\t29\tfuran-butyrolactone hybrid\t23
         "cbh_description": "Methylenomycin",
         "cbh_rank": 1,
         "cluster_number": 29,
-        "description": "Hybrid cluster: Furan-Butyrolactone",
+        "description": "Hybrid cluster: Butyrolactone-Furan",
         "end_pos": 253262,
         "genus": "Streptomyces",
         "similarity": 61,
         "species": "coelicolor",
         "start_pos": 239259,
         "strain": "A3(2)",
-        "term": "furan-butyrolactone hybrid",
+        "term": "butyrolactone-furan hybrid",
         "version": 1
     }]
 
-    expected_fasta = b'''>NC_003903.1|Cluster 29|furan-butyrolactone|239259-253262|Streptomyces coelicolor A3(2)
+    expected_fasta = b'''>NC_003903.1|Cluster 29|butyrolactone-furan|239259-253262|Streptomyces coelicolor A3(2)
 AGCAACGGCCGGATCACTCACCCCCTGATGCGAAGGAGAACGGCATGACCGAGTCCACGGTCGCGCGCATCATCGCGATC'''
 
     results = client.post(url_for('export'), data='{"search_string": "[type]furan"}', content_type="application/json")
@@ -290,14 +290,14 @@ def test_genome(client):
         "cbh_description": "Leinamycin",
         "cbh_rank": 1,
         "cluster_number": 1,
-        "description": "Hybrid cluster: hglE-type polyketide-Type I polyketide",
+        "description": "Hybrid cluster: Type I polyketide-hglE-type polyketide",
         "end_pos": 139654,
         "genus": "Streptomyces",
         "similarity": 2,
         "species": "coelicolor",
         "start_pos": 86636,
         "strain": "A3(2)",
-        "term": "otherks-t1pks hybrid",
+        "term": "t1pks-otherks hybrid",
         "version": 3
     }
 

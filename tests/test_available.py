@@ -8,13 +8,13 @@ def test_available_term_by_category_invalid():
 def test_available_term_by_category_taxonomy():
     tests = [
         (('superkingdom', 'b'), [{'val': 'Bacteria', 'desc': None}]),
-        (('phylum', 'a'), [{'val': 'Actinobacteria', 'desc': None}]),
-        (('class', 'a'), [{'val': 'Actinobacteria', 'desc': None}]),
-        (('order', 's'), [{'val': 'Streptomycetales', 'desc': None}]),
-        (('family', 's'), [{'val': 'Streptomycetaceae', 'desc': None}]),
-        (('genus', 's'), [{'val': 'Streptomyces', 'desc': None}]),
-        (('species', 'c'), [{'val': 'coelicolor', 'desc': None}]),
-        (('strain', 'a'), [{'val': 'A3(2)', 'desc': None}]),
+        (('phylum', 'act'), [{'val': 'Actinobacteria', 'desc': None}]),
+        (('class', 'act'), [{'val': 'Actinobacteria', 'desc': None}]),
+        (('order', 'streptom'), [{'val': 'Streptomycetales', 'desc': None}]),
+        (('family', 'streptom'), [{'val': 'Streptomycetaceae', 'desc': None}]),
+        (('genus', 'streptom'), [{'val': 'Streptomyces', 'desc': None}]),
+        (('species', 'coeli'), [{'val': 'coelicolor', 'desc': None}]),
+        (('strain', 'a3('), [{'val': 'A3(2)', 'desc': None}]),
     ]
 
     for args, expected in tests:

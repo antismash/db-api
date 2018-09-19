@@ -19,40 +19,44 @@ def test_guess_cluster_category():
         assert clusters.guess_cluster_category(term) == expected, search_term
 
 
+SCO_CLUSTER_COUNT = 29
+STREPTO_CLUSTER_COUNT = 120
+
+
 def test_clusters_by_taxid():
-    assert clusters.clusters_by_taxid(100226).count() == 29
+    assert clusters.clusters_by_taxid(100226).count() == SCO_CLUSTER_COUNT
 
 
 def test_clusters_by_strain():
-    assert clusters.clusters_by_strain('A3(2)').count() == 29
+    assert clusters.clusters_by_strain('A3(2)').count() == SCO_CLUSTER_COUNT
 
 
 def test_clusters_by_species():
-    assert clusters.clusters_by_species('coelicolor').count() == 29
+    assert clusters.clusters_by_species('coelicolor').count() == SCO_CLUSTER_COUNT
 
 
 def test_clusters_by_genus():
-    assert clusters.clusters_by_genus('streptomyces').count() == 29
+    assert clusters.clusters_by_genus('streptomyces').count() == STREPTO_CLUSTER_COUNT
 
 
 def test_clusters_by_family():
-    assert clusters.clusters_by_family('streptomycetaceae').count() == 29
+    assert clusters.clusters_by_family('streptomycetaceae').count() == STREPTO_CLUSTER_COUNT
 
 
 def test_clusters_by_order():
-    assert clusters.clusters_by_order('streptomycetales').count() == 29
+    assert clusters.clusters_by_order('streptomycetales').count() == STREPTO_CLUSTER_COUNT
 
 
 def test_clusters_by_class():
-    assert clusters.clusters_by_class('actinobacteria').count() == 29
+    assert clusters.clusters_by_class('actinobacteria').count() == STREPTO_CLUSTER_COUNT
 
 
 def test_clusters_by_phylum():
-    assert clusters.clusters_by_phylum('actinobacteria').count() == 29
+    assert clusters.clusters_by_phylum('actinobacteria').count() == STREPTO_CLUSTER_COUNT
 
 
 def test_clusters_by_superkingdom():
-    assert clusters.clusters_by_superkingdom('bacteria').count() == 29
+    assert clusters.clusters_by_superkingdom('bacteria').count() == STREPTO_CLUSTER_COUNT
 
 
 def test_clusters_by_monomer():
@@ -72,7 +76,7 @@ def test_clusters_by_compoundclass():
 
 
 def test_clusters_by_profile():
-    assert clusters.clusters_by_profile('LANC_like').count() == 3
+    assert clusters.clusters_by_profile('LANC_like').count() == 5
 
 
 def test_clusters_by_asdomain():
