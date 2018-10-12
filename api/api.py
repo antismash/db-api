@@ -316,8 +316,8 @@ def export():
     limit = FASTA_LIMITS.get(search_type, 100)
 
     if return_type == 'fasta' and len(search_results) > limit:
-        raise TooManyResults('More than {limit} search results for FASTA {search} download, please specify a smaller query.'.format(
-            limit=limit, search=search_type))
+        raise TooManyResults('More than {limit} search results for FASTA {search} download ({number} found), please specify a smaller query.'.format(
+            limit=limit, search=search_type, number=len(search_results)))
 
     found_bgcs = format_results(query, search_results)
     filename = 'asdb_search_results.{}'.format(query.return_type)
