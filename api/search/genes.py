@@ -29,6 +29,8 @@ from api.models import (
     ProfileHit,
     Taxa,
     RelAsDomainsMonomer,
+    Smcog,
+    SmcogHit,
     t_cds_cluster_map,
     t_rel_clusters_types,
 )
