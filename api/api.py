@@ -192,11 +192,7 @@ def get_sec_met_tree():
     return jsonify(tree)
 
 
-@app.route('/api/v1.0/tree/taxa')
-def get_taxon_tree():
-    '''Get the jsTree structure for all taxa'''
-    tree_id = request.args.get('id', '1')
-
+def _get_taxon_tree_node(tree_id):
     HANDLERS = {
         'superkingdom': taxtree.get_phylum,
         'phylum': taxtree.get_class,
@@ -216,7 +212,28 @@ def get_taxon_tree():
         handler = HANDLERS.get(taxlevel, lambda x: [])
         tree = handler(params)
 
+    return tree
+
+
+@app.route('/api/v1.0/tree/taxa')
+def get_taxon_tree():
+    '''Get the jsTree structure for all taxa'''
+    tree_id = request.args.get('id', '1')
+    tree = _get_taxon_tree_node(tree_id)
+
     return jsonify(tree)
+
+
+@app.route('/api/v1.0/tree/taxa/massload')
+def get_taxon_tree_massload():
+    tree_ids = request.args.get('id', '1')
+    id_list = tree_ids.split(',')
+
+    multitree = {}
+    for tree_id in id_list:
+        multitree[tree_id] = _get_taxon_tree_node(tree_id)
+
+    return jsonify(multitree)
 
 
 @app.route('/api/v1.0/tree/taxa/search')
