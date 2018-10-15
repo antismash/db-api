@@ -1,4 +1,7 @@
 '''Search functions related to asDomain searches'''
+
+from flask import g
+
 from sqlalchemy import (
     func,
     sql,
@@ -209,12 +212,15 @@ def format_fastaa(domains):
                              DnaSequence.acc, DnaSequence.version)
     query = query.join(AsDomainProfile).join(Locus).join(DnaSequence).join(Cds, AsDomain.cds_id == Cds.cds_id)
     query = query.filter(AsDomain.as_domain_id.in_(map(lambda x: x.as_domain_id, domains))).order_by(AsDomain.as_domain_id)
+    search = ''
+    if g.verbose:
+        search = "|{}".format(g.search_str)
     fasta_records = []
     for domain in query:
         sequence = break_lines(domain.translation)
         record = '>{d.locus_tag}|{d.name}|{d.acc}.{d.version}|' \
-                 '{d.start_pos}-{d.end_pos}({d.strand})\n' \
-                 '{sequence}'.format(d=domain, sequence=sequence)
+                 '{d.start_pos}-{d.end_pos}({d.strand}){search}\n' \
+                 '{sequence}'.format(d=domain, search=search, sequence=sequence)
         fasta_records.append(record)
 
     return fasta_records
@@ -229,12 +235,15 @@ def format_fasta(domains):
                              DnaSequence.acc, DnaSequence.version)
     query = query.join(AsDomainProfile).join(Locus, AsDomain.locus_id == Locus.locus_id).join(DnaSequence).join(Cds, AsDomain.cds_id == Cds.cds_id)
     query = query.filter(AsDomain.as_domain_id.in_(map(lambda x: x.as_domain_id, domains))).order_by(AsDomain.as_domain_id)
+    search = ''
+    if g.verbose:
+        search = "|{}".format(g.search_str)
     fasta_records = []
     for domain in query:
         sequence = break_lines(calculate_sequence(domain.strand, domain.sequence))
         record = '>{d.locus_tag}|{d.name}|{d.acc}.{d.version}|' \
-                 '{d.start_pos}-{d.end_pos}({d.strand})\n' \
-                 '{sequence}'.format(d=domain, sequence=sequence)
+                 '{d.start_pos}-{d.end_pos}({d.strand}){search}\n' \
+                 '{sequence}'.format(d=domain, search=search, sequence=sequence)
         fasta_records.append(record)
 
     return fasta_records

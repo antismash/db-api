@@ -4,6 +4,7 @@ from io import BytesIO
 import json
 from flask import (
     abort,
+    g,
     jsonify,
     redirect,
     request,
@@ -320,6 +321,9 @@ def export():
         abort(400)
 
     search_results = core_search(query)
+    g.verbose = query.verbose
+    if query.verbose:
+        g.search_str = str(query)
 
     total = len(search_results)
 
@@ -332,12 +336,12 @@ def export():
 
     limit = FASTA_LIMITS.get(search_type, 100)
 
-    if return_type == 'fasta' and len(search_results) > limit:
+    if return_type.startswith('fasta') and len(search_results) > limit:
         raise TooManyResults('More than {limit} search results for FASTA {search} download ({number} found), please specify a smaller query.'.format(
             limit=limit, search=search_type, number=len(search_results)))
 
     found_bgcs = format_results(query, search_results)
-    filename = 'asdb_search_results.{}'.format(query.return_type)
+    filename = 'asdb_search_results.{}'.format(return_type)
     if query.return_type == 'json':
         found_bgcs = [json.dumps(found_bgcs)]
 
@@ -365,6 +369,7 @@ def export_get(search_type, return_type):
 
     query = Query.from_string(search_string, search_type=search_type, return_type=return_type)
 
+    g.verbose = False
     search_results = core_search(query)
     if len(search_results) > 100 and search_type == 'cluster' and return_type == 'fasta':
         raise TooManyResults('More than 100 search results for FASTA cluster download, please specify a smaller query.')

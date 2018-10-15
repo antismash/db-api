@@ -1,5 +1,7 @@
 '''Gene-related search functions'''
 
+from flask import g
+
 from sqlalchemy import (
     func,
     or_,
@@ -215,12 +217,15 @@ def format_fasta(genes):
                              func.substr(DnaSequence.dna, Locus.start_pos + 1, Locus.end_pos - Locus.start_pos).label('sequence'))
     query = query.join(Locus).join(DnaSequence)
     query = query.filter(Cds.cds_id.in_(map(lambda x: x.cds_id, genes))).order_by(Cds.cds_id)
+    search = ''
+    if g.verbose:
+        search = "|{}".format(g.search_str)
     fasta_records = []
     for gene in query:
         sequence = break_lines(calculate_sequence(gene.strand, gene.sequence))
         record = '>{g.locus_tag}|{g.acc}.{g.version}|' \
-                 '{g.start_pos}-{g.end_pos}({g.strand})\n' \
-                 '{sequence}'.format(g=gene, sequence=sequence)
+                 '{g.start_pos}-{g.end_pos}({g.strand}){search}\n' \
+                 '{sequence}'.format(g=gene, search=search, sequence=sequence)
         fasta_records.append(record)
 
     return fasta_records
@@ -233,12 +238,15 @@ def format_fastaa(genes):
                              DnaSequence.acc, DnaSequence.version, Cds.translation)
     query = query.join(Locus).join(DnaSequence)
     query = query.filter(Cds.cds_id.in_(map(lambda x: x.cds_id, genes))).order_by(Cds.cds_id)
+    search = ''
+    if g.verbose:
+        search = "|{}".format(g.search_str)
     fasta_records = []
     for gene in query:
         sequence = break_lines(gene.translation)
         record = '>{g.locus_tag}|{g.acc}.{g.version}|' \
-                 '{g.start_pos}-{g.end_pos}({g.strand})\n' \
-                 '{sequence}'.format(g=gene, sequence=sequence)
+                 '{g.start_pos}-{g.end_pos}({g.strand}){search}\n' \
+                 '{sequence}'.format(g=gene, search=search, sequence=sequence)
         fasta_records.append(record)
 
     return fasta_records

@@ -5,11 +5,12 @@ import re
 
 class Query(object):
     '''A query for the database'''
-    def __init__(self, terms, search_type='cluster', return_type='json'):
+    def __init__(self, terms, search_type='cluster', return_type='json', verbose=False):
         '''Set up a query with terms, optionally giving a search_type and return_type'''
         self.terms = terms
         self._search_type = search_type.lower()
         self._return_type = return_type.lower()
+        self._verbose = verbose
 
     @property
     def search_type(self):
@@ -19,9 +20,17 @@ class Query(object):
     def return_type(self):
         return self._return_type
 
+    @property
+    def verbose(self):
+        return self._verbose
+
     def __repr__(self):
         return 'Query(search_type: {!r}, return_type: {!r}, terms: \'{}\')'.format(
             self.search_type, self.return_type, self.terms)
+
+    def __str__(self):
+        return "Query(search: {search}, terms: {terms})".format(
+            search=self.search_type, terms=str(self.terms))
 
     @classmethod
     def from_json(cls, json_query):
@@ -35,13 +44,15 @@ class Query(object):
             extra_args['search_type'] = json_query['search']
         if 'return_type' in json_query:
             extra_args['return_type'] = json_query['return_type']
+        if 'verbose' in json_query:
+            extra_args['verbose'] = json_query['verbose']
         return cls(terms, **extra_args)
 
     @classmethod
-    def from_string(cls, string, search_type='cluster', return_type='json'):
+    def from_string(cls, string, search_type='cluster', return_type='json', verbose=False):
         '''Generate query from a string'''
         terms = QueryTerm.from_string(string)
-        return cls(terms, search_type=search_type, return_type=return_type)
+        return cls(terms, search_type=search_type, return_type=return_type, verbose=verbose)
 
 
 class QueryTerm(object):

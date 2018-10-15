@@ -1,5 +1,7 @@
 '''Cluster-related search options'''
 
+from flask import g
+
 from sqlalchemy import (
     func,
     or_,
@@ -110,14 +112,17 @@ def clusters_to_fasta(clusters):
     query = query.options(joinedload('bgc_types'))
     query = query.join(Locus).join(DnaSequence).join(Genome).join(Taxa)
     query = query.filter(Bgc.bgc_id.in_(map(lambda x: x.bgc_id, clusters))).order_by(Bgc.bgc_id)
+    search = ''
+    if g.verbose:
+        search = "|{}".format(g.search_str)
     for cluster in query:
         seq = break_lines(cluster.sequence)
         compiled_type = '-'.join([t.term for t in cluster.BiosyntheticGeneCluster.bgc_types])
         fasta = '>{c.acc}.{c.version}|Cluster {cluster_number}|' \
                 '{compiled_type}|{c.start_pos}-{c.end_pos}|' \
-                '{c.genus} {c.species} {c.strain}\n{seq}' \
+                '{c.genus} {c.species} {c.strain}{search}\n{seq}' \
                 .format(c=cluster, cluster_number=cluster.BiosyntheticGeneCluster.cluster_number,
-                        compiled_type=compiled_type, seq=seq)
+                        compiled_type=compiled_type, search=search, seq=seq)
         yield fasta
 
 
