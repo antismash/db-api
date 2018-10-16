@@ -83,7 +83,7 @@ def json_stats(json_clusters):
 
     clusters_by_type_list = db.session.query(BgcType.term, func.count(BgcType.term)) \
                                       .join(t_rel_clusters_types).join(Bgc) \
-                                      .filter(Bgc.bgc_id.in_(bgc_ids)).group_by(BgcType.term).all()
+                                      .filter(Bgc.bgc_id.in_(bgc_ids)).group_by(BgcType.term).order_by(BgcType.term).all()
     clusters_by_type = {}
     if clusters_by_type_list is not None:
         clusters_by_type['labels'], clusters_by_type['data'] = zip(*clusters_by_type_list)
