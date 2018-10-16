@@ -161,9 +161,11 @@ def test_search(client):
 		"cbh_description": "Methylenomycin",
 		"cbh_rank": 1,
 		"cluster_number": 29,
+                "contig_edge": False,
 		"description": "Hybrid cluster: Butyrolactone-Furan",
 		"end_pos": 253262,
 		"genus": "Streptomyces",
+                "minimal": False,
 		"similarity": 61,
 		"species": "coelicolor",
 		"start_pos": 239259,
@@ -226,8 +228,8 @@ def test_search_paginate(client):
 
 def test_export(client):
     '''Test /api/v1.0/export endpoint'''
-    expected_csv = b'''#Genus\tSpecies\tStrain\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL
-Streptomyces\tcoelicolor\tA3(2)\tNC_003903.1\t29\tbutyrolactone-furan hybrid\t239259\t253262\tMethylenomycin\t61\tBGC0000914_c1\thttps://antismash-db.secondarymetabolites.org/go/GCF_000203835/29\thttps://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/GCF_000203835/cluster/29
+    expected_csv = b'''#Genus\tSpecies\tStrain\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tOn contig edge\tFast mode only\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL
+Streptomyces\tcoelicolor\tA3(2)\tNC_003903.1\t29\tbutyrolactone-furan hybrid\t239259\t253262\tFalse\tFalse\tMethylenomycin\t61\tBGC0000914_c1\thttps://antismash-db.secondarymetabolites.org/go/GCF_000203835/29\thttps://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/GCF_000203835/cluster/29
 '''
 
     expected_json = [{
@@ -238,9 +240,11 @@ Streptomyces\tcoelicolor\tA3(2)\tNC_003903.1\t29\tbutyrolactone-furan hybrid\t23
         "cbh_description": "Methylenomycin",
         "cbh_rank": 1,
         "cluster_number": 29,
+        "contig_edge": False,
         "description": "Hybrid cluster: Butyrolactone-Furan",
         "end_pos": 253262,
         "genus": "Streptomyces",
+        "minimal": False,
         "similarity": 61,
         "species": "coelicolor",
         "start_pos": 239259,
@@ -290,9 +294,11 @@ def test_genome(client):
         "cbh_description": "Leinamycin",
         "cbh_rank": 1,
         "cluster_number": 1,
+        "contig_edge": False,
         "description": "Hybrid cluster: Type I polyketide-hglE-type polyketide",
         "end_pos": 139654,
         "genus": "Streptomyces",
+        "minimal": False,
         "similarity": 2,
         "species": "coelicolor",
         "start_pos": 86636,
