@@ -162,7 +162,7 @@ def test_search(client):
 		"cbh_rank": 1,
 		"cluster_number": 29,
                 "contig_edge": False,
-		"description": "Hybrid cluster: Butyrolactone-Furan",
+		"description": "Hybrid cluster: Butyrolactone & Furan",
 		"end_pos": 253262,
 		"genus": "Streptomyces",
                 "minimal": False,
@@ -241,7 +241,7 @@ Streptomyces\tcoelicolor\tA3(2)\tNC_003903.1\t29\tbutyrolactone-furan hybrid\t23
         "cbh_rank": 1,
         "cluster_number": 29,
         "contig_edge": False,
-        "description": "Hybrid cluster: Butyrolactone-Furan",
+        "description": "Hybrid cluster: Butyrolactone & Furan",
         "end_pos": 253262,
         "genus": "Streptomyces",
         "minimal": False,
@@ -295,7 +295,7 @@ def test_genome(client):
         "cbh_rank": 1,
         "cluster_number": 1,
         "contig_edge": False,
-        "description": "Hybrid cluster: Type I polyketide-hglE-type polyketide",
+        "description": "Hybrid cluster: hglE-type polyketide & Type I polyketide",
         "end_pos": 139654,
         "genus": "Streptomyces",
         "minimal": False,
@@ -303,7 +303,7 @@ def test_genome(client):
         "species": "coelicolor",
         "start_pos": 86636,
         "strain": "A3(2)",
-        "term": "t1pks-otherks hybrid",
+        "term": "otherks-t1pks hybrid",
         "version": 3
     }
 
