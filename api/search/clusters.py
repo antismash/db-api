@@ -86,6 +86,9 @@ def clusters_to_json(clusters):
             json_cluster['cbh_acc'] = knownclusterblasts[0].acc
             json_cluster['cbh_rank'] = knownclusterblasts[0].rank
 
+        json_cluster['contig_edge'] = cluster.BiosyntheticGeneCluster.contig_edge
+        json_cluster['minimal'] = cluster.BiosyntheticGeneCluster.minimal
+
         json_clusters.append(json_cluster)
     return json_clusters
 
@@ -94,9 +97,10 @@ def clusters_to_json(clusters):
 def clusters_to_csv(clusters):
     '''Convert model.BiosyntheticGeneClusters into CSV'''
     json_clusters = clusters_to_json(clusters)
-    csv_lines = ['#Genus\tSpecies\tStrain\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL']
+    csv_lines = ['#Genus\tSpecies\tStrain\tNCBI accession\tCluster number\tBGC type\tFrom\tTo\tOn contig edge\tFast mode only\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL']
     for cluster in json_clusters:
         csv_lines.append('{genus}\t{species}\t{strain}\t{acc}.{version}\t{cluster_number}\t{term}\t{start_pos}\t{end_pos}\t'
+                         '{contig_edge}\t{minimal}\t'
                          '{cbh_description}\t{similarity}\t{cbh_acc}\t'
                          'https://antismash-db.secondarymetabolites.org/go/{assembly_id}/{cluster_number}\t'
                          'https://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/{assembly_id}/cluster/{cluster_number}'.format(**cluster))
