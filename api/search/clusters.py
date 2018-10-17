@@ -122,7 +122,7 @@ def clusters_to_fasta(clusters):
         search = "|{}".format(g.search_str)
     for cluster in query:
         seq = break_lines(cluster.sequence)
-        compiled_type = '-'.join([t.term for t in cluster.BiosyntheticGeneCluster.bgc_types])
+        compiled_type = '-'.join(sorted([t.term for t in cluster.BiosyntheticGeneCluster.bgc_types], key=str.casefold))
         fasta = '>{c.acc}.{c.version}|Cluster {cluster_number}|' \
                 '{compiled_type}|{c.start_pos}-{c.end_pos}|' \
                 '{c.genus} {c.species} {c.strain}{search}\n{seq}' \
