@@ -50,6 +50,36 @@ def available_term_by_category(category, term):
     return []
 
 
+class FakeBooleanQuery:
+    """Fake Query class to return boolean value typeaheads."""
+    def __init__(self, term, true_help, false_help):
+        term = term.casefold()
+        if term in {'t', 'tr', 'tru', 'true', 'y', 'ye', 'yes'}:
+            self.results = (('true', true_help),)
+        elif term in {'f', 'fa', 'fal', 'fals', 'false', 'n', 'no'}:
+            self.results = (('false', false_help),)
+        else:
+            self.results = []
+
+    def limit(self, _):
+        return self
+
+    def all(self):
+        return self.results
+
+
+@register_handler(AVAILABLE)
+def available_contigedge(term):
+    """Generate FakeBooleanQuery for available boolean contigedge options."""
+    return FakeBooleanQuery(term, 'Cluster is on a contig edge', 'Cluster is not on a contig edge')
+
+
+@register_handler(AVAILABLE)
+def available_minimal(term):
+    """Generate FakeBooleanQuery for available boolean minimal options."""
+    return FakeBooleanQuery(term, 'Cluster was found in fast-mode antiSMASH run', 'Cluster was found in a full antiSMASH run')
+
+
 @register_handler(AVAILABLE)
 def available_superkingdom(term):
     '''Generate query for available superkingdoms'''
