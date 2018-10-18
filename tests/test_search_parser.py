@@ -120,6 +120,21 @@ def test_query_term_from_json():
     assert isinstance(term.left, QueryTerm)
     assert isinstance(term.right, QueryTerm)
 
+    expr = {
+        'term_type': 'expr',
+        'category': 'minimal',
+        'term': False
+    }
+    term = QueryTerm.from_json(expr)
+    assert term.kind == 'expression'
+    assert term.category == expr['category']
+    assert term.term is False
+
+    expr['term'] = 'true'
+    term = QueryTerm.from_json(expr)
+    assert term.kind == 'expression'
+    assert term.category == expr['category']
+    assert term.term is True
 
 def test_query_term_from_string():
     string = ""
@@ -137,6 +152,12 @@ def test_query_term_from_string():
     assert term.kind == 'expression'
     assert term.category == 'type'
     assert term.term == 'nrps'
+
+    string = "[contigedge]true"
+    term = QueryTerm.from_string(string)
+    assert term.kind == 'expression'
+    assert term.category == 'contigedge'
+    assert term.term is True
 
     string = "nrps AND 1234"
     term = QueryTerm.from_string(string)

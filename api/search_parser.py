@@ -59,6 +59,8 @@ class QueryTerm(object):
     '''A term in a Query'''
     KEYWORDS = set(['AND', 'OR', 'EXCEPT'])
 
+    BOOL_CATEGORIES = set(['contigedge', 'minimal'])
+
     def __init__(self, kind, **kwargs):
         '''Initialize a term, either an operation or an expression
 
@@ -79,6 +81,8 @@ class QueryTerm(object):
                 raise ValueError("For expressions, you need to specify 'category' and 'term'")
             self.category = kwargs['category']
             self.term = kwargs['term']
+            if self.category in self.BOOL_CATEGORIES and not isinstance(self.term, bool):
+                self.term = self.term.casefold() in {'true', 'yes', 't', 'y', '1'}
 
         else:
             raise ValueError('Invalid term type {!r}'.format(kind))
