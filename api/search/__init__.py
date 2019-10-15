@@ -6,13 +6,12 @@ from api.models import (
     db,
     AsDomain,
     BgcType,
-    BiosyntheticGeneCluster as Bgc,
     Cds,
-    Genome,
     DnaSequence,
-    Locus,
+    Genome,
+    Region,
     Taxa,
-    t_rel_clusters_types,
+    t_rel_regions_types,
 )
 from .clusters import (
     cluster_query_from_term,
@@ -51,7 +50,7 @@ def core_search(query):
     sql_query = NoneQuery()
 
     if query.search_type == 'cluster':
-        sql_query = cluster_query_from_term(query.terms).order_by(Bgc.bgc_id)
+        sql_query = cluster_query_from_term(query.terms).order_by(Region.region_id)
     elif query.search_type == 'gene':
         sql_query = gene_query_from_term(query.terms).order_by(Cds.cds_id)
     elif query.search_type == 'domain':
@@ -82,16 +81,16 @@ def json_stats(json_clusters):
         bgc_ids.add(cluster['bgc_id'])
 
     clusters_by_type_list = db.session.query(BgcType.term, func.count(BgcType.term)) \
-                                      .join(t_rel_clusters_types).join(Bgc) \
-                                      .filter(Bgc.bgc_id.in_(bgc_ids)).group_by(BgcType.term).order_by(BgcType.term).all()
+                                      .join(t_rel_regions_types).join(Region) \
+                                      .filter(Region.region_id.in_(bgc_ids)).group_by(BgcType.term).order_by(BgcType.term).all()
     clusters_by_type = {}
     if clusters_by_type_list is not None:
         clusters_by_type['labels'], clusters_by_type['data'] = zip(*clusters_by_type_list)
     stats['clusters_by_type'] = clusters_by_type
 
     clusters_by_phylum_list = db.session.query(Taxa.phylum, func.count(Taxa.phylum)) \
-                                        .join(Genome).join(DnaSequence).join(Locus).join(Bgc) \
-                                        .filter(Bgc.bgc_id.in_(bgc_ids)).group_by(Taxa.phylum).all()
+                                        .join(Genome).join(DnaSequence).join(Region) \
+                                        .filter(Region.region_id.in_(bgc_ids)).group_by(Taxa.phylum).all()
     clusters_by_phylum = {}
     if clusters_by_phylum_list is not None:
         clusters_by_phylum['labels'], clusters_by_phylum['data'] = zip(*clusters_by_phylum_list)
