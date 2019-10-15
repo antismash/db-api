@@ -29,8 +29,6 @@ from api.models import (
     Profile,
     ProfileHit,
     Taxa,
-    Terpene,
-    TerpeneCyclisation,
     Smcog,
     SmcogHit,
     t_cds_cluster_map,
@@ -286,33 +284,6 @@ def clusters_by_asdomain(term):
                     .join(Cds, t_cds_cluster_map.c.cds_id == Cds.cds_id) \
                     .join(AsDomain).join(AsDomainProfile) \
                     .filter(AsDomainProfile.name.ilike(term))
-
-
-@register_handler(CLUSTERS)
-def clusters_by_terpene(term):
-    '''Return a query for a bgc by terpene synthase type'''
-    return Bgc.query.join(t_cds_cluster_map, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
-                    .join(Cds, t_cds_cluster_map.c.cds_id == Cds.cds_id) \
-                    .join(TerpeneCyclisation).join(Terpene) \
-                    .filter(Terpene.name.ilike('{}'.format(term)))
-
-
-@register_handler(CLUSTERS)
-def clusters_by_terpenefromcarbon(term):
-    '''Return a query for a bgc by terpene cyclisation start carbon'''
-    return Bgc.query.join(t_cds_cluster_map, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
-                    .join(Cds, t_cds_cluster_map.c.cds_id == Cds.cds_id) \
-                    .join(TerpeneCyclisation) \
-                    .filter(TerpeneCyclisation.from_carbon == term)
-
-
-@register_handler(CLUSTERS)
-def clusters_by_terpenetocarbon(term):
-    '''Return a query for a bgc by terpene synthase type'''
-    return Bgc.query.join(t_cds_cluster_map, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
-                    .join(Cds, t_cds_cluster_map.c.cds_id == Cds.cds_id) \
-                    .join(TerpeneCyclisation) \
-                    .filter(TerpeneCyclisation.to_carbon == term)
 
 
 @register_handler(CLUSTERS)
