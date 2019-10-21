@@ -29,6 +29,8 @@ from api.models import (
     Protocluster,
     Region,
     RelModulesMonomer,
+    ResfamDomain,
+    Resfam,
     Ripp,
     Smcog,
     SmcogHit,
@@ -316,3 +318,10 @@ def clusters_by_knowncluster(term):
 def clusters_by_subcluster(term):
     '''Return a query for a bgc by SubClusterBlast hit'''
     return clusters_by_x_clusterblast(term, 'subclusterblast')
+
+
+@register_handler(CLUSTERS)
+def clusters_by_resfam(term):
+    '''Return a query for a region by Resfam hit'''
+    search = "%{}%".format(term)
+    return Region.query.join(Cds).join(ResfamDomain).join(Resfam).filter(or_(Resfam.accession.ilike(search), Resfam.name.ilike(search), Resfam.description.ilike(search)))

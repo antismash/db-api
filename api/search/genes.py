@@ -27,6 +27,8 @@ from api.models import (
     Profile,
     ProfileHit,
     Region,
+    Resfam,
+    ResfamDomain,
     Ripp,
     Taxa,
     Smcog,
@@ -246,3 +248,10 @@ def format_csv(genes):
         csv_lines.append('{g.locus_tag}\t{record.accession}.{record.version}\t'
                          '{g.location}'.format(g=gene, record=record))
     return csv_lines
+
+
+@register_handler(GENE_QUERIES)
+def clusters_by_resfam(term):
+    '''Return a query for a region by Resfam hit'''
+    search = "%{}%".format(term)
+    return Cds.query.join(ResfamDomain).join(Resfam).filter(or_(Resfam.accession.ilike(search), Resfam.name.ilike(search), Resfam.description.ilike(search)))

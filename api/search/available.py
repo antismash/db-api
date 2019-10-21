@@ -24,6 +24,7 @@ from api.models import (
     Genome,
     Monomer,
     Profile,
+    Resfam,
     Ripp,
     Smcog,
     Substrate,
@@ -244,3 +245,15 @@ def available_smcog(term):
     return db.session.query(distinct(Smcog.name), Smcog.description) \
              .filter(or_(Smcog.name.ilike('{}%'.format(term)), Smcog.description.ilike('%{}%'.format(term)))) \
              .order_by(Smcog.name)
+
+
+@register_handler(AVAILABLE)
+def available_resfam(term):
+    """Generate query for available resfam profiles."""
+    search = term + "%"
+    return db.session.query(distinct(Resfam.name), Resfam.description) \
+             .filter(or_(Resfam.accession.ilike(search),
+                         Resfam.name.ilike(search),
+                         Resfam.description.ilike("%" + search))
+                     ) \
+             .order_by(Resfam.name)

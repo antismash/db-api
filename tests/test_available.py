@@ -38,6 +38,9 @@ def test_available_term_by_category():
                                     {'val': 'Y16952_c2', 'desc': 'balhimycin hydroxyphenylglycine'},
                                     {'val': 'Y16952_c4', 'desc': 'balhimycin glucose / vancosamine'},
                                 ]),
+        (('resfam', 'RF0001'), [{'desc': '16S ribosomal RNA methyltransferase [ARO:3000857]', 'val': '16S_rRNA_methyltrans'}]),
+        (('resfam', '6S ribosomal RNA meth'), [{'desc': '16S ribosomal RNA methyltransferase [ARO:3000857]', 'val': '16S_rRNA_methyltrans'}]),
+        (('resfam', '16S_rRNA_methyl'), [{'desc': '16S ribosomal RNA methyltransferase [ARO:3000857]', 'val': '16S_rRNA_methyltrans'}]),
     ]
     for args, expected in tests:
         assert available.available_term_by_category(*args) == expected, args
