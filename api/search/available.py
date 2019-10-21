@@ -30,8 +30,6 @@ from api.models import (
     Monomer,
     Profile,
     Taxa,
-    Terpene,
-    TerpeneCyclisation,
     Smcog,
 )
 
@@ -241,26 +239,3 @@ def available_smcog(term):
     return db.session.query(distinct(Smcog.name), Smcog.description) \
              .filter(or_(Smcog.name.ilike('{}%'.format(term)), Smcog.description.ilike('%{}%'.format(term)))) \
              .order_by(Smcog.name)
-
-
-@register_handler(AVAILABLE)
-def available_terpene(term):
-    """Generate query for available terpene synthase type."""
-    return db.session.query(distinct(Terpene.name), Terpene.description) \
-             .filter(or_(Terpene.name.ilike('{}%'.format(term)), Terpene.description.ilike('%{}%'.format(term)))) \
-             .order_by(Terpene.name)
-
-
-@register_handler(AVAILABLE)
-def available_terpenefromcarbon(term):
-    """Generate query for available terpene cyclisation start carbon."""
-    return db.session.query(distinct(TerpeneCyclisation.from_carbon), TerpeneCyclisation.from_carbon) \
-             .filter(cast(TerpeneCyclisation.from_carbon, sqlalchemy.String).ilike('{}%'.format(term))) \
-             .order_by(TerpeneCyclisation.from_carbon)
-
-@register_handler(AVAILABLE)
-def available_terpenetocarbon(term):
-    """Generate query for available terpene cyclisation end carbon."""
-    return db.session.query(distinct(TerpeneCyclisation.to_carbon), TerpeneCyclisation.to_carbon) \
-             .filter(cast(TerpeneCyclisation.to_carbon, sqlalchemy.String).ilike('{}%'.format(term))) \
-             .order_by(TerpeneCyclisation.to_carbon)
