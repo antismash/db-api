@@ -3,7 +3,6 @@
 from flask import g
 
 from sqlalchemy import (
-    func,
     sql,
 )
 from .helpers import (
@@ -11,26 +10,26 @@ from .helpers import (
     calculate_sequence,
     register_handler,
 )
+from api.location import location_from_string
 
 from api.models import (
     db,
     AsDomain,
     AsDomainProfile,
     BgcType,
-    BiosyntheticGeneCluster as Bgc,
     ClusterblastAlgorithm,
     ClusterblastHit,
     Cds,
     DnaSequence,
     Genome,
-    Locus,
+    Module,
     Monomer,
     Profile,
     ProfileHit,
+    Region,
+    RelModulesMonomer,
     Taxa,
-    RelAsDomainsMonomer,
-    t_cds_cluster_map,
-    t_rel_clusters_types,
+    t_rel_regions_types,
 )
 
 DOMAIN_QUERIES = {}
@@ -59,7 +58,7 @@ def domain_query_from_term(term):
 
 def query_taxon_generic():
     '''Generic query for asDomain by taxon'''
-    return AsDomain.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa)
+    return AsDomain.query.join(Cds).join(Region).join(DnaSequence).join(Genome).join(Taxa)
 
 
 @register_handler(DOMAIN_QUERIES)
@@ -119,30 +118,28 @@ def query_superkingdom(term):
 @register_handler(DOMAIN_QUERIES)
 def query_acc(term):
     '''Generate asDomain query by NCBI accession'''
-    return AsDomain.query.join(Locus).join(DnaSequence).filter(DnaSequence.acc.ilike(term))
+    return AsDomain.query.join(Cds).join(Region).join(DnaSequence).filter(DnaSequence.accession.ilike(term))
 
 
 @register_handler(DOMAIN_QUERIES)
 def query_type(term):
     '''Generate asDomain query by BGC type'''
-    return AsDomain.query.join(Gene) \
-                   .join(t_cds_cluster_map, Cds.cds_id == t_cds_cluster_map.c.cds_id) \
-                   .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
-                   .join(t_rel_clusters_types).join(BgcType) \
+    return AsDomain.query.join(Cds) \
+                   .join(Region) \
+                   .join(t_rel_regions_types).join(BgcType) \
                    .filter(BgcType.term.ilike(term))
 
 
 @register_handler(DOMAIN_QUERIES)
 def query_monomer(term):
     '''Generate asDomain query by monomer'''
-    return AsDomain.query.join(RelAsDomainsMonomer).join(Monomer) \
-                   .filter(Monomer.name.ilike(term))
+    return AsDomain.query.join(Module).join(RelModulesMonomer).join(Monomer).filter(Monomer.name.ilike(term))
 
 
 @register_handler(DOMAIN_QUERIES)
 def query_profile(term):
     '''Generate asDomain query by BGC profile hit'''
-    return AsDomain.query.join(Gene).join(ProfileHit).join(Profile) \
+    return AsDomain.query.join(Cds).join(ProfileHit).join(Profile) \
                    .filter(Profile.name.ilike(term))
 
 
@@ -154,9 +151,7 @@ def query_asdomain(term):
 
 def domain_by_x_clusterblast(term, algorithm):
     '''Generic search for domain by XClusterBlast and hit id'''
-    return AsDomain.query.join(Gene) \
-                   .join(t_cds_cluster_map, Cds.cds_id == t_cds_cluster_map.c.cds_id) \
-                   .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
+    return AsDomain.query.join(Cds).join(Region) \
                    .join(ClusterblastHit).join(ClusterblastAlgorithm) \
                    .filter(ClusterblastAlgorithm.name == algorithm) \
                    .filter(ClusterblastHit.acc.ilike(term))
@@ -187,10 +182,9 @@ def query_subcluster(term):
 @register_handler(DOMAIN_FORMATTERS)
 def format_fastaa(domains):
     '''Generate protein FASTA records for a list of domains'''
-    query = db.session.query(AsDomain.as_domain_id, AsDomain.translation, AsDomainProfile.name,
-                             Cds.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
-                             DnaSequence.acc, DnaSequence.version)
-    query = query.join(AsDomainProfile).join(Locus).join(DnaSequence).join(Cds, AsDomain.cds_id == Cds.cds_id)
+    query = db.session.query(AsDomain.as_domain_id, AsDomain.location, AsDomain.translation, AsDomainProfile.name,
+                             Cds.locus_tag, DnaSequence.accession, DnaSequence.version)
+    query = query.join(AsDomainProfile).join(Cds).join(Region).join(DnaSequence)
     query = query.filter(AsDomain.as_domain_id.in_(map(lambda x: x.as_domain_id, domains))).order_by(AsDomain.as_domain_id)
     search = ''
     if g.verbose:
@@ -198,8 +192,8 @@ def format_fastaa(domains):
     fasta_records = []
     for domain in query:
         sequence = break_lines(domain.translation)
-        record = '>{d.locus_tag}|{d.name}|{d.acc}.{d.version}|' \
-                 '{d.start_pos}-{d.end_pos}({d.strand}){search}\n' \
+        record = '>{d.locus_tag}|{d.name}|{d.accession}.{d.version}|' \
+                 '{d.location}{search}\n' \
                  '{sequence}'.format(d=domain, search=search, sequence=sequence)
         fasta_records.append(record)
 
@@ -209,21 +203,17 @@ def format_fastaa(domains):
 @register_handler(DOMAIN_FORMATTERS)
 def format_fasta(domains):
     '''Generate DNA FASTA records for a list of domains'''
-    query = db.session.query(AsDomain.as_domain_id, AsDomainProfile.name,
-                             Cds.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
-                             func.substr(DnaSequence.dna, Locus.start_pos + 1, Locus.end_pos - Locus.start_pos).label('sequence'),
-                             DnaSequence.acc, DnaSequence.version)
-    query = query.join(AsDomainProfile).join(Locus, AsDomain.locus_id == Locus.locus_id).join(DnaSequence).join(Cds, AsDomain.cds_id == Cds.cds_id)
-    query = query.filter(AsDomain.as_domain_id.in_(map(lambda x: x.as_domain_id, domains))).order_by(AsDomain.as_domain_id)
     search = ''
     if g.verbose:
         search = "|{}".format(g.search_str)
     fasta_records = []
-    for domain in query:
-        sequence = break_lines(calculate_sequence(domain.strand, domain.sequence))
-        record = '>{d.locus_tag}|{d.name}|{d.acc}.{d.version}|' \
-                 '{d.start_pos}-{d.end_pos}({d.strand}){search}\n' \
-                 '{sequence}'.format(d=domain, search=search, sequence=sequence)
+    for domain in domains:
+        record = domain.cds.region.dna_sequence
+        location = location_from_string(domain.location)
+        sequence = break_lines(calculate_sequence(location, record.dna))
+        record = '>{d.cds.locus_tag}|{d.as_domain_profile.name}|{record.accession}.{record.version}|' \
+                 '{d.location}{search}\n' \
+                 '{sequence}'.format(d=domain, search=search, sequence=sequence, record=record)
         fasta_records.append(record)
 
     return fasta_records
@@ -233,14 +223,13 @@ def format_fasta(domains):
 def format_csv(domains):
     '''Generate CSV records for a list of domains'''
     query = db.session.query(AsDomain.as_domain_id, AsDomain.translation, AsDomainProfile.name,
-                             Cds.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
-                             DnaSequence.acc, DnaSequence.version)
-    query = query.join(AsDomainProfile).join(Locus).join(DnaSequence).join(Cds, AsDomain.cds_id == Cds.cds_id)
+                             Cds.locus_tag, AsDomain.location, DnaSequence.accession, DnaSequence.version)
+    query = query.join(AsDomainProfile).join(Cds).join(Region).join(DnaSequence)
     query = query.filter(AsDomain.as_domain_id.in_(map(lambda x: x.as_domain_id, domains))).order_by(AsDomain.as_domain_id)
     csv_lines = ['#Locus tag\tDomain type\tAccession\tStart\tEnd\tStrand\tSequence']
     for domain in query:
         csv_lines.append('{d.locus_tag}\t{d.name}\t'
-                         '{d.acc}.{d.version}\t'
-                         '{d.start_pos}\t{d.end_pos}\t{d.strand}\t'
+                         '{d.accession}.{d.version}\t'
+                         '{d.location}\t'
                          '{d.translation}'.format(d=domain))
     return csv_lines
