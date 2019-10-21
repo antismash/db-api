@@ -182,19 +182,19 @@ def domain_by_x_clusterblast(term, algorithm):
                    .filter(ClusterblastHit.acc.ilike(term))
 
 
-@register_handler
+@register_handler(DOMAIN_QUERIES)
 def query_clusterblast(term):
     '''Generate asDomain query by ClusterBlast hit'''
     return domain_by_x_clusterblast(term, 'clusterblast')
 
 
-@register_handler
+@register_handler(DOMAIN_QUERIES)
 def query_knowncluster(term):
     '''Generate asDomain query by KnownClusterBlast hit'''
     return domain_by_x_clusterblast(term, 'knownclusterblast')
 
 
-@register_handler
+@register_handler(DOMAIN_QUERIES)
 def query_subcluster(term):
     '''Generate asDomain query by SubClusterBlast hit'''
     return domain_by_x_clusterblast(term, 'subclusterblast')
