@@ -34,6 +34,7 @@ from api.models import (
     Ripp,
     Smcog,
     SmcogHit,
+    Substrate,
     Taxa,
     t_rel_regions_types,
 )
@@ -235,6 +236,12 @@ def clusters_by_superkingdom(term):
 def clusters_by_monomer(term):
     '''Return a query for a bgc by monomer or monomer description search'''
     return Region.query.join(Module).join(RelModulesMonomer).join(Monomer).filter(Monomer.name.ilike(term.lower()))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_substrate(term):
+    '''Return a query for a bgc by substrate or substrate description search'''
+    return Region.query.join(Module).join(RelModulesMonomer).join(Substrate).filter(Substrate.name.ilike(term.lower()))
 
 
 @register_handler(CLUSTERS)
