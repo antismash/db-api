@@ -66,7 +66,7 @@ def clusters_to_json(clusters):
         json_cluster['species'] = cluster.dna_sequence.genome.tax.species
         json_cluster['strain'] = cluster.dna_sequence.genome.tax.strain
 
-        term = '-'.join(sorted([t.term for t in cluster.bgc_types]))
+        term = ' - '.join(sorted([t.term for t in cluster.bgc_types]))
         if len(cluster.bgc_types) == 1:
             json_cluster['description'] = cluster.bgc_types[0].description
             json_cluster['term'] = term
@@ -122,7 +122,7 @@ def clusters_to_fasta(clusters):
     for cluster in query:
         location = location_from_string(cluster.Region.location)
         seq = break_lines(cluster.Region.dna_sequence.dna[location.start+1:location.end])
-        compiled_type = '-'.join(sorted([t.term for t in cluster.Region.bgc_types], key=str.casefold))
+        compiled_type = ' - '.join(sorted([t.term for t in cluster.Region.bgc_types], key=str.casefold))
         fasta = '>{c.accession}.{c.version}|{location.start}-{location.end}|' \
                 '{compiled_type}|' \
                 '{c.genus} {c.species} {c.strain}{search}\n{seq}' \
