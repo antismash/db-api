@@ -3,7 +3,6 @@
 from flask import g
 
 from sqlalchemy import (
-    func,
     or_,
     sql,
 )
@@ -12,29 +11,27 @@ from .helpers import (
     calculate_sequence,
     register_handler,
 )
+from api.location import location_from_string
 
 from api.models import (
     db,
     AsDomain,
     AsDomainProfile,
     BgcType,
-    BiosyntheticGeneCluster as Bgc,
     ClusterblastAlgorithm,
     ClusterblastHit,
-    Compound,
     DnaSequence,
     Cds,
     Genome,
-    Locus,
     Monomer,
     Profile,
     ProfileHit,
+    Region,
+    Ripp,
     Taxa,
-    RelAsDomainsMonomer,
     Smcog,
     SmcogHit,
-    t_cds_cluster_map,
-    t_rel_clusters_types,
+    t_rel_regions_types,
 )
 
 GENE_QUERIES = {}
@@ -63,7 +60,7 @@ def gene_query_from_term(term):
 
 def query_taxon_generic():
     '''Generate Gene query by taxonomy'''
-    return Cds.query.join(Locus).join(DnaSequence).join(Genome).join(Taxa)
+    return Cds.query.join(Region).join(DnaSequence).join(Genome).join(Taxa)
 
 
 @register_handler(GENE_QUERIES)
@@ -123,15 +120,14 @@ def query_superkingdom(term):
 @register_handler(GENE_QUERIES)
 def query_acc(term):
     '''Generate Gene query by NCBI accession number'''
-    return Cds.query.join(Locus).join(DnaSequence).filter(DnaSequence.acc.ilike(term))
+    return Cds.query.join(Region).join(DnaSequence).filter(DnaSequence.accession.ilike(term))
 
 
 @register_handler(GENE_QUERIES)
 def query_type(term):
     '''Generate Gene query by cluster type'''
-    return Cds.query.join(t_cds_cluster_map, Cds.cds_id == t_cds_cluster_map.c.cds_id) \
-                    .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
-                    .join(t_rel_clusters_types).join(BgcType) \
+    return Cds.query.join(Region) \
+                    .join(t_rel_regions_types).join(BgcType) \
                     .filter(or_(BgcType.term.ilike('%{}%'.format(term)), BgcType.description.ilike('%{}%'.format(term))))
 
 
@@ -145,15 +141,13 @@ def query_monomer(term):
 @register_handler(GENE_QUERIES)
 def query_compoundseq(term):
     '''Generate Gene query by compound sequence'''
-    return Cds.query.join(Compound, Cds.locus_tag == Compound.locus_tag) \
-                    .filter(Compound.peptide_sequence.ilike(term))
+    return Cds.query.join(Ripp).filter(Ripp.peptide_sequence.ilike(term))
 
 
 @register_handler(GENE_QUERIES)
 def query_compoundclass(term):
     '''Generate Gene query by compound class'''
-    return Cds.query.join(Compound, Cds.locus_tag == Compound.locus_tag) \
-                    .filter(Compound._class.ilike(term))
+    return Cds.query.join(Ripp).filter(Ripp.subclass.ilike("%{}%".format(term)))
 
 
 @register_handler(GENE_QUERIES)
@@ -180,8 +174,7 @@ def query_asdomain(term):
 
 def gene_by_x_clusterblast(term, algorithm):
     '''Generic search for gene by XClusterBlast match'''
-    return Cds.query.join(t_cds_cluster_map, Cds.cds_id == t_cds_cluster_map.c.cds_id) \
-                    .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
+    return Cds.query.join(Region) \
                     .join(ClusterblastHit).join(ClusterblastAlgorithm) \
                     .filter(ClusterblastAlgorithm.name == algorithm) \
                     .filter(ClusterblastHit.acc.ilike(term))
@@ -212,41 +205,33 @@ def query_subcluster(term):
 @register_handler(GENE_FORMATTERS)
 def format_fasta(genes):
     '''Generate DNA FASTA records for a list of genes'''
-    query = db.session.query(Cds.cds_id, Cds.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
-                             DnaSequence.acc, DnaSequence.version,
-                             func.substr(DnaSequence.dna, Locus.start_pos + 1, Locus.end_pos - Locus.start_pos).label('sequence'))
-    query = query.join(Locus).join(DnaSequence)
-    query = query.filter(Cds.cds_id.in_(map(lambda x: x.cds_id, genes))).order_by(Cds.cds_id)
     search = ''
     if g.verbose:
         search = "|{}".format(g.search_str)
     fasta_records = []
-    for gene in query:
-        sequence = break_lines(calculate_sequence(gene.strand, gene.sequence))
-        record = '>{g.locus_tag}|{g.acc}.{g.version}|' \
-                 '{g.start_pos}-{g.end_pos}({g.strand}){search}\n' \
-                 '{sequence}'.format(g=gene, search=search, sequence=sequence)
-        fasta_records.append(record)
-
+    for gene in genes:
+        location = location_from_string(gene.location)
+        record = gene.region.dna_sequence
+        sequence = break_lines(calculate_sequence(location, record.dna))
+        assert sequence
+        result = ('>{gene.locus_tag}|{record.accession}.{record.version}|{gene.location}{search}\n'
+                  '{sequence}').format(gene=gene, search=search, sequence=sequence, record=record)
+        fasta_records.append(result)
     return fasta_records
 
 
 @register_handler(GENE_FORMATTERS)
 def format_fastaa(genes):
     '''Generate protein FASTA records for a list of genes'''
-    query = db.session.query(Cds.cds_id, Cds.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand,
-                             DnaSequence.acc, DnaSequence.version, Cds.translation)
-    query = query.join(Locus).join(DnaSequence)
-    query = query.filter(Cds.cds_id.in_(map(lambda x: x.cds_id, genes))).order_by(Cds.cds_id)
     search = ''
     if g.verbose:
         search = "|{}".format(g.search_str)
     fasta_records = []
-    for gene in query:
+    for gene in genes:
+        record = gene.region.dna_sequence
         sequence = break_lines(gene.translation)
-        record = '>{g.locus_tag}|{g.acc}.{g.version}|' \
-                 '{g.start_pos}-{g.end_pos}({g.strand}){search}\n' \
-                 '{sequence}'.format(g=gene, search=search, sequence=sequence)
+        record = ('>{g.locus_tag}|{record.accession}.{record.version}|{g.location}){search}\n'
+                  '{sequence}').format(g=gene, search=search, sequence=sequence, record=record)
         fasta_records.append(record)
 
     return fasta_records
@@ -255,11 +240,9 @@ def format_fastaa(genes):
 @register_handler(GENE_FORMATTERS)
 def format_csv(genes):
     '''Generate CSV records for a list of genes'''
-    query = db.session.query(Cds.locus_tag, Locus.start_pos, Locus.end_pos, Locus.strand, DnaSequence.acc, DnaSequence.version)
-    query = query.join(Locus).join(DnaSequence)
-    query = query.filter(Cds.cds_id.in_(map(lambda x: x.cds_id, genes))).order_by(Cds.cds_id)
     csv_lines = ['#Locus tag\tAccession\tStart\tEnd\tStrand']
-    for gene in query:
-        csv_lines.append('{g.locus_tag}\t{g.acc}.{g.version}\t'
-                         '{g.start_pos}\t{g.end_pos}\t{g.strand}'.format(g=gene))
+    for gene in genes:
+        record = gene.region.dna_sequence
+        csv_lines.append('{g.locus_tag}\t{record.accession}.{record.version}\t'
+                         '{g.location}'.format(g=gene, record=record))
     return csv_lines
