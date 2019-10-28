@@ -52,16 +52,23 @@ def sanitise_string(search_string):
     return ''.join(cleaned)
 
 
-def calculate_sequence(strand, sequence):
+def calculate_sequence(location, sequence):
     '''Calculate strand-aware sequence'''
-    if strand == '-':
-        sequence = reverse_completement(sequence)
-    return sequence
+    result = []
+    for part in location.parts:
+        result.append(sequence[part.start:part.end])
+    result = "".join(result)
+    if location.strand == -1:
+        result = reverse_complement(result)
+    else:
+        assert location.strand == 1
+    assert result
+    return result
 
 
 TRANS_TABLE = str.maketrans('ATGCatgc', 'TACGtacg')
 
 
-def reverse_completement(sequence):
+def reverse_complement(sequence):
     '''return the reverse complement of a sequence'''
     return str(sequence).translate(TRANS_TABLE)[::-1]
