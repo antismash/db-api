@@ -151,13 +151,13 @@ def get_stats_v2():
 @app.route('/api/v1.0/tree/secmet')
 def get_sec_met_tree():
     '''Get the jsTree structure for secondary metabolite clusters'''
-    ret = db.session.query(Bgc.bgc_id, Bgc.cluster_number,
-                           DnaSequence.acc,
+    ret = db.session.query(Region.region_id, Region.region_number,
+                           DnaSequence.accession,
                            BgcType.term, BgcType.description,
                            Taxa.genus, Taxa.species, Taxa.strain, Genome.assembly_id) \
-                    .join(t_rel_clusters_types).join(BgcType).join(Locus) \
-                    .join(DnaSequence).join(Genome).join(Taxa) \
-                    .order_by(BgcType.description, Taxa.genus, Taxa.species, DnaSequence.acc, Bgc.cluster_number) \
+                    .join(DnaSequence, DnaSequence.accession == Region.record_accession).join(Genome).join(Taxa) \
+                    .join(t_rel_regions_types).join(BgcType) \
+                    .order_by(BgcType.description, Taxa.genus, Taxa.species, DnaSequence.accession, Region.region_number) \
                     .all()
 
     clusters = []
@@ -169,11 +169,11 @@ def get_sec_met_tree():
         assembly_id = entry.assembly_id.split('.')[0] if entry.assembly_id else None
         name = '{} {} {}'.format(entry.genus, species, entry.strain)
         clusters.append({
-            "id": "{}_c{}_{}".format(entry.acc, entry.cluster_number, entry.term),
+            "id": "{}_c{}_{}".format(entry.accession, entry.region_number, entry.term),
             "parent": entry.term,
-            "text": "{} {} Cluster {}".format(name, entry.acc, entry.cluster_number),
+            "text": "{} {} Region {}".format(name, entry.accession, entry.region_number),
             "assembly_id": assembly_id,
-            "cluster_number": entry.cluster_number,
+            "region_number": entry.region_number,
             "type": "cluster",
         })
 
