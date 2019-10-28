@@ -12,7 +12,7 @@ def test_available_term_by_category_taxonomy():
         (('class', 'act'), [{'val': 'Actinobacteria', 'desc': None}]),
         (('order', 'streptom'), [{'val': 'Streptomycetales', 'desc': None}]),
         (('family', 'streptom'), [{'val': 'Streptomycetaceae', 'desc': None}]),
-        (('genus', 'streptom'), [{'val': 'Streptomyces', 'desc': None}]),
+        (('genus', 'streptom'), [{'val': 'Streptomonospora', 'desc': None}, {'val': 'Streptomyces', 'desc': None}]),
         (('species', 'coeli'), [{'val': 'coelicolor', 'desc': None}]),
         (('strain', 'a3('), [{'val': 'A3(2)', 'desc': None}]),
     ]
@@ -25,14 +25,19 @@ def test_available_term_by_category():
     tests = [
         (('acc', 'nc_003888'), [{'val': 'NC_003888', 'desc': None}]),
         (('compoundseq', 'a'), [{'val': 'ASFGEGTFTSPSSYAIGTRCPICC', 'desc': None}]),
-        (('compoundclass', 'c'), [{'val': 'Class-I', 'desc': None}, {'val': 'Class-III', 'desc': None}]),
-        (('monomer', 'ala'), [{'val': 'ala', 'desc': 'Alanine'}, {'desc': 'Alanine-thiazole', 'val': 'ala-thz'}]),
-        (('type', 'lanti'), [{'val': 'lantipeptide', 'desc': 'Lanthipeptide'}]),
+        (('compoundclass', 'c'), [{'val': 'Class %s' % c, 'desc': None} for c in ['I', 'II', 'III']]),
+        (('monomer', 'ala'), [{'val': 'd-ala', 'desc': 'modified Alanine'}]),
+        (('substrate', 'ala'), [{'val': 'ala', 'desc': 'Alanine'}, {'val': 'ala-thz', 'desc': 'Alanine-thiazole'}]),
+        (('type', 'lanthi'), [{'val': 'lanthipeptide', 'desc': 'Lanthipeptide'}]),
         (('profile', 'fabf'), [{'val': 'FabF', 'desc': 'FabF'}]),
         (('asdomain', 'PKS_DH2'), [{'val': 'PKS_DH2', 'desc': 'Dehydrogenase-2 domain'}]),
-        (('clusterblast', 'AB469822'), [{'val': 'AB469822_c1', 'desc': 'Streptomyces griseoviridis DNA, includes prodigiosin biosynthe...'}]),
-        (('knowncluster', 'kendo'), [{'val': 'BGC0001066_c1', 'desc': 'Kendomycin'}]),
-        (('subcluster', 'bal'), [{'val': 'Y16952_2_c2', 'desc': 'balhimycin hydroxyphenylglycine'}]),
+        (('clusterblast', 'NZ_JOCE01000008'), [{'val': 'NZ_JOCE01000008_c8', 'desc': 'Streptomyces violaceoruber strain NRRL S-12 contig8.1, whole genome shotgun sequence'}]),
+        (('knowncluster', 'kendo'), [{'val': 'BGC0001066', 'desc': 'Kendomycin'}]),
+        (('subcluster', 'bal'), [
+                                    {'val': 'Y16952_c1', 'desc': 'balhimycin dihydroxyphenylglycine'},
+                                    {'val': 'Y16952_c2', 'desc': 'balhimycin hydroxyphenylglycine'},
+                                    {'val': 'Y16952_c4', 'desc': 'balhimycin glucose / vancosamine'},
+                                ]),
     ]
     for args, expected in tests:
         assert available.available_term_by_category(*args) == expected, args

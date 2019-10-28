@@ -6,7 +6,7 @@ from api.search import clusters
 
 def test_guess_cluster_category():
     tests = [
-        ('lantipeptide', 'type'),
+        ('lanthipeptide', 'type'),
         ('NC_003888', 'acc'),
         ('Streptomyces', 'genus'),
         ('coelicolor', 'species'),
@@ -19,7 +19,7 @@ def test_guess_cluster_category():
 
 
 SCO_CLUSTER_COUNT = 29
-STREPTO_CLUSTER_COUNT = 120
+STREPTO_CLUSTER_COUNT = 122
 
 
 def test_clusters_by_taxid():
@@ -59,7 +59,7 @@ def test_clusters_by_superkingdom():
 
 
 def test_clusters_by_monomer():
-    assert clusters.clusters_by_monomer('ala').count() == 2
+    assert clusters.clusters_by_substrate('ala').count() == 2
 
 
 def test_clusters_by_acc():
@@ -71,7 +71,7 @@ def test_clusters_by_compoundseq():
 
 
 def test_clusters_by_compoundclass():
-    assert clusters.clusters_by_compoundclass('Class-I').count() == 3
+    assert clusters.clusters_by_compoundclass('Class I').count() == 4
 
 
 def test_clusters_by_profile():
@@ -79,16 +79,16 @@ def test_clusters_by_profile():
 
 
 def test_clusters_by_asdomain():
-    assert clusters.clusters_by_asdomain('ACP').count() == 16
+    assert clusters.clusters_by_asdomain('ACP').count() == 104
 
 
 def test_clusters_by_clusterblast():
-    assert clusters.clusters_by_clusterblast('AL939104_c4').count() == 1
+    assert clusters.clusters_by_clusterblast('NC_003888_c3').count() == 1
 
 
 def test_clusters_by_knowncluster():
-    assert clusters.clusters_by_knowncluster('BGC0000660_c1').count() == 1
+    assert clusters.clusters_by_knowncluster('BGC0000660').count() == 1
 
 
 def test_clusters_by_subcluster():
-    assert clusters.clusters_by_subcluster('AF386507_1_c1').count() == 1
+    assert clusters.clusters_by_subcluster('AF386507').count() == 3  # 1 if GCF_000590515.1 was minimal
