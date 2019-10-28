@@ -28,6 +28,9 @@ from api.models import (
     Ripp,
     Smcog,
     Substrate,
+    T2pksProductClass,
+    T2pksProfile,
+    T2pksStarter,
     Taxa,
 )
 
@@ -257,3 +260,30 @@ def available_resfam(term):
                          Resfam.description.ilike("%" + search))
                      ) \
              .order_by(Resfam.name)
+
+
+@register_handler(AVAILABLE)
+def available_t2pksprofile(term):
+    """Generate query for available T2PKS profile names/descriptions"""
+    search = term + "%"
+    return db.session.query(T2pksProfile.name, T2pksProfile.description) \
+             .filter(or_(T2pksProfile.name.ilike(search), T2pksProfile.description.ilike("%" + search))) \
+             .order_by(T2pksProfile.name)
+
+
+@register_handler(AVAILABLE)
+def available_t2pksproductclass(term):
+    """Generate query for available T2PKS product classes"""
+    search = "%{}%".format(term)
+    return db.session.query(distinct(T2pksProductClass.product_class), null()) \
+             .filter(T2pksProductClass.product_class.ilike(search)) \
+             .order_by(T2pksProductClass.product_class)
+
+
+@register_handler(AVAILABLE)
+def available_t2pksstarter(term):
+    """Generate query for available T2PKS starter units"""
+    search = "%{}%".format(term)
+    return db.session.query(distinct(T2pksStarter.name), null()) \
+             .filter(T2pksStarter.name.ilike(search)) \
+             .order_by(T2pksStarter.name)

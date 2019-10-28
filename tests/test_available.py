@@ -41,6 +41,12 @@ def test_available_term_by_category():
         (('resfam', 'RF0001'), [{'desc': '16S ribosomal RNA methyltransferase [ARO:3000857]', 'val': '16S_rRNA_methyltrans'}]),
         (('resfam', '6S ribosomal RNA meth'), [{'desc': '16S ribosomal RNA methyltransferase [ARO:3000857]', 'val': '16S_rRNA_methyltrans'}]),
         (('resfam', '16S_rRNA_methyl'), [{'desc': '16S ribosomal RNA methyltransferase [ARO:3000857]', 'val': '16S_rRNA_methyltrans'}]),
+        (('t2pksprofile', 'AT'), [
+                                    {'val': 'AT', 'desc': 'acyltransferase'},
+                                    {'val': 'KSIII', 'desc': 'non-acetate starter unit ketosynthase III'},
+                                 ]),
+        (('t2pksproductclass', 'iso'), [{'val': 'benzoisochromanequinone', 'desc': None}]),
+        (('t2pksstarter', 'cetyl'), [{'val': 'acetyl-CoA', 'desc': None}]),
     ]
     for args, expected in tests:
         assert available.available_term_by_category(*args) == expected, args

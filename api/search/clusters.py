@@ -35,6 +35,11 @@ from api.models import (
     Smcog,
     SmcogHit,
     Substrate,
+    T2pk,
+    T2pksCdsDomain,
+    T2pksProductClass,
+    T2pksStarter,
+    T2pksStarterElongation,
     Taxa,
     t_rel_regions_types,
 )
@@ -332,3 +337,24 @@ def clusters_by_resfam(term):
     '''Return a query for a region by Resfam hit'''
     search = "%{}%".format(term)
     return Region.query.join(Cds).join(ResfamDomain).join(Resfam).filter(or_(Resfam.accession.ilike(search), Resfam.name.ilike(search), Resfam.description.ilike(search)))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_t2pksclass(term):
+    '''Return a query for a region with a t2pks of specific product class'''
+    search = "%{}%".format(term)
+    return Region.query.join(Protocluster).join(T2pk).join(T2pksProductClass).filter(T2pksProductClass.product_class.ilike(search))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_t2pksstarter(term):
+    '''Return a query for a region with a t2pks of specific starter'''
+    search = "%{}%".format(term)
+    return Region.query.join(Protocluster).join(T2pk).join(T2pksStarter).filter(T2pksStarter.name.ilike(search))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_t2pkselongation(term):
+    '''Return a query for a region with a t2pks of specific elongation'''
+    search = "%d" % term
+    return Region.query.join(Protocluster).join(T2pk).join(T2pksStarter).join(T2pksStarterElongation).filter(T2pksStarterElongation.elongation == search)
