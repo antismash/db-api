@@ -20,13 +20,14 @@ from api.models import (
     BgcType,
     ClusterblastAlgorithm,
     ClusterblastHit,
-    Compound,
     DnaSequence,
     Genome,
     Monomer,
     Profile,
-    Taxa,
+    Ripp,
     Smcog,
+    Substrate,
+    Taxa,
 )
 
 AVAILABLE = {}
@@ -141,9 +142,9 @@ def available_strain(term):
 @register_handler(AVAILABLE)
 def available_acc(term):
     '''Generate query for available accession'''
-    return db.session.query(distinct(DnaSequence.acc), null()) \
-             .filter(DnaSequence.acc.ilike('{}%'.format(term))) \
-             .order_by(DnaSequence.acc)
+    return db.session.query(distinct(DnaSequence.accession), null()) \
+             .filter(DnaSequence.accession.ilike('{}%'.format(term))) \
+             .order_by(DnaSequence.accession)
 
 
 @register_handler(AVAILABLE)
@@ -157,24 +158,32 @@ def available_assembly(term):
 @register_handler(AVAILABLE)
 def available_compoundseq(term):
     '''Generate query for available compound by peptide sequence'''
-    return db.session.query(distinct(Compound.peptide_sequence), null()) \
-             .filter(Compound.peptide_sequence.ilike('{}%'.format(term))) \
-             .order_by(Compound.peptide_sequence)
+    return db.session.query(distinct(Ripp.peptide_sequence), null()) \
+             .filter(Ripp.peptide_sequence.ilike('{}%'.format(term))) \
+             .order_by(Ripp.peptide_sequence)
 
 
 @register_handler(AVAILABLE)
 def available_compoundclass(term):
     '''Generate query for available compound by class'''
-    return db.session.query(distinct(Compound._class), null()) \
-             .filter(Compound._class.ilike('{}%'.format(term))) \
-             .order_by(Compound._class)
+    return db.session.query(distinct(Ripp.subclass), null()) \
+             .filter(Ripp.subclass.ilike('{}%'.format(term))) \
+             .order_by(Ripp.subclass)
+
+
+@register_handler(AVAILABLE)
+def available_substrate(term):
+    '''Generate query for available substrates'''
+    return db.session.query(distinct(Substrate.name), Substrate.description) \
+             .filter(or_(Substrate.name.ilike('{}%'.format(term)), Substrate.description.ilike('{}%'.format(term)))) \
+             .order_by(Substrate.name)
 
 
 @register_handler(AVAILABLE)
 def available_monomer(term):
-    '''Generate query for available monomer'''
-    return db.session.query(distinct(Monomer.name), Monomer.description) \
-             .filter(or_(Monomer.name.ilike('{}%'.format(term)), Monomer.description.ilike('{}%'.format(term)))) \
+    '''Generate query for available monomers'''
+    return db.session.query(distinct(Monomer.name), Monomer.description).join(Substrate) \
+             .filter(or_(Monomer.name.ilike('{}%'.format(term)), Substrate.description.ilike('{}%'.format(term)))) \
              .order_by(Monomer.name)
 
 
