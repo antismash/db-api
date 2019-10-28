@@ -2,7 +2,6 @@
 
 from api.search_parser import QueryTerm
 from api.search import clusters
-from api.models import BiosyntheticGeneCluster as Bgc
 
 
 def test_guess_cluster_category():

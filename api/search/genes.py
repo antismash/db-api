@@ -130,45 +130,45 @@ def query_acc(term):
 def query_type(term):
     '''Generate Gene query by cluster type'''
     return Cds.query.join(t_cds_cluster_map, Cds.cds_id == t_cds_cluster_map.c.cds_id) \
-                     .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
-                     .join(t_rel_clusters_types).join(BgcType) \
-                     .filter(or_(BgcType.term.ilike('%{}%'.format(term)), BgcType.description.ilike('%{}%'.format(term))))
+                    .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                    .join(t_rel_clusters_types).join(BgcType) \
+                    .filter(or_(BgcType.term.ilike('%{}%'.format(term)), BgcType.description.ilike('%{}%'.format(term))))
 
 
 @register_handler(GENE_QUERIES)
 def query_monomer(term):
     '''Generate Gene query by monomer'''
     return Cds.query.join(AsDomain).join(RelAsDomainsMonomer).join(Monomer) \
-                     .filter(Monomer.name.ilike(term))
+                    .filter(Monomer.name.ilike(term))
 
 
 @register_handler(GENE_QUERIES)
 def query_compoundseq(term):
     '''Generate Gene query by compound sequence'''
     return Cds.query.join(Compound, Cds.locus_tag == Compound.locus_tag) \
-                     .filter(Compound.peptide_sequence.ilike(term))
+                    .filter(Compound.peptide_sequence.ilike(term))
 
 
 @register_handler(GENE_QUERIES)
 def query_compoundclass(term):
     '''Generate Gene query by compound class'''
     return Cds.query.join(Compound, Cds.locus_tag == Compound.locus_tag) \
-                     .filter(Compound._class.ilike(term))
+                    .filter(Compound._class.ilike(term))
 
 
 @register_handler(GENE_QUERIES)
 def query_profile(term):
     '''Generate Gene query by BGC profile'''
     return Cds.query.join(ProfileHit).join(Profile) \
-                     .filter(Profile.name.ilike(term))
+                    .filter(Profile.name.ilike(term))
 
 
 @register_handler(GENE_QUERIES)
 def query_smcog(term):
     '''Generate Gene query by smCoG hit'''
     return Cds.query.join(SmcogHit, Cds.cds_id == SmcogHit.cds_id) \
-                     .join(Smcog, SmcogHit.smcog_id == Smcog.smcog_id) \
-                     .filter(Smcog.name.ilike(term))
+                    .join(Smcog, SmcogHit.smcog_id == Smcog.smcog_id) \
+                    .filter(Smcog.name.ilike(term))
 
 
 @register_handler(GENE_QUERIES)
@@ -181,10 +181,10 @@ def query_asdomain(term):
 def gene_by_x_clusterblast(term, algorithm):
     '''Generic search for gene by XClusterBlast match'''
     return Cds.query.join(t_cds_cluster_map, Cds.cds_id == t_cds_cluster_map.c.cds_id) \
-                     .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
-                     .join(ClusterblastHit).join(ClusterblastAlgorithm) \
-                     .filter(ClusterblastAlgorithm.name == algorithm) \
-                     .filter(ClusterblastHit.acc.ilike(term))
+                    .join(Bgc, t_cds_cluster_map.c.bgc_id == Bgc.bgc_id) \
+                    .join(ClusterblastHit).join(ClusterblastAlgorithm) \
+                    .filter(ClusterblastAlgorithm.name == algorithm) \
+                    .filter(ClusterblastHit.acc.ilike(term))
 
 
 @register_handler(GENE_QUERIES)

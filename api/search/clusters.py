@@ -129,7 +129,6 @@ def clusters_to_fasta(clusters):
         yield fasta
 
 
-
 def cluster_query_from_term(term):
     '''Recursively generate an SQL query from the search terms'''
     if term.kind == 'expression':

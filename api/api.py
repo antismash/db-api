@@ -21,7 +21,6 @@ from sqlalchemy import (
     Float,
     func,
 )
-import string
 from . import app, taxtree
 from .search import (
     core_search,
@@ -59,6 +58,7 @@ FASTA_LIMITS = {
 }
 
 SAFE_IDENTIFIER_PATTERN = re.compile('[^A-Za-z0-9_.]+', re.UNICODE)
+
 
 @app.route('/api/v1.0/version')
 def get_version():
@@ -140,7 +140,7 @@ def get_stats_v2():
                            func.count(distinct(Genome.assembly_id)).label('seq_count'),
                            (cast(func.count(distinct(Bgc.bgc_id)), Float) / func.count(distinct(Genome.assembly_id))).label('clusters_per_seq')) \
                     .join(Genome).join(DnaSequence).join(Locus).join(Bgc) \
-                    .filter(Genome.assembly_id != None).filter(Bgc.minimal.is_(False)) \
+                    .filter(Genome.assembly_id is not None).filter(Bgc.minimal.is_(False)) \
                     .group_by(Taxa.tax_id, Genome.assembly_id).order_by(sql_desc('clusters_per_seq')).limit(1).first()
     stats['top_secmet_taxon'] = ret.tax_id
     stats['top_secmet_species'] = '{r.genus} {r.species} {r.strain}'.format(r=ret)
@@ -281,7 +281,6 @@ def search():
     else:
         end = total
 
-
     result = {
         'total': total,
         'clusters': clusters[offset:end],
@@ -377,7 +376,6 @@ def export_get(search_type, return_type):
     if query.return_type == 'json':
         found_bgcs = [json.dumps(found_bgcs)]
 
-
     def generate():
         for line in found_bgcs:
             yield line + '\n'
@@ -421,7 +419,6 @@ def _canonical_assembly_id(identifier):
     if res:
         return res.assembly_id.split('.')[0], False
 
-
     res = db.session.query(Genome.assembly_id) \
                     .join(DnaSequence) \
                     .filter(DnaSequence.acc.ilike("{}%".format(safe_id))) \
@@ -460,6 +457,7 @@ def _get_base_url(identifier):
         abort(404)
 
     return "/output/{r.assembly_id}/{r.base_filename}".format(r=ret)
+
 
 @app.route('/api/v1.0/download/genbank/<identifier>')
 def download_genbank(identifier):

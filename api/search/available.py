@@ -3,15 +3,11 @@
 This is used for the web UI for typeahead opetions
 '''
 
-import sqlalchemy
-
 from sqlalchemy import (
     distinct,
     null,
     or_,
 )
-
-from sqlalchemy.sql.expression import cast
 
 from .helpers import (
     register_handler,
