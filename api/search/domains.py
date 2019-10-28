@@ -20,7 +20,6 @@ from api.models import (
     BiosyntheticGeneCluster as Bgc,
     ClusterblastAlgorithm,
     ClusterblastHit,
-    Compound,
     Cds,
     DnaSequence,
     Genome,
@@ -32,7 +31,6 @@ from api.models import (
     RelAsDomainsMonomer,
     t_cds_cluster_map,
     t_rel_clusters_types,
-    RelCompoundsMonomer,
 )
 
 DOMAIN_QUERIES = {}
@@ -139,24 +137,6 @@ def query_monomer(term):
     '''Generate asDomain query by monomer'''
     return AsDomain.query.join(RelAsDomainsMonomer).join(Monomer) \
                    .filter(Monomer.name.ilike(term))
-
-
-def query_compound():
-    '''Generate AsDomain query with appropriate joins to reach Compound'''
-    return AsDomain.query.join(RelAsDomainsMonomer).join(Monomer) \
-                   .join(RelCompoundsMonomer).join(Compound)
-
-
-@register_handler(DOMAIN_QUERIES)
-def query_compoundseq(term):
-    '''Generate asDomain query by compound sequence'''
-    return query_compound().filter(Compound.peptide_sequence == term)
-
-
-@register_handler(DOMAIN_QUERIES)
-def query_compoundclass(term):
-    '''Generate asDomain query by compound class'''
-    return query_compound().filter(Compound._class.ilike(term))
 
 
 @register_handler(DOMAIN_QUERIES)
