@@ -28,6 +28,7 @@ from .search import (
     json_stats,
     available_term_by_category,
 )
+from .search.helpers import UnknownQueryError
 from .search_parser import Query
 from .models import (
     db,
@@ -269,7 +270,10 @@ def search():
     except ValueError:
         paginate = 50
 
-    clusters = format_results(query, core_search(query))
+    try:
+        clusters = format_results(query, core_search(query))
+    except UnknownQueryError:
+        abort(400)
     stats = json_stats(clusters)
 
     total = len(clusters)
@@ -317,7 +321,10 @@ def export():
     if return_type not in ('json', 'csv', 'fasta', 'fastaa'):
         abort(400)
 
-    search_results = core_search(query)
+    try:
+        search_results = core_search(query)
+    except UnknownQueryError:
+        abort(400)
     g.verbose = query.verbose
     if query.verbose:
         g.search_str = str(query)
@@ -367,7 +374,10 @@ def export_get(search_type, return_type):
     query = Query.from_string(search_string, search_type=search_type, return_type=return_type)
 
     g.verbose = False
-    search_results = core_search(query)
+    try:
+        search_results = core_search(query)
+    except UnknownQueryError:
+        abort(400)
     if len(search_results) > 100 and search_type == 'cluster' and return_type == 'fasta':
         raise TooManyResults('More than 100 search results for FASTA cluster download, please specify a smaller query.')
     found_bgcs = format_results(query, search_results)

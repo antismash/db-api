@@ -30,8 +30,11 @@ def test_cluster_query_from_term_expression():
     assert ret.count() == 0
 
     term.category = 'bogus'
-    ret = search.cluster_query_from_term(term)
-    assert ret.count() == 0
+    try:
+        search.cluster_query_from_term(term)
+        assert False, "missing exception"
+    except search.helpers.UnknownQueryError:
+        pass
 
 
 def test_cluster_query_from_term_operation():
@@ -50,10 +53,9 @@ def test_cluster_query_from_term_operation():
     ret = search.cluster_query_from_term(term)
     assert ret.count() == 0
 
-    left.category = 'bogus'
+    left.term = 'bogus'
     term.operation = 'and'
-    ret = search.cluster_query_from_term(term)
-    assert ret.count() == 0
+    assert search.cluster_query_from_term(term).count() == 0
 
     term.operation = 'or'
     ret = search.cluster_query_from_term(term)
@@ -63,11 +65,10 @@ def test_cluster_query_from_term_operation():
     ret = search.cluster_query_from_term(term)
     assert ret.count() == 0
 
-    left.category = 'type'
-    right.category = 'bogus'
+    left.term = 'lanthipeptide'
+    right.term = 'bogus'
     term.operation = 'and'
-    ret = search.cluster_query_from_term(term)
-    assert ret.count() == 0
+    assert search.cluster_query_from_term(term).count() == 0
 
     term.operation = 'or'
     ret = search.cluster_query_from_term(term)
@@ -81,5 +82,8 @@ def test_cluster_query_from_term_operation():
 def test_cluster_query_from_term_invalid():
     term = QueryTerm('expression', category='type', term='lanthipeptide')
     term.kind = 'bogus'
-    ret = search.cluster_query_from_term(term)
-    assert ret.count() == 0
+    try:
+        search.cluster_query_from_term(term)
+        assert False, "missing exception"
+    except search.helpers.UnknownQueryError:
+        pass

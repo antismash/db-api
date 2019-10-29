@@ -10,6 +10,7 @@ from .helpers import (
     break_lines,
     calculate_sequence,
     register_handler,
+    UnknownQueryError,
 )
 from api.location import location_from_string
 
@@ -46,7 +47,7 @@ def gene_query_from_term(term):
         if term.category in GENE_QUERIES:
             return GENE_QUERIES[term.category](term.term)
         else:
-            return Cds.query.filter(sql.false())
+            raise UnknownQueryError()
     elif term.kind == 'operation':
         left_query = gene_query_from_term(term.left)
         right_query = gene_query_from_term(term.right)
@@ -57,7 +58,7 @@ def gene_query_from_term(term):
         elif term.operation == 'and':
             return left_query.intersect(right_query)
 
-    return Cds.query.filter(sql.false())
+    raise UnknownQueryError()
 
 
 def query_taxon_generic():

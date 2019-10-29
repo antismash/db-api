@@ -9,6 +9,7 @@ from .helpers import (
     break_lines,
     calculate_sequence,
     register_handler,
+    UnknownQueryError,
 )
 from api.location import location_from_string
 
@@ -42,7 +43,7 @@ def domain_query_from_term(term):
         if term.category in DOMAIN_QUERIES:
             return DOMAIN_QUERIES[term.category](term.term)
         else:
-            return AsDomain.query.filter(sql.false())
+            raise UnknownQueryError()
     elif term.kind == 'operation':
         left_query = domain_query_from_term(term.left)
         right_query = domain_query_from_term(term.right)
@@ -53,7 +54,7 @@ def domain_query_from_term(term):
         elif term.operation == 'and':
             return left_query.intersect(right_query)
 
-    return AsDomain.query.filter(sql.false())
+    raise UnknownQueryError()
 
 
 def query_taxon_generic():

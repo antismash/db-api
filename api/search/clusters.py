@@ -10,6 +10,7 @@ from sqlalchemy.orm import joinedload
 from .helpers import (
     break_lines,
     register_handler,
+    UnknownQueryError,
 )
 from api.location import location_from_string
 from api.models import (
@@ -147,7 +148,7 @@ def cluster_query_from_term(term):
         if term.category in CLUSTERS:
             return CLUSTERS[term.category](term.term)
         else:
-            return Region.query.filter(sql.false())
+            raise UnknownQueryError()
     elif term.kind == 'operation':
         left_query = cluster_query_from_term(term.left)
         right_query = cluster_query_from_term(term.right)
@@ -158,7 +159,7 @@ def cluster_query_from_term(term):
         elif term.operation == 'and':
             return left_query.intersect(right_query)
 
-    return Region.query.filter(sql.false())
+    raise UnknownQueryError()
 
 
 def guess_cluster_category(term):
