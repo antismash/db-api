@@ -21,6 +21,7 @@ from api.models import (
     ClusterblastAlgorithm,
     ClusterblastHit,
     DnaSequence,
+    GeneOntology,
     Genome,
     Monomer,
     Profile,
@@ -287,3 +288,14 @@ def available_t2pksstarter(term):
     return db.session.query(distinct(T2pksStarter.name), null()) \
              .filter(T2pksStarter.name.ilike(search)) \
              .order_by(T2pksStarter.name)
+
+
+@register_handler(AVAILABLE)
+def available_goterm(term):
+    """Generate query for available GO terms."""
+    search = term + "%"
+    return db.session.query(GeneOntology.identifier, GeneOntology.description) \
+             .filter(or_(GeneOntology.identifier.ilike(search),
+                         GeneOntology.description.ilike("%" + search))
+                     ) \
+             .order_by(GeneOntology.identifier)
