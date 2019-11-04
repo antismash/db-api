@@ -49,6 +49,10 @@ def test_available_term_by_category():
         (('t2pksstarter', 'cetyl'), [{'val': 'acetyl-CoA', 'desc': None}]),
         (('goterm', 'saccharide catabolic'), [{'val': 'GO:0000272', 'desc': 'polysaccharide catabolic process'}]),
         (('goterm', 'GO:0000340'), [{'val': 'GO:0000340', 'desc': 'RNA 7-methylguanosine cap binding'}]),
+        (('smcog', "4'-"), [
+                                {'val': 'SMCOG1012', 'desc': "4'-phosphopantetheinyl transferase"},
+                                {'val': 'SMCOG1060', 'desc': "4'-phosphopantetheinyl transferase"}
+                           ]),
     ]
     for args, expected in tests:
         assert available.available_term_by_category(*args) == expected, args
