@@ -22,34 +22,15 @@ def break_lines(string, width=80):
     return '\n'.join(parts)
 
 
-WHITELIST = set()
-for item in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-    WHITELIST.add(item)
-    WHITELIST.add(item.lower())
-for item in '0123456789':
-    WHITELIST.add(item)
-WHITELIST.add('_')
-WHITELIST.add('-')
-WHITELIST.add('(')
-WHITELIST.add(')')
-WHITELIST.add(' ')
-
-
 def sanitise_string(search_string):
-    '''Remove all non-whitelisted characters from the search string
-
-    >>> sanitise_string('fOo')
-    'fOo'
-    >>> sanitise_string('%bar')
-    'bar'
-
+    '''Explicitly replace problematic characters, and leaves the rest of sanitisation
+       to the driver
     '''
-    cleaned = []
-    for symbol in search_string:
-        if symbol in WHITELIST:
-            cleaned.append(symbol)
-
-    return ''.join(cleaned)
+    # escape any literal undercores, since they're a single char wildcard
+    cleaned = search_string.replace("_", "\\_")
+    # statement terminator, it is escaped by the driver, but remove it just to be sure
+    cleaned = cleaned.replace(";", "_")
+    return cleaned
 
 
 def calculate_sequence(location, sequence):
