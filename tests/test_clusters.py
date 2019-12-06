@@ -2,6 +2,7 @@
 
 from api.search_parser import QueryTerm
 from api.search import clusters
+from api.search import modules
 
 
 def test_guess_cluster_category():
@@ -92,3 +93,109 @@ def test_clusters_by_knowncluster():
 
 def test_clusters_by_subcluster():
     assert clusters.clusters_by_subcluster('AF386507').count() == 3  # 1 if GCF_000590515.1 was minimal
+
+
+def test_clusters_by_modules():
+    def count(query):
+        return clusters.clusters_by_modulequery(query).count()
+
+    counts = {
+        "ACP": count("T=ACP"),
+        "PCP": count("T=PCP"),
+        "PP-binding": count("T=PP-binding"),
+        "none": count("T=0"),
+    }
+
+    assert all(counts.values()), counts
+
+    # joined sections
+    assert count("S=PKS_KS|L=AMP-binding") == 0
+    assert count("M=?|T=ACP") < min(count("M=?"), counts["ACP"])
+
+    # OR
+    assert count("T=PCP,ACP") == counts["ACP"] + counts["PCP"]
+    # ANY
+    assert count("T=?") == counts["ACP"] + counts["PCP"] + counts["PP-binding"]
+    # NONE OR
+    assert count("T=0,PP-binding") == counts["PP-binding"] + counts["none"]
+    # OR NONE
+    assert count("T=PP-binding,0") == counts["PP-binding"] + counts["none"]
+    # IGNORE
+    try:
+        count("T=*")
+        assert False, "failed to raise error"
+    except modules.InvalidQueryError as err:
+        assert "no restrictions in query" in str(err)
+
+    counts = {
+        "DH": count("M=PKS_DH"),
+        "ER": count("M=PKS_ER"),
+        "KR": count("M=PKS_KR"),
+    }
+
+    assert all(counts.values()), counts
+
+    # AND
+    kr_and_er = count("M=PKS_KR+PKS_ER")
+    assert kr_and_er < counts["KR"] + counts["ER"]
+    dh_and_kr = count("M=PKS_KR+PKS_DH")
+    assert dh_and_kr < counts["KR"] + counts["DH"]
+    # AND AND
+    assert count("M=PKS_DH+PKS_ER+PKS_KR") <= min(dh_and_kr, kr_and_er)
+    # AND OR
+    and_or = count("M=PKS_DH+PKS_KR,PKS_ER")
+    assert and_or > max(dh_and_kr, counts["ER"])
+    # OR AND
+    assert count("M=PKS_ER,PKS_DH+PKS_KR") == and_or
+    # AND OR AND
+    assert count("M=PKS_DH+PKS_KR,PKS_ER+PKS_KR") >= max(dh_and_kr, kr_and_er)
+    assert count("M=cMT+PKS_KR,PKS_ER+PKS_KR") == kr_and_er
+    assert count("M=PKS_ER+PKS_KR,PKS_KR+CMT") == kr_and_er
+
+    # THEN
+    kr_then_er = count("M=PKS_KR>PKS_ER")
+    er_then_kr = count("M=PKS_ER>PKS_KR")
+    assert not kr_then_er  # if the data changes, this might break but it'll be interesting
+    assert kr_then_er + er_then_kr == kr_and_er
+    # THEN AND, AND THEN
+    assert count("M=PKS_ER>PKS_KR+PKS_DH") == count("M=PKS_DH+PKS_ER>PKS_KR") > 0
+    # THEN THEN
+    assert count("M=PKS_DH>PKS_ER>PKS_KR") <= er_then_kr
+    assert count("M=PKS_KR>PKS_ER>PKS_KR") == 0  # first then results in zero hits, and the second should restrict to that
+    # THEN ANY
+    assert count("M=PKS_ER>?") >= er_then_kr
+    # ANY THEN
+    assert count("M=?>PKS_KR") >= er_then_kr
+    # THEN ANY THEN
+    assert count("M=PKS_DH>?>PKS_KR") == count("M=PKS_DH>PKS_ER>PKS_KR")
+
+    # THEN NONE  # TODO
+    # NONE THEN  # TODO
+
+    # COMPLETE   # TODO
+    # MULTIMODULE # TODO
+
+    # bad combos to reject
+    combos = [
+        "M:PKS_ER+0",  # AND     NONE
+        "M:PKS_ER+?",  # AND     ANY
+        "M:PKS_ER+*",  # AND     IGNORE
+        "M:*+PKS_ER",  # IGNORE  AND
+        "M:*>PKS_ER",  # IGNORE  THEN
+        "M:*,PKS_ER",  # IGNORE  OR
+        "M:?+PKS_ER",  # ANY     AND
+        "M:?,PKS_ER",  # ANY     OR
+        "M:0+PKS_ER",  # NONE    AND
+        "M:PKS_ER,*",  # OR      IGNORE
+        "M:PKS_ER,?",  # OR      ANY
+        "M:PKS_ER>*",  # THEN    IGNORE
+    ]
+    for combo in combos:
+        try:
+            count(combo)
+            assert False, "failed to raise error"
+        except modules.InvalidQueryError as err:
+            pass
+        except Exception:
+            print(combo)
+            raise

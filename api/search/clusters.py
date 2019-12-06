@@ -24,6 +24,7 @@ from api.models import (
     Genome,
     DnaSequence,
     Module,
+    ModuleDomainFunction,
     Monomer,
     Profile,
     ProfileHit,
@@ -43,6 +44,11 @@ from api.models import (
     T2pksStarterElongation,
     Taxa,
     t_rel_regions_types,
+)
+
+from .modules import (
+    InvalidQueryError,
+    parse_module_query,
 )
 
 CLUSTERS = {}
@@ -369,3 +375,147 @@ def clusters_by_t2pkselongation(term):
     '''Return a query for a region with a t2pks of specific elongation'''
     search = "%d" % term
     return Region.query.join(Protocluster).join(T2pk).join(T2pksStarter).join(T2pksStarterElongation).filter(T2pksStarterElongation.elongation == search)
+
+
+@register_handler(CLUSTERS)
+def clusters_by_modulequery(term):
+    '''Return a query for a region containing a module with specific construction'''
+    # TODO: handle PKS subtypes
+    # TODO: handle substrates
+    # TODO: handle aggregate domains
+
+#    import logging
+#    logging.basicConfig()
+#    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+
+    class QueryPart:
+        def __init__(self, operator, section, value):
+            self.operator = operator
+            self.section = section
+            self.value = value
+            self.matching_domain_ids = None
+
+        def short(self):
+            return "%s %s %s" % (self.section, self.operator, self.value)
+
+        def __repr__(self):
+            return "%s %r %s: %s" % (self.section, self.operator, self.value, sorted(self.matching_domain_ids) if self.matching_domain_ids else "not yet matched")
+
+
+    def match(query_part, absolute_modules, section_modules, aggregate=False, previous_part=None):
+        operator = query_part.operator
+        section = query_part.section
+        value = query_part.value
+
+        def filter_by_existing(current_query):
+            if operator == module_query.AND and section_modules:
+                current_query = current_query.filter(Module.module_id.in_(section_modules))  # effectively an intersection  # TODO: compare performance to python set intersection
+            elif absolute_modules is not None:  # only relevant for the first domain or after an OR
+                current_query = current_query.filter(Module.module_id.in_(absolute_modules))
+            return current_query
+
+        assert operator != module_query.IGNORE, query_part
+
+        # base query
+        matches = Module.query.with_entities(Module.module_id, AsDomain.as_domain_id)
+
+        # limit by section or absolute, in that order and only if present
+        matches = filter_by_existing(matches)
+        matches = matches.join(AsDomain).join(ModuleDomainFunction).join(AsDomainProfile)
+        # filter by section
+        # NONE is a special case and can return early
+        if value == module_query.NONE:
+            # find all modules in existing that have a hit for that function
+            sub = Module.query.with_entities(Module.module_id).join(AsDomain).join(ModuleDomainFunction).filter(ModuleDomainFunction.function == section)
+            sub = filter_by_existing(sub)
+            # then exclude them
+            matches = matches.filter(~Module.module_id.in_(sub))
+            hits = {i[0] for i in matches.all()}
+            if operator == module_query.OR and section_modules is not None:
+                return section_modules.union(hits)
+            return hits
+
+        matches = matches.filter(ModuleDomainFunction.function == section)
+
+        # match value (skip for ANY, only function presence is required)
+        if value != module_query.ANY:
+            matches = matches.filter(AsDomainProfile.name == value)
+
+        # modify result set by operator (AND handled as part of the base query limit)
+        if operator == module_query.OR:
+            query_part.matching_domain_ids = {i[1] for i in matches.all()}
+            module_ids = {i[0] for i in matches.all()}
+            if absolute_modules is not None:
+                module_ids = module_ids.intersection(absolute_modules)
+
+            if section_modules is not None:
+                module_ids = module_ids.union(section_modules)
+            return module_ids
+
+        if operator == module_query.THEN:
+            # as per AND, but with extra restrictions
+            assert previous_part
+            # if there's nothing that matched the previous part, abort and skip the database interaction
+            if previous_part.matching_domain_ids is not None and not previous_part.matching_domain_ids:
+                query_part.matching_domain_ids = set()
+                return set()
+
+            assert previous_part.matching_domain_ids, previous_part
+            prev_domains = AsDomain.query.with_entities(AsDomain.as_domain_id).join(AsDomainProfile)
+            # restrict to previous ids in case of chained THEN
+            if previous_part.operator == module_query.THEN:
+                prev_domains = prev_domains.filter(AsDomain.as_domain_id.in_(previous_part.matching_domain_ids))
+
+            if previous_part.value != module_query.ANY:
+                prev_domains = prev_domains.filter(AsDomainProfile.name == previous_part.value)
+            matches = matches.filter(AsDomain.follows.in_({i[0] for i in prev_domains.all()}))
+        all_matches = list(matches.all())
+        query_part.matching_domain_ids = {i[1] for i in all_matches}
+        return {i[0] for i in all_matches}  
+
+    attrs = ["starter", "loader", "modification", "carrier_protein", "finalisation", "other"]
+
+    module_query = parse_module_query(term)
+    matching_modules = None
+
+
+    for attr, alternatives in module_query:
+        matching_alternatives = None
+        for alternative in alternatives:
+            section_modules = set()
+
+            previous_part = None
+            op = module_query.OR
+
+            for i, value in enumerate(alternative):
+                if i % 2:
+                    op = value
+                    continue
+                if op != module_query.THEN:
+                    previous_part = None  # simplify everything
+                if value == module_query.IGNORE:
+                    continue
+                query_part = QueryPart(op, attr, value)
+
+                section_modules = match(query_part, matching_modules, section_modules, previous_part=previous_part)  # TODO handle aggregate
+                assert section_modules is not None, "%s %s" % (attr, query_part)
+                previous_part = query_part
+
+            if previous_part is None:
+                continue
+
+            if matching_alternatives is None:
+                matching_alternatives = set()
+            matching_alternatives.update(section_modules)
+
+        if matching_alternatives is None:
+            continue
+
+        if matching_modules is None:
+            matching_modules = matching_alternatives
+        else:
+            matching_modules = matching_modules.intersection(matching_alternatives)
+    # in the case where all options are ANY, no results are generated yet
+    if matching_modules is None:
+        raise InvalidQueryError("no restrictions in query: %s" % term)
+    return Region.query.join(Module).filter(Module.module_id.in_(matching_modules))
