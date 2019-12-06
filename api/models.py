@@ -41,9 +41,11 @@ class AsDomain(db.Model):
     cds_id = db.Column(db.ForeignKey('antismash.cdss.cds_id', ondelete='CASCADE'), index=True)
     module_id = db.Column(db.ForeignKey('antismash.modules.module_id', ondelete='CASCADE'), nullable=False)
     function_id = db.Column(db.ForeignKey('antismash.module_domain_functions.function_id', ondelete='CASCADE'), nullable=False)
+    follows = db.Column(db.ForeignKey('antismash.as_domains.as_domain_id'))
 
     as_domain_profile = db.relationship('AsDomainProfile', primaryjoin='AsDomain.as_domain_profile_id == AsDomainProfile.as_domain_profile_id', backref='as_domains')
     cds = db.relationship('Cds', primaryjoin='AsDomain.cds_id == Cds.cds_id', backref='as_domains')
+    parent = db.relationship('AsDomain', remote_side=[as_domain_id], primaryjoin='AsDomain.follows == AsDomain.as_domain_id', backref='as_domains')
     function = db.relationship('ModuleDomainFunction', primaryjoin='AsDomain.function_id == ModuleDomainFunction.function_id', backref='as_domains')
     module = db.relationship('Module', primaryjoin='AsDomain.module_id == Module.module_id', backref='as_domains')
 
