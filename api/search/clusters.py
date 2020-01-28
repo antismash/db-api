@@ -56,11 +56,21 @@ def clusters_to_json(clusters):
     query = query.options(joinedload('bgc_types')).options(joinedload('clusterblast_hits'))
     query = query.filter(Region.region_id.in_(map(lambda x: x.region_id, clusters)))
     query = query.order_by(Region.region_id)
+
+    def get_record_number(cluster):
+        records = db.session.query(DnaSequence).join(Genome).filter(Genome.assembly_id == cluster.dna_sequence.genome.assembly_id).all()
+        for i, record in enumerate(records):
+            if record.accession == cluster.dna_sequence.accession:
+                return i + 1
+        return -1
+
     json_clusters = []
     for cluster in query.all():
         json_cluster = {}
         json_cluster['bgc_id'] = cluster.region_id
         json_cluster['region_number'] = cluster.region_number
+        json_cluster['record_number'] = get_record_number(cluster)
+        json_cluster['anchor'] = "r{}c{}".format(json_cluster['record_number'], cluster.region_number)
 
         location = location_from_string(cluster.location)
 
