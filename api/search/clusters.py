@@ -83,15 +83,9 @@ def clusters_to_json(clusters):
         json_cluster['species'] = cluster.species
         json_cluster['strain'] = cluster.strain
 
-        term = ' - '.join(sorted([t.term for t in cluster.Region.bgc_types]))
-        if len(cluster.Region.bgc_types) == 1:
-            json_cluster['description'] = cluster.Region.bgc_types[0].description
-            json_cluster['term'] = term
-        else:
-            descs = ' & '.join(sorted([t.description for t in cluster.Region.bgc_types],
-                                      key=str.casefold))
-            json_cluster['description'] = 'Hybrid cluster: {}'.format(descs)
-            json_cluster['term'] = '{} hybrid'.format(term)
+        json_cluster['term'] = ' - '.join(sorted([t.term for t in cluster.Region.bgc_types]))
+        json_cluster['description'] = ' & '.join(sorted([t.description for t in cluster.Region.bgc_types],
+                                                        key=str.casefold))
 
         json_cluster['similarity'] = None
         json_cluster['cbh_description'] = None
