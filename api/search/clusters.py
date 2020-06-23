@@ -58,45 +58,37 @@ CLUSTER_FORMATTERS = {}
 @register_handler(CLUSTER_FORMATTERS)
 def clusters_to_json(clusters):
     '''Convert model.BiosyntheticGeneClusters into JSON'''
-    query = db.session.query(Region)
+    query = db.session.query(Region, Genome.assembly_id, DnaSequence.accession, DnaSequence.version, Taxa.genus, Taxa.species, Taxa.strain)
     query = query.options(joinedload('bgc_types')).options(joinedload('clusterblast_hits'))
+    query = query.join(DnaSequence).join(Genome).join(Taxa)
     query = query.filter(Region.region_id.in_(map(lambda x: x.region_id, clusters)))
     query = query.order_by(Region.region_id)
-
-    def get_record_number(cluster):
-        records = db.session.query(DnaSequence).join(Genome).filter(Genome.assembly_id == cluster.dna_sequence.genome.assembly_id).all()
-        for i, record in enumerate(records):
-            if record.accession == cluster.dna_sequence.accession:
-                return i + 1
-        return -1
 
     json_clusters = []
     for cluster in query.all():
         json_cluster = {}
-        json_cluster['bgc_id'] = cluster.region_id
-        json_cluster['region_number'] = cluster.region_number
-        json_cluster['record_number'] = get_record_number(cluster)
-        json_cluster['anchor'] = "r{}c{}".format(json_cluster['record_number'], cluster.region_number)
+        json_cluster['bgc_id'] = cluster.Region.region_id
+        json_cluster['region_number'] = cluster.Region.region_number
 
-        location = location_from_string(cluster.location)
+        location = location_from_string(cluster.Region.location)
 
         json_cluster['start_pos'] = location.start
         json_cluster['end_pos'] = location.end
 
-        json_cluster['acc'] = cluster.dna_sequence.accession
-        json_cluster['assembly_id'] = cluster.dna_sequence.genome.assembly_id.split('.')[0] if cluster.dna_sequence.genome.assembly_id else ''
-        json_cluster['version'] = cluster.dna_sequence.version
+        json_cluster['acc'] = cluster.accession
+        json_cluster['assembly_id'] = cluster.assembly_id.split('.')[0] if cluster.assembly_id else ''
+        json_cluster['version'] = cluster.version
 
-        json_cluster['genus'] = cluster.dna_sequence.genome.tax.genus
-        json_cluster['species'] = cluster.dna_sequence.genome.tax.species
-        json_cluster['strain'] = cluster.dna_sequence.genome.tax.strain
+        json_cluster['genus'] = cluster.genus
+        json_cluster['species'] = cluster.species
+        json_cluster['strain'] = cluster.strain
 
-        term = ' - '.join(sorted([t.term for t in cluster.bgc_types]))
-        if len(cluster.bgc_types) == 1:
-            json_cluster['description'] = cluster.bgc_types[0].description
+        term = ' - '.join(sorted([t.term for t in cluster.Region.bgc_types]))
+        if len(cluster.Region.bgc_types) == 1:
+            json_cluster['description'] = cluster.Region.bgc_types[0].description
             json_cluster['term'] = term
         else:
-            descs = ' & '.join(sorted([t.description for t in cluster.bgc_types],
+            descs = ' & '.join(sorted([t.description for t in cluster.Region.bgc_types],
                                       key=str.casefold))
             json_cluster['description'] = 'Hybrid cluster: {}'.format(descs)
             json_cluster['term'] = '{} hybrid'.format(term)
@@ -105,15 +97,15 @@ def clusters_to_json(clusters):
         json_cluster['cbh_description'] = None
         json_cluster['cbh_acc'] = None
 
-        knownclusterblasts = [hit for hit in cluster.clusterblast_hits if hit.algorithm.name == 'knownclusterblast' and hit.rank == 1]
+        knownclusterblasts = [hit for hit in cluster.Region.clusterblast_hits if hit.algorithm.name == 'knownclusterblast' and hit.rank == 1]
         if len(knownclusterblasts) > 0:
             json_cluster['similarity'] = knownclusterblasts[0].similarity
             json_cluster['cbh_description'] = knownclusterblasts[0].description
             json_cluster['cbh_acc'] = knownclusterblasts[0].acc
             json_cluster['cbh_rank'] = knownclusterblasts[0].rank
 
-        json_cluster['contig_edge'] = cluster.contig_edge
-        json_cluster['minimal'] = cluster.minimal
+        json_cluster['contig_edge'] = cluster.Region.contig_edge
+        json_cluster['minimal'] = cluster.Region.minimal
 
         json_clusters.append(json_cluster)
     return json_clusters
