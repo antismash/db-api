@@ -26,6 +26,8 @@ from .domains import (
     DOMAIN_FORMATTERS,
 )
 
+from .helpers import UnknownQueryError
+
 #######
 # The following imports are just so the code depending on search doesn't need changes
 from .available import available_term_by_category  # noqa: F401
@@ -55,6 +57,8 @@ def core_search(query):
         sql_query = gene_query_from_term(query.terms).order_by(Cds.cds_id)
     elif query.search_type == 'domain':
         sql_query = domain_query_from_term(query.terms).order_by(AsDomain.as_domain_id)
+    else:
+        raise UnknownQueryError()
 
     results = sql_query.all()
 
