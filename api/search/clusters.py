@@ -105,7 +105,6 @@ def clusters_to_json(clusters):
             json_cluster['cbh_rank'] = knownclusterblasts[0].rank
 
         json_cluster['contig_edge'] = cluster.Region.contig_edge
-        json_cluster['minimal'] = cluster.Region.minimal
 
         json_clusters.append(json_cluster)
     return json_clusters
