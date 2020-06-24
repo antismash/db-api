@@ -60,7 +60,7 @@ def clusters_to_json(clusters):
     '''Convert model.BiosyntheticGeneClusters into JSON'''
     query = db.session.query(Region, Genome.assembly_id, DnaSequence.accession, DnaSequence.version, Taxa.genus, Taxa.species, Taxa.strain)
     query = query.options(joinedload('bgc_types')).options(joinedload('clusterblast_hits'))
-    query = query.join(DnaSequence).join(Genome).join(Taxa)
+    query = query.join(DnaSequence, Region.dna_sequence).join(Genome, DnaSequence.genome).join(Taxa, Genome.tax)
     query = query.filter(Region.region_id.in_(map(lambda x: x.region_id, clusters)))
     query = query.order_by(Region.region_id)
 
