@@ -86,8 +86,8 @@ class Candidate(db.Model):
     polymer = db.Column(db.Text)
 
     region = db.relationship('Region', primaryjoin='Candidate.region_id == Region.region_id', backref='candidates')
-    modules = db.relationship('Module', secondary='antismash.rel_candidates_modules', backref='candidates')
     protoclusters = db.relationship('Protocluster', secondary='antismash.rel_candidates_protoclusters', backref='candidates')
+    modules = db.relationship('Module', secondary='antismash.rel_candidates_modules', backref='candidates')
     cdss = db.relationship('Cds', secondary='antismash.rel_cds_candidates', backref='candidates')
 
 
@@ -151,6 +151,7 @@ class DnaSequence(db.Model):
     definition = db.Column(db.Text)
     contig_type = db.Column(db.Integer)
     chromosome_type = db.Column(db.Integer)
+    record_number = db.Column(db.Integer)
     version = db.Column(db.Integer)
     genome_id = db.Column(db.ForeignKey('antismash.genomes.genome_id', ondelete='CASCADE'))
 
@@ -339,13 +340,14 @@ class Region(db.Model):
     __table_args__ = {'schema': 'antismash'}
 
     region_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
-    record_accession = db.Column(db.ForeignKey('antismash.dna_sequences.accession', ondelete='CASCADE'), nullable=False)
+    accession = db.Column(db.ForeignKey('antismash.dna_sequences.accession', ondelete='CASCADE'), nullable=False)
     region_number = db.Column(db.Integer)
     location = db.Column(db.Text)
+    start_pos = db.Column(db.Integer)
+    end_pos = db.Column(db.Integer)
     contig_edge = db.Column(db.Boolean)
-    minimal = db.Column(db.Boolean)
 
-    dna_sequence = db.relationship('DnaSequence', primaryjoin='Region.record_accession == DnaSequence.accession', backref='regions')
+    dna_sequence = db.relationship('DnaSequence', primaryjoin='Region.accession == DnaSequence.accession', backref='regions')
 
 
 class RelAsDomainsSubstrate(db.Model):
