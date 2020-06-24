@@ -75,12 +75,6 @@ def available_contigedge(term):
 
 
 @register_handler(AVAILABLE)
-def available_minimal(term):
-    """Generate FakeBooleanQuery for available boolean minimal options."""
-    return FakeBooleanQuery(term, 'Cluster was found in fast-mode antiSMASH run', 'Cluster was found in a full antiSMASH run')
-
-
-@register_handler(AVAILABLE)
 def available_superkingdom(term):
     '''Generate query for available superkingdoms'''
     return db.session.query(distinct(Taxa.superkingdom), null()) \

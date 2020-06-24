@@ -108,11 +108,10 @@ def clusters_to_json(clusters):
 def clusters_to_csv(clusters):
     '''Convert model.BiosyntheticGeneClusters into CSV'''
     json_clusters = clusters_to_json(clusters)
-    csv_lines = ['#Genus\tSpecies\tStrain\tNCBI accession\tFrom\tTo\tBGC type\tOn contig edge\tFast mode only\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL']
+    csv_lines = ['#Genus\tSpecies\tStrain\tNCBI accession\tFrom\tTo\tBGC type\tOn contig edge\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL']
     for cluster in json_clusters:
         csv_lines.append('{genus}\t{species}\t{strain}\t{acc}.{version}\t{start_pos}\t{end_pos}\t{term}\t'
-                         '{contig_edge}\t{minimal}\t'
-                         '{cbh_description}\t{similarity}\t{cbh_acc}\t'
+                         '{contig_edge}\t{cbh_description}\t{similarity}\t{cbh_acc}\t'
                          'https://antismash-db.secondarymetabolites.org/go/{assembly_id}/{acc}.{version}/{start_pos}.{end_pos}\t'
                          'https://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/{assembly_id}/{acc}.{version}/{start_pos}.{end_pos}'.format(**cluster))
     return csv_lines
@@ -302,11 +301,6 @@ def clusters_by_asdomain(term):
 @register_handler(CLUSTERS)
 def clusters_by_contigedge(term):
     return Region.query.filter(Region.contig_edge.is_(term))
-
-
-@register_handler(CLUSTERS)
-def clusters_by_minimal(term):
-    return Region.query.filter(Region.minimal.is_(term))
 
 
 def clusters_by_x_clusterblast(term, algorithm):

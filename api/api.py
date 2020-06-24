@@ -74,7 +74,7 @@ def get_version():
 def _common_stats():
     """Get the stats shared by the v1 and v2 version of the call"""
 
-    num_clusters = Region.query.filter(Region.minimal.is_(False)).count()
+    num_clusters = Region.query.filter(Region.contig_edge.is_(False)).count()
 
     num_genomes = Genome.query.count()
 
@@ -82,7 +82,6 @@ def _common_stats():
 
     clusters = []
     sub = db.session.query(t_rel_regions_types.c.bgc_type_id, func.count(1).label('count')) \
-                    .join(Region).filter(Region.minimal.is_(False)) \
                     .group_by(t_rel_regions_types.c.bgc_type_id).subquery()
     ret = db.session.query(BgcType.term, BgcType.description, sub.c.count).join(sub) \
                     .order_by(sub.c.count.desc(), BgcType.term)
@@ -139,7 +138,7 @@ def get_stats_v2():
                            func.count(distinct(Genome.assembly_id)).label('seq_count'),
                            (cast(func.count(distinct(Region.region_number)), Float) / func.count(distinct(Genome.assembly_id))).label('clusters_per_seq')) \
                     .join(Genome).join(DnaSequence).join(Region) \
-                    .filter(Genome.assembly_id is not None).filter(Region.minimal.is_(False)) \
+                    .filter(Genome.assembly_id is not None) \
                     .group_by(Taxa.tax_id, Genome.assembly_id).order_by(sql_desc('clusters_per_seq')).limit(1).first()
     stats['top_secmet_taxon'] = ret.tax_id
     stats['top_secmet_species'] = '{r.genus} {r.species} {r.strain}'.format(r=ret)

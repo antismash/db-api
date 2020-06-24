@@ -59,7 +59,7 @@ class QueryTerm(object):
     '''A term in a Query'''
     KEYWORDS = set(['AND', 'OR', 'EXCEPT'])
 
-    BOOL_CATEGORIES = set(['contigedge', 'minimal'])
+    BOOL_CATEGORIES = set(['contigedge'])
 
     def __init__(self, kind, **kwargs):
         '''Initialize a term, either an operation or an expression

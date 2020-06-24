@@ -112,7 +112,6 @@ def test_search(client):
                 "start_pos": 226409,
                 "end_pos": 255381,
                 "genus": "Streptomyces",
-                "minimal": False,
                 "similarity": 100,
                 "species": "coelicolor",
                 "strain": "A3(2)",
@@ -189,7 +188,6 @@ def test_export(client):
         "start_pos": 226409,
         "end_pos": 255381,
         "genus": "Streptomyces",
-        "minimal": False,
         "similarity": 100,
         "species": "coelicolor",
         "strain": "A3(2)",
@@ -197,8 +195,8 @@ def test_export(client):
         "version": 1
     }]
 
-    expected_csv = '''#Genus\tSpecies\tStrain\tNCBI accession\tFrom\tTo\tBGC type\tOn contig edge\tFast mode only\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL
-{genus}\t{species}\t{strain}\t{acc}.{version}\t{start_pos}\t{end_pos}\t{term}\t{contig_edge}\t{minimal}\t{cbh_description}\t{similarity}\t{cbh_acc}\thttps://antismash-db.secondarymetabolites.org/go/GCF_000203835/{acc}.{version}/{start_pos}.{end_pos}\thttps://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/GCF_000203835/{acc}.{version}/{start_pos}.{end_pos}
+    expected_csv = '''#Genus\tSpecies\tStrain\tNCBI accession\tFrom\tTo\tBGC type\tOn contig edge\\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL
+{genus}\t{species}\t{strain}\t{acc}.{version}\t{start_pos}\t{end_pos}\t{term}\t{contig_edge}\t{cbh_description}\t{similarity}\t{cbh_acc}\thttps://antismash-db.secondarymetabolites.org/go/GCF_000203835/{acc}.{version}/{start_pos}.{end_pos}\thttps://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/GCF_000203835/{acc}.{version}/{start_pos}.{end_pos}
 '''.format(**expected_json[0]).encode()
 
     expected_fasta = '''>{acc}.{version}|{start_pos}-{end_pos}|butyrolactone - furan|{genus} {species} {strain}
@@ -247,7 +245,6 @@ def test_genome(client):
         "description": "Hybrid cluster: hglE-type polyketide & Type I polyketide",
         "end_pos": 139654,
         "genus": "Streptomyces",
-        "minimal": False,
         "similarity": 2,
         "species": "coelicolor",
         "start_pos": 86636,
