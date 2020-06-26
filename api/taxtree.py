@@ -202,6 +202,7 @@ def _create_tree_node(node_id, parent, text, assembly_id=None, disabled=True, le
     if leaf:
         ret['type'] = 'strain'
         ret['assembly_id'] = assembly_id
+        ret['li_attr'] = {"data-assembly": assembly_id}
     else:
         ret['children'] = True
     return ret
