@@ -58,7 +58,7 @@ CLUSTER_FORMATTERS = {}
 @register_handler(CLUSTER_FORMATTERS)
 def clusters_to_json(clusters):
     '''Convert model.BiosyntheticGeneClusters into JSON'''
-    query = db.session.query(Region, Genome.assembly_id, DnaSequence.accession, DnaSequence.version, Taxa.genus, Taxa.species, Taxa.strain)
+    query = db.session.query(Region, Genome.assembly_id, DnaSequence.accession, DnaSequence.version, DnaSequence.record_number, Taxa.genus, Taxa.species, Taxa.strain)
     query = query.options(joinedload('bgc_types')).options(joinedload('clusterblast_hits'))
     query = query.join(DnaSequence, Region.dna_sequence).join(Genome, DnaSequence.genome).join(Taxa, Genome.tax)
     query = query.filter(Region.region_id.in_(map(lambda x: x.region_id, clusters)))
@@ -68,6 +68,7 @@ def clusters_to_json(clusters):
     for cluster in query.all():
         json_cluster = {}
         json_cluster['bgc_id'] = cluster.Region.region_id
+        json_cluster['record_number'] = cluster.record_number
         json_cluster['region_number'] = cluster.Region.region_number
 
         location = location_from_string(cluster.Region.location)
@@ -369,9 +370,6 @@ def clusters_by_modulequery(term):
     # TODO: handle substrates
     # TODO: handle aggregate domains
 
-#    import logging
-#    logging.basicConfig()
-#    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
     class QueryPart:
         def __init__(self, operator, section, value):
@@ -462,7 +460,6 @@ def clusters_by_modulequery(term):
 
     module_query = parse_module_query(term)
     matching_modules = None
-
 
     for attr, alternatives in module_query:
         matching_alternatives = None
