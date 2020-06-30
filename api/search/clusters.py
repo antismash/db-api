@@ -77,7 +77,7 @@ def clusters_to_json(clusters):
         json_cluster['end_pos'] = location.end
 
         json_cluster['acc'] = cluster.accession
-        json_cluster['assembly_id'] = cluster.assembly_id.split('.')[0] if cluster.assembly_id else ''
+        json_cluster['assembly_id'] = cluster.assembly_id
         json_cluster['version'] = cluster.version
 
         json_cluster['genus'] = cluster.genus
