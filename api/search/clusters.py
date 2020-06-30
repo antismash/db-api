@@ -119,8 +119,8 @@ def clusters_to_csv(clusters):
     for cluster in json_clusters:
         csv_lines.append('{genus}\t{species}\t{strain}\t{acc}.{version}\t{start_pos}\t{end_pos}\t{term}\t'
                          '{contig_edge}\t{cbh_description}\t{similarity}\t{cbh_acc}\t'
-                         'https://antismash-db.secondarymetabolites.org/go/{assembly_id}/{acc}.{version}/{start_pos}.{end_pos}\t'
-                         'https://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/{assembly_id}/{acc}.{version}/{start_pos}.{end_pos}'.format(**cluster))
+                         'https://antismash-db.secondarymetabolites.org/go/{acc}.{version}/{start_pos}-{end_pos}\t'
+                         'https://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/{assembly_id}/{acc}/{version}/{start_pos}/{end_pos}'.format(**cluster))
     return csv_lines
 
 
