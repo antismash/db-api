@@ -20,6 +20,7 @@ from sqlalchemy import (
     distinct,
     Float,
     func,
+    or_,
 )
 from . import app, taxtree
 from .search import (
@@ -454,6 +455,27 @@ def goto_cluster(identifier, number):
         return redirect("https://antismash-dbv1.secondarymetabolites.org/output/{}/index.html#cluster-{}".format(safe_id, number))
 
     return redirect("/output/{}/index.html#cluster-{}".format(safe_id, number))
+
+
+@app.route('/api/v1.0/goto/<accession>.<int:version>/<int:start_pos>-<int:end_pos>')
+@app.route('/go/<accession>.<int:version>/<int:start_pos>-<int:end_pos>')
+def goto_region(accession, version, start_pos, end_pos):
+    safe_acc = SAFE_IDENTIFIER_PATTERN.sub('', accession)
+
+    query = db.session.query(Region, DnaSequence.accession, DnaSequence.version, DnaSequence.record_number, Genome.assembly_id)
+    query = query.join(DnaSequence, Region.dna_sequence).join(Genome, DnaSequence.genome)
+    query = query.filter(DnaSequence.accession == accession).filter(DnaSequence.version == version)
+    query = query.filter(or_(Region.start_pos.between(start_pos, end_pos), Region.end_pos.between(start_pos, end_pos)))
+    res = query.all()
+
+    if len(res) == 1:
+        res = res[0]
+        return redirect("/output/{}/index.html#r{}c{}".format(res.assembly_id, res.record_number, res.Region.region_number))
+    elif len(res) > 1:
+        # TODO: figure out how to show results
+        abort(400)
+    else:
+        abort(404)
 
 
 def _get_base_url(identifier):
