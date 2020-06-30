@@ -91,7 +91,7 @@ def clusters_to_json(clusters):
         else:
             descs = ' & '.join(sorted([t.description for t in cluster.Region.bgc_types],
                                       key=str.casefold))
-            json_cluster['description'] = 'Hybrid cluster: {}'.format(descs)
+            json_cluster['description'] = 'Hybrid region: {}'.format(descs)
             json_cluster['term'] = '{} hybrid'.format(term)
 
         json_cluster['similarity'] = None
