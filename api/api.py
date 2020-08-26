@@ -457,25 +457,25 @@ def goto_cluster(identifier, number):
     return redirect("/output/{}/index.html#cluster-{}".format(safe_id, number))
 
 
-@app.route('/api/v1.0/goto/<accession>.<int:version>/<int:start_pos>-<int:end_pos>')
-@app.route('/go/<accession>.<int:version>/<int:start_pos>-<int:end_pos>')
-def goto_region(accession, version, start_pos, end_pos):
-    safe_acc = SAFE_IDENTIFIER_PATTERN.sub('', accession)
+@app.route('/api/v1.0/area/<record>.<int:version>/<int:start_pos>-<int:end_pos>')
+def area(record, version, start_pos, end_pos):
+    safe_acc = SAFE_IDENTIFIER_PATTERN.sub('', record)
 
-    query = db.session.query(Region, DnaSequence.accession, DnaSequence.version, DnaSequence.record_number, Genome.assembly_id)
-    query = query.join(DnaSequence, Region.dna_sequence).join(Genome, DnaSequence.genome)
-    query = query.filter(DnaSequence.accession == accession).filter(DnaSequence.version == version)
+    query = Region.query.join(DnaSequence, Region.dna_sequence).join(Genome, DnaSequence.genome)
+    query = query.filter(DnaSequence.accession == safe_acc).filter(DnaSequence.version == version)
     query = query.filter(or_(Region.start_pos.between(start_pos, end_pos), Region.end_pos.between(start_pos, end_pos)))
     res = query.all()
 
-    if len(res) == 1:
-        res = res[0]
-        return redirect("/output/{}/index.html#r{}c{}".format(res.assembly_id, res.record_number, res.Region.region_number))
-    elif len(res) > 1:
-        # TODO: figure out how to show results
-        abort(400)
-    else:
-        abort(404)
+    # Right now format_results needs a Query object
+    dummy = Query(None, search_type="cluster", return_type="json")
+    # TODO: refactor format_results to optionally take a search_type and return_type
+    clusters = format_results(dummy, res)
+
+    result = {
+        "clusters": clusters
+    }
+
+    return jsonify(result)
 
 
 def _get_base_url(identifier):
