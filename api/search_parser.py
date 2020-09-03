@@ -32,6 +32,15 @@ class Query(object):
         return "Query(search: {search}, terms: {terms})".format(
             search=self.search_type, terms=str(self.terms))
 
+    def to_json(self):
+        """Get a serialisable version of the query."""
+        return {
+            "terms": self.terms.to_json(),
+            "search": self.search_type,
+            "return_type": self.return_type,
+            "verbose": self.verbose,
+        }
+
     @classmethod
     def from_json(cls, json_query):
         '''Generate query from a json structure'''
@@ -99,6 +108,17 @@ class QueryTerm(object):
             return '[{s.category}]{s.term}'.format(s=self)
         if self.kind == 'operation':
             return '( {l} {o} {r} )'.format(l=self.left, o=self.operation.upper(), r=self.right)
+
+    def to_json(self):
+        if self.kind == 'expression':
+            return { 'term_type': 'expr', 'category': self.category, 'term': self.term }
+        if self.kind == 'operation':
+            return {
+                'term_type': 'op',
+                'operation': self.operation,
+                'left': self.left.to_json(),
+                'right': self.right.to_json(),
+            }
 
     @classmethod
     def from_json(cls, term):
