@@ -1,5 +1,6 @@
 '''The API calls'''
 
+from distutils.util import strtobool
 from io import BytesIO
 import json
 from flask import (
@@ -504,3 +505,21 @@ def download_table(identifier):
 def download_cluster(identifier, number):
     url = _get_base_url(identifier)
     return redirect("{}.cluster{:03d}.gbk".format(url, number))
+
+
+@app.route('/api/v1.0/convert')
+def convert():
+    try:
+        args = {}
+        args['string'] = request.args.get('search_string', '')
+        if 'search_type' in request.args:
+            args['search_type'] = request.args['search_type']
+        if 'return_type' in request.args:
+            args['return_type'] = request.args['return_type']
+        if 'verbose' in request.args:
+            args['verbose'] = bool(strtobool(request.args['verbose']))
+        query = Query.from_string(**args)
+    except ValueError:
+        abort(400)
+
+    return jsonify(query.to_json())
