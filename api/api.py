@@ -479,6 +479,27 @@ def area(record, version, start_pos, end_pos):
     return jsonify(result)
 
 
+@app.route('/api/v1.0/area/<record>/<int:start_pos>-<int:end_pos>')
+def area_without_version(record, start_pos, end_pos):
+    safe_acc = SAFE_IDENTIFIER_PATTERN.sub('', record)
+
+    query = Region.query.join(DnaSequence, Region.dna_sequence).join(Genome, DnaSequence.genome)
+    query = query.filter(DnaSequence.accession == safe_acc)
+    query = query.filter(or_(Region.start_pos.between(start_pos, end_pos), Region.end_pos.between(start_pos, end_pos)))
+    res = query.all()
+
+    # Right now format_results needs a Query object
+    dummy = Query(None, search_type="cluster", return_type="json")
+    # TODO: refactor format_results to optionally take a search_type and return_type
+    clusters = format_results(dummy, res)
+
+    result = {
+        "clusters": clusters
+    }
+
+    return jsonify(result)
+
+
 def _get_base_url(identifier):
     safe_id = SAFE_IDENTIFIER_PATTERN.sub('', identifier).split('.')[0]
     ret = db.session.query(Filename.assembly_id, Filename.base_filename) \
