@@ -28,6 +28,7 @@ from .search import (
     core_search,
     format_results,
     json_stats,
+    region_stats,
     available_term_by_category,
 )
 from .search.helpers import UnknownQueryError
@@ -248,8 +249,8 @@ def search_taxon_tree():
     return jsonify(search_path)
 
 
-@app.route('/api/v1.0/search', methods=['POST'])
-def search():
+def search_common():
+    """Shared logic between the v1 and v2 version of the /search endpoint."""
     try:
         if 'query' not in request.json:
             query = Query.from_string(request.json.get('search_string', ''))
@@ -272,12 +273,36 @@ def search():
         paginate = 50
 
     try:
-        clusters = format_results(query, core_search(query))
+        results = core_search(query)
     except UnknownQueryError:
         abort(400)
-    stats = json_stats(clusters)
 
-    total = len(clusters)
+    return query, results, offset, paginate
+
+
+@app.route('/api/v1.0/search', methods=['POST'])
+def search_v1():
+    query, results, offset, paginate = search_common()
+    stats = region_stats(results)
+    total = len(results)
+
+    if paginate > 0:
+        end = min(offset + paginate, total)
+    else:
+        end = total
+
+    clusters = format_results(query, results[offset:end])
+
+    result = {
+        'total': total,
+        'clusters': clusters,
+        'offset': offset,
+        'paginate': paginate,
+        'stats': stats,
+    }
+
+    return jsonify(result)
+
 
     if paginate > 0:
         end = min(offset + paginate, total)

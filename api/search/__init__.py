@@ -101,3 +101,31 @@ def json_stats(json_clusters):
     stats['clusters_by_phylum'] = clusters_by_phylum
 
     return stats
+
+
+def region_stats(regions):
+    '''Calculate stats on the search results'''
+    stats = {}
+
+    if len(regions) < 1:
+        return stats
+
+    bgc_ids = set(map(lambda x: x.region_id, regions))
+
+    clusters_by_type_list = db.session.query(BgcType.term, func.count(BgcType.term)) \
+                                      .join(t_rel_regions_types).join(Region) \
+                                      .filter(Region.region_id.in_(bgc_ids)).group_by(BgcType.term).order_by(BgcType.term).all()
+    clusters_by_type = {}
+    if clusters_by_type_list is not None:
+        clusters_by_type['labels'], clusters_by_type['data'] = zip(*clusters_by_type_list)
+    stats['clusters_by_type'] = clusters_by_type
+
+    clusters_by_phylum_list = db.session.query(Taxa.phylum, func.count(Taxa.phylum)) \
+                                        .join(Genome).join(DnaSequence).join(Region) \
+                                        .filter(Region.region_id.in_(bgc_ids)).group_by(Taxa.phylum).all()
+    clusters_by_phylum = {}
+    if clusters_by_phylum_list is not None:
+        clusters_by_phylum['labels'], clusters_by_phylum['data'] = zip(*clusters_by_phylum_list)
+    stats['clusters_by_phylum'] = clusters_by_phylum
+
+    return stats
