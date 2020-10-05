@@ -27,7 +27,6 @@ from . import app, taxtree
 from .search import (
     core_search,
     format_results,
-    json_stats,
     region_stats,
     available_term_by_category,
 )
