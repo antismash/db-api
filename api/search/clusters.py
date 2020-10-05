@@ -54,6 +54,26 @@ from .modules import (
 CLUSTERS = {}
 CLUSTER_FORMATTERS = {}
 
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.sql.expression import Executable, ClauseElement, _literal_as_text
+
+class explain(Executable, ClauseElement):
+    def __init__(self, stmt, analyse=False):
+        self.statement = _literal_as_text(stmt)
+        self.analyse = analyse
+        self.inline = getattr(stmt, 'inline', None)
+
+
+@compiles(explain, 'postgresql')
+def pg_explain(element, compiler, **kw):
+    text = "EXPLAIN "
+    if element.analyse:
+        text += "ANALYZE "
+    text += compiler.process(element.statement, **kw)
+    compiler.isinsert = compiler.isupdate = compiler.isdelete = False
+
+    return text
+
 
 @register_handler(CLUSTER_FORMATTERS)
 def clusters_to_json(clusters):
