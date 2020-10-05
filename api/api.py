@@ -304,16 +304,34 @@ def search_v1():
     return jsonify(result)
 
 
+@app.route('/api/v2.0/search', methods=['POST'])
+def search():
+    query, results, offset, paginate = search_common()
+    total = len(results)
     if paginate > 0:
         end = min(offset + paginate, total)
     else:
         end = total
+    clusters = format_results(query, results[offset:end])
+
 
     result = {
         'total': total,
-        'clusters': clusters[offset:end],
+        'clusters': clusters,
         'offset': offset,
         'paginate': paginate,
+    }
+
+    return jsonify(result)
+
+
+@app.route('/api/v1.0/searchstats', methods=['POST'])
+def searchstats():
+    query, results, offset, paginate = search_common()
+    total = len(results)
+    stats = region_stats(results)
+    result = {
+        'total': total,
         'stats': stats,
     }
 
