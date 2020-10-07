@@ -158,7 +158,7 @@ class QueryTerm(object):
 
         left = cls.get_expression(token_list)
         next_token = token_list[0]
-        if next_token in cls.KEYWORDS:
+        if next_token.upper() in cls.KEYWORDS:
             del token_list[0]
             right = cls.get_term(token_list)
             return cls('operation', operation=next_token.lower(), left=left, right=right)

@@ -111,12 +111,12 @@ def test_query_term_from_json():
     with pytest.raises(ValueError):
         QueryTerm.from_json(op)
 
-    op['operation'] = 'or'
+    op['operation'] = 'oR'
     op['left'] = expr
     op['right'] = expr
     term = QueryTerm.from_json(op)
     assert term.kind == 'operation'
-    assert term.operation == op['operation']
+    assert term.operation == 'or'
     assert isinstance(term.left, QueryTerm)
     assert isinstance(term.right, QueryTerm)
 
@@ -169,6 +169,20 @@ def test_query_term_from_string():
     term = QueryTerm.from_string(string)
     assert term.kind == 'operation'
     assert term.operation == 'and'
+    assert term.left.term == 'nrps'
+    assert term.right.term == '1234'
+
+    string = "nrps OR 1234"
+    term = QueryTerm.from_string(string)
+    assert term.kind == 'operation'
+    assert term.operation == 'or'
+    assert term.left.term == 'nrps'
+    assert term.right.term == '1234'
+
+    string = "nrps or 1234"
+    term = QueryTerm.from_string(string)
+    assert term.kind == 'operation'
+    assert term.operation == 'or'
     assert term.left.term == 'nrps'
     assert term.right.term == '1234'
 
