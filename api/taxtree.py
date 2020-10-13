@@ -170,6 +170,9 @@ def get_species(params):
 
 def get_strains(params):
     '''Get list of strains per kingdom/phylum/class/order/family/genus/species'''
+    if len(params) > 7:
+        params[6] = "_".join(params[6:])
+        params = params[:7]
     tree = []
     strains = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain,
                                Genome.assembly_id) \
