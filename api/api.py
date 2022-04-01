@@ -7,6 +7,7 @@ from flask import (
     abort,
     g,
     jsonify,
+    make_response,
     redirect,
     request,
     Response,
@@ -30,7 +31,7 @@ from .search import (
     region_stats,
     available_term_by_category,
 )
-from .search.helpers import UnknownQueryError
+from .search.helpers import InvalidQueryError, UnknownQueryError
 from .search_parser import Query
 from .models import (
     db,
@@ -274,7 +275,9 @@ def search_common():
     try:
         results = core_search(query)
     except UnknownQueryError:
-        abort(400)
+        abort(make_response({"message": "Unknown query category"}, 400))
+    except InvalidQueryError as err:
+        abort(make_response({"message": str(err)}, 400))
 
     return query, results, offset, paginate
 

@@ -48,12 +48,9 @@ Aggregate domain labels exist and are used to cover multiple domains:
 
 from typing import List
 
+from .helpers import InvalidQueryError
 
 DEFAULT = ("*",)
-
-
-class InvalidQueryError(ValueError):
-    pass
 
 
 def group_alternatives(content: List[str]) -> List[List[str]]:
@@ -164,7 +161,7 @@ def _separate_domains(domains: str) -> List[str]:
 
 def parse_module_query(query: str):
     if not query:
-        raise ValueError("module query cannot be empty")
+        raise InvalidQueryError("module query cannot be empty")
     if "+0" in query or "0+" in query:
         raise InvalidQueryError("incompatible combination: + and 0, will always be false")
     if "+?" in query or "?+" in query:

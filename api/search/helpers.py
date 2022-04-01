@@ -5,6 +5,10 @@ class UnknownQueryError(Exception):
     pass
 
 
+class InvalidQueryError(Exception):
+    pass
+
+
 def register_handler(handler):
     '''Decorator to register a function as a handler'''
     def real_decorator(function):
