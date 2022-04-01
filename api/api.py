@@ -116,15 +116,15 @@ def get_stats_v1():
     stats = _common_stats()
 
     ret = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain,
-                           DnaSequence.acc,
+                           DnaSequence.accession,
                            func.count(distinct(Region.region_number)).label('bgc_count'),
-                           func.count(distinct(DnaSequence.acc)).label('seq_count'),
-                           (cast(func.count(distinct(Region.region_number)), Float) / func.count(distinct(DnaSequence.acc))).label('clusters_per_seq')) \
+                           func.count(distinct(DnaSequence.accession)).label('seq_count'),
+                           (cast(func.count(distinct(Region.region_number)), Float) / func.count(distinct(DnaSequence.accession))).label('clusters_per_seq')) \
                     .join(Genome).join(DnaSequence).join(Region) \
-                    .group_by(Taxa.tax_id, DnaSequence.acc).order_by(sql_desc('clusters_per_seq')).limit(1).first()
+                    .group_by(Taxa.tax_id, DnaSequence.accession).order_by(sql_desc('clusters_per_seq')).limit(1).first()
     stats['top_secmet_taxon'] = ret.tax_id
     stats['top_secmet_species'] = '{r.genus} {r.species} {r.strain}'.format(r=ret)
-    stats['top_secmet_acc'] = ret.acc
+    stats['top_secmet_acc'] = ret.accession
     stats['top_secmet_taxon_count'] = ret.clusters_per_seq
 
     return jsonify(stats)
