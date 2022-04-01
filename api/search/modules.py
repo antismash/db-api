@@ -176,6 +176,9 @@ def parse_module_query(query: str):
         raise InvalidQueryError("incompatible combination: ? and ',', ? would be ignored")
     parsed = ModuleQuery()
     for section in _separate_sections(query):
-        section_label, content = section.split("=")
+        try:
+            section_label, content = section.split("=")
+        except ValueError:
+            raise InvalidQueryError("invalid query syntax")
         parsed.set_section(section_label, _separate_domains(content))
     return parsed
