@@ -182,12 +182,3 @@ def parse_module_query(query: str):
         section_label, content = section.split("=")
         parsed.set_section(section_label, _separate_domains(content))
     return parsed
-
-
-if __name__ == "__main__":
-#    print(parse_module_query("S=Condensation,Condensation_DCL|L=AMP-binding|M=oMT+cMT>nMT|T=?|F=0|O=*"))
-#    print(parse_module_query("M=oMT+cMT>nMT"))
-    print(list(parse_module_query("M=A,B+C")))
-    print(list(parse_module_query("M=A+B,C")))
-    print(list(parse_module_query("M=A+B,C+D")))
-    print(list(parse_module_query("M=A,B+C>D")))
