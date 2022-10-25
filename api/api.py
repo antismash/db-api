@@ -17,6 +17,7 @@ from flask import (
 import re
 import sqlalchemy
 from sqlalchemy import (
+    between,
     cast,
     desc as sql_desc,
     distinct,
@@ -512,8 +513,8 @@ def area(record, version, start_pos, end_pos):
     query = query.filter(or_(
         Region.start_pos.between(start_pos, end_pos),
         Region.end_pos.between(start_pos, end_pos),
-        start_pos.between(Region.start_pos, Region.end_pos),
-        end_pos.between(Region.start_pos, Region.end_pos),
+        between(start_pos, Region.start_pos, Region.end_pos),
+        between(end_pos, Region.start_pos, Region.end_pos),
     ))
     res = query.all()
 
