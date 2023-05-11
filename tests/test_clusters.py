@@ -83,6 +83,11 @@ def test_clusters_by_asdomain():
     assert clusters.clusters_by_asdomain('ACP').count() == 104
 
 
+def test_clusters_by_asdomainsubtype():
+    assert clusters.clusters_by_asdomainsubtype("Trans-AT-KS").count() == 4
+    assert clusters.clusters_by_asdomainsubtype("Hybrid-KS").count() == 13
+
+
 def test_clusters_by_clusterblast():
     assert clusters.clusters_by_clusterblast('NC_003888_c3').count() == 1
 

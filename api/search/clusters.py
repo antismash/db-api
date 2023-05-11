@@ -17,6 +17,7 @@ from api.models import (
     db,
     AsDomain,
     AsDomainProfile,
+    AsDomainSubtype,
     BgcType,
     ClusterblastAlgorithm,
     ClusterblastHit,
@@ -43,6 +44,7 @@ from api.models import (
     T2pksStarter,
     T2pksStarterElongation,
     Taxa,
+    t_rel_as_domain_to_subtype,
     t_rel_regions_types,
 )
 
@@ -79,7 +81,7 @@ def pg_explain(element, compiler, **kw):
 def clusters_to_json(clusters):
     '''Convert model.BiosyntheticGeneClusters into JSON'''
     query = db.session.query(Region, Genome.assembly_id, DnaSequence.accession, DnaSequence.version, DnaSequence.record_number, Taxa.genus, Taxa.species, Taxa.strain)
-    query = query.options(joinedload('bgc_types')).options(joinedload('clusterblast_hits'))
+    query = query.options(joinedload(Region.bgc_types)).options(joinedload(Region.clusterblast_hits))
     query = query.join(DnaSequence, Region.dna_sequence).join(Genome, DnaSequence.genome).join(Taxa, Genome.tax)
     query = query.filter(Region.region_id.in_(map(lambda x: x.region_id, clusters)))
     query = query.order_by(Region.region_id)
@@ -323,6 +325,17 @@ def clusters_by_asdomain(term):
     return Region.query.join(Cds, Region.region_id == Cds.region_id) \
                  .join(AsDomain).join(AsDomainProfile) \
                  .filter(AsDomainProfile.name.ilike(term))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_asdomainsubtype(term):
+    '''Return a query for a BGC by aSDomain subtype'''
+    all_subtypes = AsDomainSubtype.query \
+            .filter(or_(AsDomainSubtype.subtype == term,
+                        AsDomainSubtype.description.ilike('%{}%'.format(term)))) \
+            .cte(recursive=True)
+    return db.session.query(Region).join(Cds).join(AsDomain) \
+           .join(t_rel_as_domain_to_subtype).join(all_subtypes)
 
 
 @register_handler(CLUSTERS)
