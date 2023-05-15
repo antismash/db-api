@@ -1,5 +1,8 @@
-psycopg2-binary
-SQLAlchemy
-Flask
-Flask-SQLAlchemy
+itsdangerous==1.1.0
+markupsafe==1.1.1
+psycopg2==2.8.5
+SQLAlchemy==1.2.7
+Flask==1.1.2
+Flask-SQLAlchemy==2.4.3
 gunicorn
+werkzeug==1.0.1
