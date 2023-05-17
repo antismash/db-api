@@ -193,7 +193,7 @@ def cluster_query_from_term(term):
 
 def guess_cluster_category(term):
     '''Guess cluster search category from term'''
-    if BgcType.query.filter(BgcType.term.ilike(term.term)).count() > 0:
+    if BgcType.query.filter(BgcType.term.ilike(f"{term.term}%")).count() > 0:
         return 'type'
     if DnaSequence.query.filter(DnaSequence.accession.ilike(term.term)).count() > 0:
         return 'acc'
