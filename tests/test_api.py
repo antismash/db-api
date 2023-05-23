@@ -16,41 +16,47 @@ def test_stats(client):
     '''Test /api/v2.0/stats endpoint'''
 
     expected = {
-        'num_sequences': 86,
-        'top_seq_taxon_count': 84,
+        'num_sequences': 96,
+        'top_seq_taxon_count': 94,
         'top_seq_species': 'Streptomyces Unclassified',
         'num_genomes': 2,
         'top_secmet_assembly_id': 'GCF_000203835.1',
-        'num_clusters': 122,
-        'top_secmet_species': 'Streptomyces coelicolor A3(2)',
-        'top_secmet_taxon_count': 27,
-        'top_seq_taxon': 1158056,
-        'top_secmet_taxon': 100226,
+        'num_clusters': 49,  # TODO *regions, should this be named differently
+        'top_secmet_species': 'Streptomyces coelicolor CFB_NBC_0001',
+        'top_secmet_taxon_count': 26,
+        'top_seq_taxon': 15948,
+        'top_secmet_taxon': 1950,
         'clusters': [
-            {'name': 't1pks', 'count': 48, 'description': 'Type I polyketide'},
-            {'name': 'nrps', 'count': 24, 'description': 'Nonribosomal peptide'},
+            {'name': 't1pks', 'count': 59, 'description': 'Type I polyketide'},
+            {'name': 't1nrps', 'count': 23, 'description': 'non-ribosomal peptide synthase'},
             {'name': 'terpene', 'count': 14, 'description': 'Terpene'},
-            {'name': 'nrps-like', 'count': 6, 'description': 'Nonribosomal peptide fragment'},
-            {'name': 'siderophore', 'count': 6, 'description': 'Siderophore'},
+            {'name': 'nrps-like', 'count': 8, 'description': 'NRPS-like fragments'},
+            {'name': 'ni-siderophore', 'count': 6, 'description': 'NRPS-independent IucA/IucC-like siderophores'},
             {'name': 't3pks', 'count': 6, 'description': 'Type III polyketide'},
             {'name': 'butyrolactone', 'count': 5, 'description': 'Butyrolactone'},
-            {'name': 'lanthipeptide', 'count': 5, 'description': 'Lanthipeptide'},
-            {'name': 'bacteriocin', 'count': 4, 'description': 'Bacteriocin or other unspecified RiPP'},
+            {'name': 'lanthipeptide-class-i', 'count': 3, 'description': 'Class I Lanthipeptide'},
             {'name': 'other', 'count': 3, 'description': 'Other'},
+            {'name': 'ripp-like', 'count': 3, 'description': 'Fallback rule containing known RiPP-related profiles'},
             {'name': 't2pks', 'count': 3, 'description': 'Type II polyketide'},
             {'name': 'arylpolyene', 'count': 2, 'description': 'Aryl polyene'},
-            {'name': 'betalactone', 'count': 2, 'description': 'Beta-lactone containing protease inhibitor'},
+            {'name': 'betalactone', 'count': 2, 'description': 'beta-lactone containing protease inhibitor'},
             {'name': 'ectoine', 'count': 2, 'description': 'Ectoine'},
-            {'name': 'hgle-ks', 'count': 2, 'description': 'hglE-type polyketide'},
+            {'name': 'hgle-ks', 'count': 2, 'description': 'heterocyst glycolipid synthase like PKS'},
             {'name': 'indole', 'count': 2, 'description': 'Indole'},
             {'name': 'ladderane', 'count': 2, 'description': 'Ladderane'},
             {'name': 'lassopeptide', 'count': 2, 'description': 'Lasso peptide'},
-            {'name': 'pks-like', 'count': 2, 'description': 'Polyketide fragment'},
-            {'name': 'blactam', 'count': 1, 'description': 'Beta-lactam'},
+            {'name': 'nrp-metallophore', 'count': 2, 'description': 'Non-ribosomal peptide metallophores'},
+            {'name': 'pks-like', 'count': 2, 'description': 'PKS-like fragments'},
+            {'name': 'blactam', 'count': 1, 'description': 'beta-lactam'},
             {'name': 'furan', 'count': 1, 'description': 'Furan'},
             {'name': 'hserlactone', 'count': 1, 'description': 'Homoserine lactone'},
-            {'name': 'linaridin', 'count': 1, 'description': 'Linaridin'},
-            {'name': 'melanin', 'count': 1, 'description': 'Melanin'}
+            {'name': 'lanthipeptide-class-ii', 'count': 1, 'description': 'Class II Lanthipeptide'},
+            {'name': 'lanthipeptide-class-iii', 'count': 1, 'description': 'Class III Lanthipeptide'},
+            {'name': 'linaridin', 'count': 1, 'description': 'Linear arid peptides'},
+            {'name': 'melanin', 'count': 1, 'description': 'Melanin'},
+            {'name': 'prodigiosin', 'count': 1, 'description': 'Serratia-type nontraditional PKS prodigiosin biosynthesis pathway'},
+            {'name': 'redox-cofactor', 'count': 1, 'description': 'Redox-cofactors'},
+            {'name': 'thioamide-nrp', 'count': 1, 'description': 'thioamide-containing non-ribosomal peptides'},
         ]
     }
 
@@ -102,19 +108,20 @@ def test_search(client):
         "clusters": [
             {
                 "acc": "NC_003903",
-                "assembly_id": "GCF_000203835",
+                "assembly_id": "GCF_000203835.1",
                 "cbh_acc": "BGC0000914",
-                "cbh_description": "Methylenomycin",
+                "cbh_description": "methylenomycin A",
                 "cbh_rank": 1,
+                "record_number": 2,
                 "region_number": 2,
                 "contig_edge": False,
-                "description": "Hybrid cluster: Butyrolactone & Furan",
+                "description": "Hybrid region: Butyrolactone & Furan",
                 "start_pos": 226409,
                 "end_pos": 255381,
                 "genus": "Streptomyces",
                 "similarity": 100,
                 "species": "coelicolor",
-                "strain": "A3(2)",
+                "strain": "CFB_NBC_0001",
                 "term": "butyrolactone - furan hybrid",
                 "version": 1
             }
@@ -178,39 +185,49 @@ def test_export(client):
 
     expected_json = [{
         "acc": "NC_003903",
-        "assembly_id": "GCF_000203835",
+        "assembly_id": "GCF_000203835.1",
         "cbh_acc": "BGC0000914",
-        "cbh_description": "Methylenomycin",
+        "cbh_description": "methylenomycin A",
         "cbh_rank": 1,
+        "record_number": 2,
         "region_number": 2,
         "contig_edge": False,
-        "description": "Hybrid cluster: Butyrolactone & Furan",
+        "description": "Hybrid region: Butyrolactone & Furan",
         "start_pos": 226409,
         "end_pos": 255381,
         "genus": "Streptomyces",
         "similarity": 100,
         "species": "coelicolor",
-        "strain": "A3(2)",
+        "strain": "CFB_NBC_0001",
         "term": "butyrolactone - furan hybrid",
         "version": 1
     }]
+    json_with_helpers = dict(expected_json[0])
+    json_with_helpers["url"] = "https://antismash-db.secondarymetabolites.org"
 
-    expected_csv = '''#Genus\tSpecies\tStrain\tNCBI accession\tFrom\tTo\tBGC type\tOn contig edge\\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL
-{genus}\t{species}\t{strain}\t{acc}.{version}\t{start_pos}\t{end_pos}\t{term}\t{contig_edge}\t{cbh_description}\t{similarity}\t{cbh_acc}\thttps://antismash-db.secondarymetabolites.org/go/GCF_000203835/{acc}.{version}/{start_pos}.{end_pos}\thttps://antismash-db.secondarymetabolites.org/api/v1.0/download/genbank/GCF_000203835/{acc}.{version}/{start_pos}.{end_pos}
-'''.format(**expected_json[0]).encode()
+    expected_csv = (
+        "#Genus\tSpecies\tStrain\tNCBI accession\tFrom\tTo\tBGC type\tOn contig edge"
+        "\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL\n"
+        "{genus}\t{species}\t{strain}\t{acc}.{version}\t{start_pos}\t{end_pos}\t{term}\t{contig_edge}"
+        "\t{cbh_description}\t{similarity}\t{cbh_acc}\t{url}/go/{acc}.{version}/{start_pos}-{end_pos}"
+        "\t{url}/api/v1.0/download/genbank/{assembly_id}/{acc}/{version}/{start_pos}/{end_pos}\n"
+    ).format(**json_with_helpers).encode()
 
-    expected_fasta = '''>{acc}.{version}|{start_pos}-{end_pos}|butyrolactone - furan|{genus} {species} {strain}
-ACCGGCCTCGCCGTGACGCGGGTGCTCGGGGTCGAAGATCCCGTCCAGCGGGATCGACTTGCCCATGATGTCCGGCGGCA'''.format(**expected_json[0]).encode()
+    expected_fasta = (
+        ">{acc}.{version}|{start_pos}-{end_pos}|butyrolactone - furan|{genus} {species} {strain}\n"
+        "ACCGGCCTCGCCGTGACGCGGGTGCTCGGGGTCGAAGATCCCGTCCAGCGGGATCGACTTGCCCATGATGTCCGGCGGCA"
+    ).format(**json_with_helpers).encode()
 
-    results = client.post(url_for('export'), data='{"search_string": "[type]furan"}', content_type="application/json")
-    assert results.status_code == 200
-    assert results.data == expected_csv
 
     query = {'query': {'search': 'cluster', 'return_type': 'json', 'terms': {'term_type': 'expr', 'category': 'type', 'term': 'furan'}}}
     results = client.post(url_for('export'), data=json.dumps(query), content_type="application/json")
     assert results.status_code == 200
     results.json[0].pop("bgc_id")  # arbitrary value, not useful for testing
     assert results.json == expected_json
+
+    results = client.post(url_for('export'), data='{"search_string": "[type]furan"}', content_type="application/json")
+    assert results.status_code == 200
+    assert results.data == expected_csv
 
     query['query']['return_type'] = 'csv'
     results = client.post(url_for('export'), data=json.dumps(query), content_type="application/json")
@@ -236,19 +253,20 @@ def test_genome(client):
     '''Test /api/v1.0/genome/<identifier> endpoint'''
     expected = {
         "acc": "NC_003888",
-        "assembly_id": "GCF_000203835",
+        "assembly_id": "GCF_000203835.1",
         "cbh_acc": "BGC0001101",
-        "cbh_description": "Leinamycin",
+        "cbh_description": "leinamycin",
         "cbh_rank": 1,
+        "record_number": 1,
         "region_number": 1,
         "contig_edge": False,
-        "description": "Hybrid cluster: hglE-type polyketide & Type I polyketide",
+        "description": "Hybrid region: heterocyst glycolipid synthase like PKS & Type I polyketide",
         "end_pos": 139654,
         "genus": "Streptomyces",
         "similarity": 2,
         "species": "coelicolor",
         "start_pos": 86636,
-        "strain": "A3(2)",
+        "strain": "CFB_NBC_0001",
         "term": "hgle-ks - t1pks hybrid",
         "version": 3
     }

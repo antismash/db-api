@@ -19,52 +19,58 @@ def test_guess_cluster_category():
         assert clusters.guess_cluster_category(term) == expected, search_term
 
 
-SCO_CLUSTER_COUNT = 29
-STREPTO_CLUSTER_COUNT = 122
+# using GCF_000203835.1 (S.Coelicolor) and GCF_000590515.1 (S.sp.PRh5)as test
+# data, the taxid lookups change as NCBI changes them, which is frustrating, but
+# to make this easier to handle in the counts by taxonomy tests below, these
+# constants have been created to handle the split, before and after
+
+TOTAL_REGION_COUNT = 133
+SCO_REGION_COUNT = 28
+OTHER_REGION_COUNT = TOTAL_REGION_COUNT - SCO_REGION_COUNT
 
 
 def test_clusters_by_taxid():
-    assert clusters.clusters_by_taxid(100226).count() == SCO_CLUSTER_COUNT
+    assert clusters.clusters_by_taxid(1950).count() == SCO_REGION_COUNT
 
 
 def test_clusters_by_strain():
-    assert clusters.clusters_by_strain('A3(2)').count() == SCO_CLUSTER_COUNT
+    assert clusters.clusters_by_strain('CFB_NBC_0001').count() == SCO_REGION_COUNT
 
 
 def test_clusters_by_species():
-    assert clusters.clusters_by_species('coelicolor').count() == SCO_CLUSTER_COUNT
+    assert clusters.clusters_by_species('coelicolor').count() == SCO_REGION_COUNT
 
 
 def test_clusters_by_genus():
-    assert clusters.clusters_by_genus('streptomyces').count() == STREPTO_CLUSTER_COUNT
+    assert clusters.clusters_by_genus('streptomyces').count() == TOTAL_REGION_COUNT
 
 
 def test_clusters_by_family():
-    assert clusters.clusters_by_family('streptomycetaceae').count() == STREPTO_CLUSTER_COUNT
+    assert clusters.clusters_by_family('streptomycetaceae').count() == TOTAL_REGION_COUNT
 
 
 def test_clusters_by_order():
-    assert clusters.clusters_by_order('streptomycetales').count() == STREPTO_CLUSTER_COUNT
+    assert clusters.clusters_by_order('streptomycetales').count() == SCO_REGION_COUNT
 
 
 def test_clusters_by_class():
-    assert clusters.clusters_by_class('actinobacteria').count() == STREPTO_CLUSTER_COUNT
+    assert clusters.clusters_by_class('actinobacteria').count() == SCO_REGION_COUNT
 
 
 def test_clusters_by_phylum():
-    assert clusters.clusters_by_phylum('actinobacteria').count() == STREPTO_CLUSTER_COUNT
+    assert clusters.clusters_by_phylum('actinobacteria').count() == SCO_REGION_COUNT
 
 
 def test_clusters_by_superkingdom():
-    assert clusters.clusters_by_superkingdom('bacteria').count() == STREPTO_CLUSTER_COUNT
+    assert clusters.clusters_by_superkingdom('bacteria').count() == TOTAL_REGION_COUNT
 
 
 def test_clusters_by_monomer():
-    assert clusters.clusters_by_substrate('ala').count() == 2
+    assert clusters.clusters_by_substrate('ala').count() == 3
 
 
 def test_clusters_by_acc():
-    assert clusters.clusters_by_acc('NC_003888').count() == 27
+    assert clusters.clusters_by_acc('NC_003888').count() == 26
 
 
 def test_clusters_by_compoundseq():
@@ -89,7 +95,7 @@ def test_clusters_by_asdomainsubtype():
 
 
 def test_clusters_by_clusterblast():
-    assert clusters.clusters_by_clusterblast('NC_003888_c3').count() == 1
+    assert clusters.clusters_by_clusterblast('NZ_CP042324.1').count() == 1
 
 
 def test_clusters_by_knowncluster():

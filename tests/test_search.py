@@ -2,6 +2,8 @@ import pytest
 from api import search
 from api.search_parser import QueryTerm
 
+from .test_clusters import TOTAL_REGION_COUNT
+
 
 def test_none_query():
     query = search.NoneQuery()
@@ -17,12 +19,14 @@ def test_break_lines():
 
 def test_cluster_query_from_term_expression():
     term = QueryTerm('expression', category='type', term='lanthipeptide')
+    expected_count = 5
+
     ret = search.cluster_query_from_term(term)
-    assert ret.count() == 5
+    assert ret.count() == expected_count
 
     term.category = 'unknown'
     ret = search.cluster_query_from_term(term)
-    assert ret.count() == 5
+    assert ret.count() == expected_count
 
     term.category = 'type'
     term.term = 'bogus'
@@ -47,7 +51,7 @@ def test_cluster_query_from_term_operation():
 
     term.operation = 'or'
     ret = search.cluster_query_from_term(term)
-    assert ret.count() == 122
+    assert ret.count() == TOTAL_REGION_COUNT
 
     term.operation = 'except'
     ret = search.cluster_query_from_term(term)
@@ -59,7 +63,7 @@ def test_cluster_query_from_term_operation():
 
     term.operation = 'or'
     ret = search.cluster_query_from_term(term)
-    assert ret.count() == 122
+    assert ret.count() == TOTAL_REGION_COUNT
 
     term.operation = 'except'
     ret = search.cluster_query_from_term(term)

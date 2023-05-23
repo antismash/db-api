@@ -26,12 +26,21 @@ def test_get_superkingdom(session):
 
 def test_get_phylum(session):
     expected = [
-        {'children': True,
-         'id': 'phylum_bacteria_actinobacteria',
-         'parent': 'superkingdom_bacteria',
-         'state': {'disabled': True},
-         'text': 'Actinobacteria (2)'
-    }]
+        {
+            'children': True,
+            'id': 'phylum_bacteria_actinobacteria',
+            'parent': 'superkingdom_bacteria',
+            'state': {'disabled': True},
+            'text': 'Actinobacteria (1)'
+        },
+        {
+            "children": True,
+            "id": "phylum_bacteria_actinomycetota",
+            "parent": "superkingdom_bacteria",
+            "state": {"disabled": True},
+            "text": "Actinomycetota (1)",
+        },
+    ]
     ret = get_phylum(['bacteria'])
     assert ret == expected
 
@@ -42,7 +51,7 @@ def test_get_class(session):
         'id': 'class_bacteria_actinobacteria_actinobacteria',
         'parent': 'phylum_bacteria_actinobacteria',
         'state': {'disabled': True},
-        'text': 'Actinobacteria (2)'
+        'text': 'Actinobacteria (1)'
     }]
     ret = get_class(['bacteria', 'actinobacteria'])
     assert ret == expected
@@ -54,7 +63,7 @@ def test_get_order(session):
         'id': 'order_bacteria_actinobacteria_actinobacteria_streptomycetales',
         'parent': 'class_bacteria_actinobacteria_actinobacteria',
         'state': {'disabled': True},
-        'text': 'Streptomycetales (2)'
+        'text': 'Streptomycetales (1)'
     }]
     ret = get_order(['bacteria', 'actinobacteria', 'actinobacteria'])
     assert ret == expected
@@ -66,7 +75,7 @@ def test_get_family(session):
         'id': 'family_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae',
         'parent': 'order_bacteria_actinobacteria_actinobacteria_streptomycetales',
         'state': {'disabled': True},
-        'text': 'Streptomycetaceae (2)'
+        'text': 'Streptomycetaceae (1)'
     }]
     ret = get_family(['bacteria', 'actinobacteria', 'actinobacteria', 'streptomycetales'])
     assert ret == expected
@@ -78,7 +87,7 @@ def test_get_genus(session):
         'id': 'genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces',
         'parent': 'family_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae',
         'state': {'disabled': True},
-        'text': 'Streptomyces (2)'
+        'text': 'Streptomyces (1)'
     }]
     ret = get_genus(['bacteria', 'actinobacteria', 'actinobacteria', 'streptomycetales', 'streptomycetaceae'])
     assert ret == expected
@@ -91,13 +100,7 @@ def test_get_species(session):
         'parent': 'genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces',
         'state': {'disabled': True},
         'text': 'coelicolor (1)'
-    },{
-        'children': True,
-        'id': 'species_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces_unclassified',
-        'parent': 'genus_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces',
-        'state': {'disabled': True},
-        'text': 'Unclassified (1)'
-    }
+    },
     ]
     ret = get_species(['bacteria', 'actinobacteria', 'actinobacteria', 'streptomycetales', 'streptomycetaceae', 'streptomyces'])
     assert ret == expected
@@ -107,8 +110,9 @@ def test_get_strain(session):
     expected = [{
         'assembly_id': 'GCF_000203835.1',
         'id': 'gcf_000203835.1',
+        'li_attr': {'data-assembly': 'GCF_000203835.1'},
         'parent': 'species_bacteria_actinobacteria_actinobacteria_streptomycetales_streptomycetaceae_streptomyces_coelicolor',
-        'text': 'Streptomyces coelicolor A3(2) GCF_000203835.1',
+        'text': 'Streptomyces coelicolor CFB_NBC_0001 GCF_000203835.1',
         'type': 'strain'
     }]
     ret = get_strains(['bacteria', 'actinobacteria', 'actinobacteria', 'streptomycetales', 'streptomycetaceae', 'streptomyces', 'coelicolor'])
@@ -129,6 +133,7 @@ def test__create_tree_node(session):
     expected = {
         'assembly_id': 'testid',
         'id': 'testid',
+        'li_attr': {'data-assembly': 'testid'},
         'parent': 'parent',
         'text': 'cool text',
         'type': 'strain'
