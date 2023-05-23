@@ -128,6 +128,10 @@ def test_clusters_by_pfam():
     assert get_count(clusters.clusters_by_pfam("Bac_rhamnosid_N")) == 1  # SCO0488: 507,394-510,810
 
 
+def test_clusters_by_tigrfam():
+    assert get_count(clusters.clusters_by_tigrfam("TIGR00552")) == 1  # SCO0506: 542,269-543,099
+
+
 def test_clusters_by_modules():
     def count(query):
         return get_count(clusters.clusters_by_modulequery(query))

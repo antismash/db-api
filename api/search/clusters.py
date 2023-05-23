@@ -46,6 +46,8 @@ from api.models import (
     T2pksStarter,
     T2pksStarterElongation,
     Taxa,
+    Tigrfam,
+    TigrfamDomain,
     t_rel_as_domain_to_subtype,
     t_rel_regions_types,
 )
@@ -385,6 +387,16 @@ def clusters_by_pfam(term):
     if term.lower().startswith("pfam"):
         return query.filter(Pfam.pfam_id.ilike(search))
     return query.filter(or_(Pfam.pfam_id.ilike(search), Pfam.name.ilike(search), Pfam.description.ilike(search)))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_tigrfam(term):
+    '''Return a query for a region by Pfam hit'''
+    search = "%{}%".format(term)
+    query = Region.query.join(Cds).join(TigrfamDomain).join(Tigrfam)
+    if term.lower().startswith("tigrfam"):
+        return query.filter(Tigrfam.tigrfam_id.ilike(search))
+    return query.filter(or_(Tigrfam.tigrfam_id.ilike(search), Tigrfam.name.ilike(search), Tigrfam.description.ilike(search)))
 
 
 @register_handler(CLUSTERS)
