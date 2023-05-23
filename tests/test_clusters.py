@@ -124,6 +124,10 @@ def test_clusters_by_resfam():
     assert get_count(clusters.clusters_by_resfam("ClassB")) == 1  # SCO5091: 5,533,653-5,534,546
 
 
+def test_clusters_by_pfam():
+    assert get_count(clusters.clusters_by_pfam("Bac_rhamnosid_N")) == 1  # SCO0488: 507,394-510,810
+
+
 def test_clusters_by_modules():
     def count(query):
         return get_count(clusters.clusters_by_modulequery(query))

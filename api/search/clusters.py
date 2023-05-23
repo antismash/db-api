@@ -27,6 +27,8 @@ from api.models import (
     Module,
     ModuleDomainFunction,
     Monomer,
+    Pfam,
+    PfamDomain,
     Profile,
     ProfileHit,
     Protocluster,
@@ -373,6 +375,16 @@ def clusters_by_resfam(term):
     '''Return a query for a region by Resfam hit'''
     search = "%{}%".format(term)
     return Region.query.join(Cds).join(ResfamDomain).join(Resfam).filter(or_(Resfam.accession.ilike(search), Resfam.name.ilike(search), Resfam.description.ilike(search)))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_pfam(term):
+    '''Return a query for a region by Pfam hit'''
+    search = "%{}%".format(term)
+    query = Region.query.join(Cds).join(PfamDomain).join(Pfam)
+    if term.lower().startswith("pfam"):
+        return query.filter(Pfam.pfam_id.ilike(search))
+    return query.filter(or_(Pfam.pfam_id.ilike(search), Pfam.name.ilike(search), Pfam.description.ilike(search)))
 
 
 @register_handler(CLUSTERS)
