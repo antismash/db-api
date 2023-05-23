@@ -159,7 +159,7 @@ def get_sec_met_tree():
                            DnaSequence.accession,
                            BgcType.term, BgcType.description,
                            Taxa.genus, Taxa.species, Taxa.strain, Genome.assembly_id) \
-                    .join(DnaSequence, DnaSequence.accession == Region.record_accession).join(Genome).join(Taxa) \
+                    .join(DnaSequence, DnaSequence.accession == Region.accession).join(Genome).join(Taxa) \
                     .join(t_rel_regions_types).join(BgcType) \
                     .order_by(BgcType.description, Taxa.genus, Taxa.species, DnaSequence.accession, Region.region_number) \
                     .all()
