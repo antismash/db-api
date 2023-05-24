@@ -117,6 +117,10 @@ def test_clusters_by_subcluster():
     assert get_count(clusters.clusters_by_subcluster('AF386507')) == 3  # 1 if GCF_000590515.1 was minimal
 
 
+def test_clusters_by_resfam():
+    assert get_count(clusters.clusters_by_resfam("ClassB")) == 1  # SCO5091: 5,533,653-5,534,546
+
+
 def test_clusters_by_modules():
     def count(query):
         return get_count(clusters.clusters_by_modulequery(query))
