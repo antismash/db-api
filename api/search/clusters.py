@@ -23,6 +23,8 @@ from api.models import (
     ClusterblastAlgorithm,
     ClusterblastHit,
     Cds,
+    ComparippsonHit,
+    ComparippsonMibigReference,
     Genome,
     DnaSequence,
     Module,
@@ -574,3 +576,15 @@ def clusters_by_modulequery(term):
 def clusters_by_crosscdsmodule(term=""):
     """Return a query for regions containing a cross-CDS module"""
     return Region.query.join(Module).filter(Module.multi_gene == True)
+
+
+@register_handler(CLUSTERS)
+def clusters_by_comparippsonmibig(term):
+    """Return a query for regions containing a CompaRiPPson hit against the given MIBiG entry"""
+    search = f"%{term}%"
+    return Region.query.join(ComparippsonHit).join(ComparippsonMibigReference) \
+             .filter(or_(
+                ComparippsonMibigReference.accession.ilike(search),
+                ComparippsonMibigReference.compound.ilike(search),
+                ComparippsonMibigReference.product.ilike(search),
+            ))

@@ -1,8 +1,11 @@
 'Tests for the cluster search logic'
 
 from api.search_parser import QueryTerm
-from api.search import clusters
-from api.search import modules
+from api.search import (
+    clusters,
+    filters,
+    modules,
+)
 
 
 def get_count(query):
@@ -245,3 +248,19 @@ def test_clusters_by_crosscds_module():
 
 def test_clusters_by_tfbs():
     assert get_count(clusters.clusters_by_tfbs("ZuR")) == 41  # no quality requirement
+
+
+def test_clusters_by_comparippsonmibig():
+    # GCF_000203835.1, NC_003888.3:7,409,664 - 7,432,456, SCO6682
+    # by accession
+    assert get_count(clusters.clusters_by_comparippsonmibig("BGC0000553")) == 1
+    # by compound
+    assert get_count(clusters.clusters_by_comparippsonmibig("SRO15-2212")) == 1
+    # by type
+    assert get_count(clusters.clusters_by_comparippsonmibig("lanthipeptide")) == 2
+
+    # with filters
+    query = clusters.clusters_by_comparippsonmibig("BGC")
+    assert get_count(query) == 2
+    filtered = filters._filter_comparippson_numeric(query, "similarity", ">=", 0.3)
+    assert get_count(filtered) == 1
