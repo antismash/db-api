@@ -19,6 +19,7 @@ from api.models import (
     AsDomainProfile,
     AsDomainSubtype,
     BgcType,
+    BindingSite,
     ClusterblastAlgorithm,
     ClusterblastHit,
     Cds,
@@ -33,6 +34,7 @@ from api.models import (
     ProfileHit,
     Protocluster,
     Region,
+    Regulator,
     RelModulesMonomer,
     ResfamDomain,
     Resfam,
@@ -397,6 +399,14 @@ def clusters_by_tigrfam(term):
     if term.lower().startswith("tigrfam"):
         return query.filter(Tigrfam.tigrfam_id.ilike(search))
     return query.filter(or_(Tigrfam.tigrfam_id.ilike(search), Tigrfam.name.ilike(search), Tigrfam.description.ilike(search)))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_tfbs(term):
+    """Returns a query for regions containing a match for the given TFBS regulator name"""
+    search = "%{}%".format(term)
+    return Region.query.join(BindingSite).join(Regulator) \
+                 .filter(or_(Regulator.name.ilike(term), Regulator.name.ilike(term)))
 
 
 @register_handler(CLUSTERS)

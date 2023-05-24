@@ -236,3 +236,7 @@ def test_clusters_by_modules():
         except Exception:
             print(combo)
             raise
+
+
+def test_clusters_by_tfbs():
+    assert get_count(clusters.clusters_by_tfbs("ZuR")) == 41  # no quality requirement
