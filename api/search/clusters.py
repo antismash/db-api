@@ -568,3 +568,9 @@ def clusters_by_modulequery(term):
     if matching_modules is None:
         raise InvalidQueryError("no restrictions in query: %s" % term)
     return Region.query.join(Module).filter(Module.module_id.in_(matching_modules))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_crosscdsmodule(term=""):
+    """Return a query for regions containing a cross-CDS module"""
+    return Region.query.join(Module).filter(Module.multi_gene == True)

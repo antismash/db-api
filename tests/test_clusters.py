@@ -238,5 +238,10 @@ def test_clusters_by_modules():
             raise
 
 
+def test_clusters_by_crosscds_module():
+    # GCF_000590515.1, NZ_JABQ01000025:1-41,346, Z951_RS18340 and Z951_RS18345
+    get_count(clusters.clusters_by_crosscdsmodule()) == 1
+
+
 def test_clusters_by_tfbs():
     assert get_count(clusters.clusters_by_tfbs("ZuR")) == 41  # no quality requirement
