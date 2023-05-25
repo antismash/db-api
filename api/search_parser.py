@@ -1,6 +1,24 @@
 '''Parser for search strings to Query data structure'''
 
 import re
+from typing import Any
+
+from .search.helpers import Filter, NumericFilter, ensure_operator_valid
+from .search.filters import available_filters_by_category
+
+
+def process_filter(data: dict[str, Any], category: str) -> list[tuple[Filter, dict[str, Any]]]:
+    """ Finds matching Filter instances for the filter described by JSON
+        Returns a tuple of the filter and the data, ready to be run when a query is present
+    """
+    available_filters = available_filters_by_category(category, as_json=False)
+    if "name" not in data:
+        raise ValueError(f"Missing filter type for category: '{category}'")
+    matching = [available for available in available_filters if available.name == data["name"]]
+    if len(matching) != 1:
+        raise ValueError(f"Invalid filter '{data['name']}' for category: '{category}'")
+    match = matching[0]
+    return (match, data)
 
 
 class Query(object):
@@ -90,6 +108,7 @@ class QueryTerm(object):
                 raise ValueError("For expressions, you need to specify 'category' and 'term'")
             self.category = kwargs['category']
             self.term = kwargs['term']
+            self.filters = [process_filter(f, self.category) for f in kwargs.get("filters", [])]
             if self.category in self.BOOL_CATEGORIES and not isinstance(self.term, bool):
                 self.term = self.term.casefold() in {'true', 'yes', 't', 'y', '1'}
 
@@ -130,7 +149,7 @@ class QueryTerm(object):
             if not set(['category', 'term']).issubset(term.keys()):
                 raise ValueError("For expressions, you need to specify 'category' and 'term'")
 
-            return cls('expression', category=term['category'], term=term['term'])
+            return cls('expression', category=term['category'], term=term['term'], filters=term.get('filters', []))
 
         elif term['term_type'] == 'op':
             if not set(['operation', 'left', 'right']).issubset(term.keys()):

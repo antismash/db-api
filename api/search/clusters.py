@@ -183,7 +183,10 @@ def cluster_query_from_term(term):
         if term.category == 'unknown':
             term.category = guess_cluster_category(term)
         if term.category in CLUSTERS:
-            return CLUSTERS[term.category](term.term)
+            query = CLUSTERS[term.category](term.term)
+            for query_filter, data in term.filters:
+                query = query_filter.run(query, data)
+            return query
         else:
             raise UnknownQueryError()
     elif term.kind == 'operation':
