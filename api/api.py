@@ -670,3 +670,9 @@ def list_available_categories():
             result["groups"][index]["options"].append(option)
     # don't use jsonify, it'll sort by key and ruin filter options and the like
     return Response(json.dumps(result, sort_keys=False), mimetype="text/json")
+
+
+@app.route('/api/v1.0/available_filters/<category>')
+def list_available_filters(category):
+    """List available filters for a given category"""
+    return jsonify(available_filters_by_category(category))
