@@ -1,6 +1,7 @@
 '''The API calls'''
 
 from distutils.util import strtobool
+from enum import auto, Enum, unique
 from io import BytesIO
 import json
 from flask import (
@@ -595,3 +596,71 @@ def convert():
         abort(400)
 
     return jsonify(query.to_json())
+
+
+@unique
+class CategoryType(Enum):
+    TEXT = auto()
+    BOOL = auto()
+    NUMERIC = auto()
+
+    def __str__(self):
+        return str(self.name).lower()
+
+
+PREDICTION_GROUP = "antiSMASH predictions"
+RIPP_GROUP = "Compound properties"
+QUALITY_GROUP = "Quality filters"
+TAXONOMY_GROUP = "Taxonomy"
+COMPARISON_GROUP = "Similar clusters"
+
+CATEGORY_GROUPS = [PREDICTION_GROUP, RIPP_GROUP, QUALITY_GROUP, TAXONOMY_GROUP, COMPARISON_GROUP]
+
+CATEGORIES = {
+    "acc": ("NCBI RefSeq Accession", CategoryType.TEXT, None),
+    "assembly": ("NCBI assembly ID", CategoryType.TEXT, None),
+    "type": ("BGC type", CategoryType.TEXT, PREDICTION_GROUP),
+    "monomer": ("Monomer", CategoryType.TEXT, PREDICTION_GROUP),
+    "profile": ("Biosynthetic profile", CategoryType.TEXT, PREDICTION_GROUP),
+    "asdomain": ("NRPS/PKS domain", CategoryType.TEXT, PREDICTION_GROUP),
+    "smcog": ("smCoG hit", CategoryType.TEXT, PREDICTION_GROUP),
+    "tfbs": ("Binding site regulator", CategoryType.TEXT, PREDICTION_GROUP),
+    "compoundseq": ("Compound sequence", CategoryType.TEXT, RIPP_GROUP),
+    "compoundclass": ("RiPP compound class", CategoryType.TEXT, RIPP_GROUP),
+    "contigedge": ("Region on contig edge", CategoryType.BOOL, QUALITY_GROUP),
+    "strain": ("Strain", CategoryType.TEXT, TAXONOMY_GROUP),
+    "species": ("Species", CategoryType.TEXT, TAXONOMY_GROUP),
+    "genus": ("Genus", CategoryType.TEXT, TAXONOMY_GROUP),
+    "family": ("Family", CategoryType.TEXT, TAXONOMY_GROUP),
+    "order": ("Order", CategoryType.TEXT, TAXONOMY_GROUP),
+    "class": ("Class", CategoryType.TEXT, TAXONOMY_GROUP),
+    "phylum": ("Phylum", CategoryType.TEXT, TAXONOMY_GROUP),
+    "superkingdom": ("Superkingdom", CategoryType.TEXT, TAXONOMY_GROUP),
+    "clusterblast": ("ClusterBlast hit", CategoryType.TEXT, COMPARISON_GROUP),
+    "knowncluster": ("KnownClusterBlast hit", CategoryType.TEXT, COMPARISON_GROUP),
+    "knownclustersim": ("KnownClusterBlast similarity", CategoryType.NUMERIC, COMPARISON_GROUP),  # TODO remove
+    "subcluster": ("SubClusterBlast hit", CategoryType.TEXT, COMPARISON_GROUP),
+}
+
+
+@app.route("/api/v1.0/available_categories")
+def list_available_categories():
+    # type options: text, bool, numeric
+    result = {
+        "options": [],
+        "groups": [{"header": group, "options": []} for group in CATEGORY_GROUPS],
+    }
+    for category, values in CATEGORIES.items():
+        description, data_type, group = values
+        option = {
+            "label": description,
+            "value": category,
+            "type": str(data_type),
+        }
+        if group is None:
+            result["options"].append(option)
+        else:
+            index = CATEGORY_GROUPS.index(group)
+            result["groups"][index]["options"].append(option)
+    # don't use jsonify, it'll sort by key and ruin filter options and the like
+    return Response(json.dumps(result, sort_keys=False), mimetype="text/json")
