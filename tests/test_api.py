@@ -1,6 +1,6 @@
 import json
 from flask import url_for
-from api import taxtree
+from api import api, taxtree
 
 from .test_clusters import SCO_STRAIN
 
@@ -65,6 +65,36 @@ def test_stats(client):
     results = client.get(url_for('get_stats_v2'))
     assert results.status_code == 200
     assert results.json == expected
+
+
+def test_categories_have_filters():
+    def check_filter(filt):
+        assert isinstance(filt["name"], str)
+        assert isinstance(filt["type"], str)
+        for key in filt.get("labels", {}):
+            assert isinstance(key, str)
+
+    def check_option(option):
+        assert len(set(option).intersection({"label", "value", "type"})) == 3
+        for filt in option.get("filters", []):
+            check_filter(filt)
+
+    # categories is special, it doesn't use jsonify, so the payload needs to be
+    # manually checked instead of just using .json
+    data = json.loads(api.list_available_categories().data.decode())
+
+    for key in ["options", "groups"]:
+        assert data[key]
+    assert len(data) == 2  # no extras, thank you
+    for option in data["options"]:
+        check_option(option)
+
+    for group in data["groups"]:
+        for key in ["options", "header"]:
+            assert group[key], group
+        assert isinstance(group["header"], str)
+        for option in group["options"]:
+            check_option(option)
 
 
 def test_sec_met_tree(client):

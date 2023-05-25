@@ -33,6 +33,9 @@ from .search import (
     region_stats,
     available_term_by_category,
 )
+from .search.filters import (
+    available_filters_by_category,
+)
 from .search.helpers import InvalidQueryError, UnknownQueryError
 from .search_parser import Query
 from .models import (
@@ -657,6 +660,9 @@ def list_available_categories():
             "value": category,
             "type": str(data_type),
         }
+        filters = available_filters_by_category(category)
+        if filters:
+            option["filters"] = filters
         if group is None:
             result["options"].append(option)
         else:
