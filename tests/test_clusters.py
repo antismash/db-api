@@ -180,6 +180,9 @@ def test_clusters_by_modules():
     assert kr_and_er < counts["KR"] + counts["ER"]
     dh_and_kr = count("M=PKS_KR+PKS_DH")
     assert dh_and_kr < counts["KR"] + counts["DH"]
+    # commutativity of zero hits
+    assert count("M=INVALID+PKS_KR") == 0
+    assert count("M=PKS_KR+INVALID") == 0
     # AND AND
     assert count("M=PKS_DH+PKS_ER+PKS_KR") <= min(dh_and_kr, kr_and_er)
     # AND OR
@@ -189,6 +192,7 @@ def test_clusters_by_modules():
     assert count("M=PKS_ER,PKS_DH+PKS_KR") == and_or
     # AND OR AND
     assert count("M=PKS_DH+PKS_KR,PKS_ER+PKS_KR") >= max(dh_and_kr, kr_and_er)
+    assert count("M=cMT") == 0  # if this is wrong, then the following will be wrong
     assert count("M=cMT+PKS_KR,PKS_ER+PKS_KR") == kr_and_er
     assert count("M=PKS_ER+PKS_KR,PKS_KR+CMT") == kr_and_er
 

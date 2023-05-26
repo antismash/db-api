@@ -545,6 +545,9 @@ def clusters_by_modulequery(term):
                 if i % 2:
                     op = value
                     continue
+                # short-circuit evaluation if LHS of and AND is empty
+                if op == module_query.AND and not section_modules:
+                    continue
                 if op != module_query.THEN:
                     previous_part = None  # simplify everything
                 if value == module_query.IGNORE:
