@@ -183,23 +183,24 @@ def test_search(client):
         "total": 1,
     }
 
-    results = client.post(url_for('search'), data='{"search_string": "[type]furan"}', content_type="application/json")
+    url = url_for('search').replace("v2", "v1")
+    results = client.post(url, data='{"search_string": "[type]furan"}', content_type="application/json")
     assert results.status_code == 200
     assert results.json["clusters"][0].pop("bgc_id")
     assert results.json == expected
 
     query = {'query': {'search': 'cluster', 'return_type': 'json', 'terms': {'term_type': 'expr', 'category': 'type', 'term': 'furan'}}}
-    results = client.post(url_for('search'), data=json.dumps(query), content_type="application/json")
+    results = client.post(url, data=json.dumps(query), content_type="application/json")
     assert results.status_code == 200
     assert results.json["clusters"][0].pop("bgc_id")
     assert results.json == expected
 
     query['query']['return_type'] = 'csv'
-    results = client.post(url_for('search'), data=json.dumps(query), content_type="application/json")
+    results = client.post(url, data=json.dumps(query), content_type="application/json")
     assert results.status_code == 400
 
     query['query'] = {}
-    results = client.post(url_for('search'), data=json.dumps(query), content_type="application/json")
+    results = client.post(url, data=json.dumps(query), content_type="application/json")
     assert results.status_code == 400
 
 
