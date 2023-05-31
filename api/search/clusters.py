@@ -580,7 +580,7 @@ def clusters_by_modulequery(term):
     # in the case where all options are ANY, no results are generated yet
     if matching_modules is None:
         raise InvalidQueryError("no restrictions in query: %s" % term)
-    return Region.query.join(Module).filter(Module.module_id.in_(matching_modules))
+    return Region.query.join(Module).filter(Module.module_id.in_(matching_modules)).distinct(Region.region_id)
 
 
 @register_handler(CLUSTERS)

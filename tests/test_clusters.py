@@ -143,6 +143,7 @@ def test_clusters_by_modules():
         "ACP": count("T=ACP"),
         "PCP": count("T=PCP"),
         "PP-binding": count("T=PP-binding"),
+        "PKS_PP": count("T=PKS_PP"),
         "none": count("T=0"),
     }
 
@@ -152,14 +153,19 @@ def test_clusters_by_modules():
     assert count("S=PKS_KS|L=AMP-binding") == 0
     assert count("M=?|T=ACP") < min(count("M=?"), counts["ACP"])
 
+    # counts won't be the same as pure addition when using unique rows, as some
+    # hits contain both already
     # OR
-    assert count("T=PCP,ACP") == counts["ACP"] + counts["PCP"]
+    sub_counts = [counts["ACP"], counts["PCP"]]
+    assert min(sub_counts) < count("T=PCP,ACP") < sum(sub_counts)
     # ANY
-    assert count("T=?") == counts["ACP"] + counts["PCP"] + counts["PP-binding"]
+    sub_counts = [counts["ACP"], counts["PCP"], counts["PP-binding"], counts["PKS_PP"]]
+    assert min(sub_counts) < count("T=?") < sum(sub_counts)
     # NONE OR
-    assert count("T=0,PP-binding") == counts["PP-binding"] + counts["none"]
+    sub_counts = [counts["PP-binding"], counts["none"]]
+    assert min(sub_counts) < count("T=0,PP-binding") < sum(sub_counts)
     # OR NONE
-    assert count("T=PP-binding,0") == counts["PP-binding"] + counts["none"]
+    assert min(sub_counts) < count("T=PP-binding,0") < sum(sub_counts)
     # IGNORE
     try:
         count("T=*")
