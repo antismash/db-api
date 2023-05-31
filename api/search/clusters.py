@@ -444,11 +444,12 @@ def clusters_by_modulequery(term):
 
 
     class QueryPart:
-        def __init__(self, operator, section, value):
+        def __init__(self, operator, section, value, index):
             self.operator = operator
             self.section = section
             self.value = value
             self.matching_domain_ids = None
+            self.index = index
 
         def short(self):
             return "%s %s %s" % (self.section, self.operator, self.value)
@@ -463,18 +464,24 @@ def clusters_by_modulequery(term):
         value = query_part.value
 
         def filter_by_existing(current_query):
-            if operator == module_query.AND and section_modules:
-                current_query = current_query.filter(Module.module_id.in_(section_modules))  # effectively an intersection  # TODO: compare performance to python set intersection
-            elif absolute_modules is not None:  # only relevant for the first domain or after an OR
-                current_query = current_query.filter(Module.module_id.in_(absolute_modules))
-            return current_query
+            # the first part of the section
+            if query_part.index == 0:
+                assert operator is None, query_part
+                # filter by other previous sections' constraints, if they exist
+                if absolute_modules:
+                    current_query.filter(Module.module_id.in_(absolute_modules))
+                return current_query
+
+            # following parts of the section must all have things that matched the earlier parts
+            assert section_modules is not None, query_part
+            return current_query.filter(Module.module_id.in_(section_modules))
 
         assert operator != module_query.IGNORE, query_part
 
         # base query
         matches = Module.query.with_entities(Module.module_id, AsDomain.as_domain_id)
 
-        # limit by section or absolute, in that order and only if present
+        # limit by section or absolute
         matches = filter_by_existing(matches)
         matches = matches.join(AsDomain).join(ModuleDomainFunction).join(AsDomainProfile)
         # filter by section
@@ -485,10 +492,9 @@ def clusters_by_modulequery(term):
             sub = filter_by_existing(sub)
             # then exclude them
             matches = matches.filter(~Module.module_id.in_(sub))
-            hits = {i[0] for i in matches.all()}
-            if operator == module_query.OR and section_modules is not None:
-                return section_modules.union(hits)
-            return hits
+            module_ids = {i[0] for i in matches}
+            assert section_modules is None or module_ids.issubset(section_modules), section_modules.difference(module_ids)
+            return module_ids
 
         matches = matches.filter(ModuleDomainFunction.function == section)
 
@@ -496,20 +502,14 @@ def clusters_by_modulequery(term):
         if value != module_query.ANY:
             matches = matches.filter(AsDomainProfile.name == value)
 
-        # modify result set by operator (AND handled as part of the base query limit)
-        if operator == module_query.OR:
-            query_part.matching_domain_ids = {i[1] for i in matches.all()}
-            module_ids = {i[0] for i in matches.all()}
-            if absolute_modules is not None:
-                module_ids = module_ids.intersection(absolute_modules)
-
-            if section_modules is not None:
-                module_ids = module_ids.union(section_modules)
-            return module_ids
-
+        # modify result set by operator
+        # - AND handled as part of the base query limit
+        # - OR should never propagate this far
+        assert operator != module_query.OR
+        # which leaves THEN
         if operator == module_query.THEN:
             # as per AND, but with extra restrictions
-            assert previous_part
+            assert previous_part and section_modules is not None
             # if there's nothing that matched the previous part, abort and skip the database interaction
             if previous_part.matching_domain_ids is not None and not previous_part.matching_domain_ids:
                 query_part.matching_domain_ids = set()
@@ -526,7 +526,9 @@ def clusters_by_modulequery(term):
             matches = matches.filter(AsDomain.follows.in_({i[0] for i in prev_domains.all()}))
         all_matches = list(matches.all())
         query_part.matching_domain_ids = {i[1] for i in all_matches}
-        return {i[0] for i in all_matches}  
+        module_ids = {i[0] for i in all_matches}
+        assert section_modules is None or module_ids.issubset(section_modules), section_modules.difference(module_ids)
+        return module_ids
 
     attrs = ["starter", "loader", "modification", "carrier_protein", "finalisation", "other"]
 
@@ -536,23 +538,26 @@ def clusters_by_modulequery(term):
     for attr, alternatives in module_query:
         matching_alternatives = None
         for alternative in alternatives:
-            section_modules = set()
+            if not alternative or set(alternative) == {module_query.IGNORE}:
+                continue
+            section_modules = None
 
             previous_part = None
-            op = module_query.OR
+            op = None
 
             for i, value in enumerate(alternative):
+                # don't continue looking if everything is already excluded 
+                if section_modules is not None and not section_modules:
+                    break
                 if i % 2:
                     op = value
-                    continue
-                # short-circuit evaluation if LHS of and AND is empty
-                if op == module_query.AND and not section_modules:
+                    assert op != module_query.OR  # this should never be in a group, it's what separates the alternatives
                     continue
                 if op != module_query.THEN:
                     previous_part = None  # simplify everything
                 if value == module_query.IGNORE:
                     continue
-                query_part = QueryPart(op, attr, value)
+                query_part = QueryPart(op, attr, value, i)
 
                 section_modules = match(query_part, matching_modules, section_modules, previous_part=previous_part)  # TODO handle aggregate
                 assert section_modules is not None, "%s %s" % (attr, query_part)
