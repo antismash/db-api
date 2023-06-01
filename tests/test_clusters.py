@@ -5,6 +5,15 @@ from api.search import clusters
 from api.search import modules
 
 
+def get_count(query):
+    """ Queries can be constructed with a query.distinct(_field_), but may not be.
+        .count() does not deduplicate in that case, but .all() *does* deduplicate.
+        Since the tests aren't aware of the use of joins and distinct, this
+        function exists to prevent that from rearing its head (again).
+    """
+    return len(query.all())
+
+
 def test_guess_cluster_category():
     tests = [
         ('lanthipeptide', 'type'),
@@ -30,85 +39,85 @@ OTHER_REGION_COUNT = TOTAL_REGION_COUNT - SCO_REGION_COUNT
 
 
 def test_clusters_by_taxid():
-    assert clusters.clusters_by_taxid(1950).count() == SCO_REGION_COUNT
+    assert get_count(clusters.clusters_by_taxid(1950)) == SCO_REGION_COUNT
 
 
 def test_clusters_by_strain():
-    assert clusters.clusters_by_strain('CFB_NBC_0001').count() == SCO_REGION_COUNT
+    assert get_count(clusters.clusters_by_strain('CFB_NBC_0001')) == SCO_REGION_COUNT
 
 
 def test_clusters_by_species():
-    assert clusters.clusters_by_species('coelicolor').count() == SCO_REGION_COUNT
+    assert get_count(clusters.clusters_by_species('coelicolor')) == SCO_REGION_COUNT
 
 
 def test_clusters_by_genus():
-    assert clusters.clusters_by_genus('streptomyces').count() == TOTAL_REGION_COUNT
+    assert get_count(clusters.clusters_by_genus('streptomyces')) == TOTAL_REGION_COUNT
 
 
 def test_clusters_by_family():
-    assert clusters.clusters_by_family('streptomycetaceae').count() == TOTAL_REGION_COUNT
+    assert get_count(clusters.clusters_by_family('streptomycetaceae')) == TOTAL_REGION_COUNT
 
 
 def test_clusters_by_order():
-    assert clusters.clusters_by_order('streptomycetales').count() == SCO_REGION_COUNT
+    assert get_count(clusters.clusters_by_order('streptomycetales')) == SCO_REGION_COUNT
 
 
 def test_clusters_by_class():
-    assert clusters.clusters_by_class('actinobacteria').count() == SCO_REGION_COUNT
+    assert get_count(clusters.clusters_by_class('actinobacteria')) == SCO_REGION_COUNT
 
 
 def test_clusters_by_phylum():
-    assert clusters.clusters_by_phylum('actinobacteria').count() == SCO_REGION_COUNT
+    assert get_count(clusters.clusters_by_phylum('actinobacteria')) == SCO_REGION_COUNT
 
 
 def test_clusters_by_superkingdom():
-    assert clusters.clusters_by_superkingdom('bacteria').count() == TOTAL_REGION_COUNT
+    assert get_count(clusters.clusters_by_superkingdom('bacteria')) == TOTAL_REGION_COUNT
 
 
 def test_clusters_by_monomer():
-    assert clusters.clusters_by_substrate('ala').count() == 3
+    assert get_count(clusters.clusters_by_substrate('ala')) == 2
 
 
 def test_clusters_by_acc():
-    assert clusters.clusters_by_acc('NC_003888').count() == 26
+    assert get_count(clusters.clusters_by_acc('NC_003888')) == 26
 
 
 def test_clusters_by_compoundseq():
-    assert clusters.clusters_by_compoundseq('ASFGE').count() == 1
+    assert get_count(clusters.clusters_by_compoundseq('ASFGE')) == 1
 
 
 def test_clusters_by_compoundclass():
-    assert clusters.clusters_by_compoundclass('Class I').count() == 4
+    assert get_count(clusters.clusters_by_compoundclass('Class I')) == 3
 
 
 def test_clusters_by_profile():
-    assert clusters.clusters_by_profile('LANC_like').count() == 5
+    assert get_count(clusters.clusters_by_profile('LANC_like')) == 5
 
 
 def test_clusters_by_asdomain():
-    assert clusters.clusters_by_asdomain('ACP').count() == 104
+    assert get_count(clusters.clusters_by_asdomain('ACP')) == 36
 
 
 def test_clusters_by_asdomainsubtype():
-    assert clusters.clusters_by_asdomainsubtype("Trans-AT-KS").count() == 4
-    assert clusters.clusters_by_asdomainsubtype("Hybrid-KS").count() == 13
+    assert get_count(clusters.clusters_by_asdomainsubtype("Trans-AT-KS")) == 3
+    assert get_count(clusters.clusters_by_asdomainsubtype("Hybrid-KS")) == 13
 
 
 def test_clusters_by_clusterblast():
-    assert clusters.clusters_by_clusterblast('NZ_CP042324.1').count() == 1
+    assert get_count(clusters.clusters_by_clusterblast('NZ_CP042324.1')) == 1
 
 
 def test_clusters_by_knowncluster():
-    assert clusters.clusters_by_knowncluster('BGC0000660').count() == 1
+    assert get_count(clusters.clusters_by_knowncluster('BGC0000660')) == 1
 
 
 def test_clusters_by_subcluster():
-    assert clusters.clusters_by_subcluster('AF386507').count() == 3  # 1 if GCF_000590515.1 was minimal
+    assert get_count(clusters.clusters_by_subcluster('AF386507')) == 3  # 1 if GCF_000590515.1 was minimal
 
 
 def test_clusters_by_modules():
     def count(query):
-        return clusters.clusters_by_modulequery(query).count()
+        return get_count(clusters.clusters_by_modulequery(query))
 
     counts = {
         "ACP": count("T=ACP"),
