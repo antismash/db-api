@@ -5,7 +5,11 @@ This is used for the web UI in order to create additional filtering options
 
 from functools import partial
 
+from sqlalchemy import func
+
 from api.models import (
+    db,
+    Candidate,
     ClusterblastHit,
     ComparippsonHit,
     RegulatorConfidence,
@@ -19,6 +23,15 @@ from .helpers import (
     TextFilter,
     sanitise_string,
 )
+
+def _filter_candidate_kind_by_count(query, name: str = None, operator: str = None, value: float = None):
+    assert name == "numprotoclusters"
+    assert operator in COMPARISON_OPERATORS
+    assert value is not None
+
+    condition = eval(f"func.count(Candidate.candidate_id) {operator} {float(value)}")
+    subquery = db.session.query(Candidate.candidate_id).join(Candidate.protoclusters).group_by(Candidate.candidate_id).having(condition).subquery()
+    return query.filter(Candidate.candidate_id.in_(subquery))
 
 
 def _filter_clusterblast(query, name: str = None, operator: str = None, value: float = None):
@@ -40,6 +53,9 @@ def _filter_tfbs_quality(query, name: str = None, operator: str = None, value: f
 
 # these keys must match search categories
 AVAILABLE_FILTERS: dict[str, Filter] = {
+    "candidatekind": [
+        NumericFilter("numprotoclusters", _filter_candidate_kind_by_count),
+    ],
     "comparippsonmibig": [
         NumericFilter("similarity", partial(_filter_comparippson_numeric, name="similarity")),
     ],
