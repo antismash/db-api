@@ -18,6 +18,7 @@ from api.models import (
     db,
     AsDomainProfile,
     BgcType,
+    CandidateType,
     ClusterblastAlgorithm,
     ClusterblastHit,
     DnaSequence,
@@ -192,6 +193,12 @@ def available_type(term):
     return db.session.query(distinct(BgcType.term), BgcType.description) \
              .filter(or_(BgcType.term.ilike('{}%'.format(term)), BgcType.description.ilike('{}%'.format(term)))) \
              .order_by(BgcType.term)
+
+
+@register_handler(AVAILABLE)
+def available_candidatekind(term):
+    '''Generate query for available candidate kinds'''
+    return db.session.query(CandidateType.description, CandidateType.description)
 
 
 @register_handler(AVAILABLE)

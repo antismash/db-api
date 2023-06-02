@@ -20,6 +20,8 @@ from api.models import (
     AsDomainSubtype,
     BgcType,
     BindingSite,
+    Candidate,
+    CandidateType,
     ClusterblastAlgorithm,
     ClusterblastHit,
     Cds,
@@ -222,6 +224,12 @@ def clusters_by_type(term):
     all_subtypes = db.session.query(BgcType).filter(or_(BgcType.term == term, BgcType.description.ilike('%{}%'.format(term)))).cte(recursive=True)
     all_subtypes = all_subtypes.union(db.session.query(BgcType).filter(BgcType.parent_id == all_subtypes.c.bgc_type_id))
     return db.session.query(Region).join(t_rel_regions_types).join(all_subtypes)
+
+
+@register_handler(CLUSTERS)
+def clusters_by_candidatekind(term):
+    '''Return a query for a bgc by type or type description search'''
+    return Candidate.query.join(Region).join(CandidateType).filter(CandidateType.description.ilike(f"%{term}%"))
 
 
 @register_handler(CLUSTERS)
