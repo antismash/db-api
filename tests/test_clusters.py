@@ -90,6 +90,17 @@ def test_clusters_by_acc():
     assert get_count(clusters.clusters_by_acc('NC_003888')) == 26
 
 
+def test_clusters_by_candidate():
+    base_query = clusters.clusters_by_candidatekind("chemical hybrid")
+    base = get_count(base_query)
+    assert base == 6
+    filtered = filters._filter_candidate_kind_by_type(base_query, name="bgctype", value="t1pks")
+    found = get_count(filtered)
+    assert 1 < found < base
+    filtered = filters._filter_candidate_kind_by_type(filtered, name="bgctype", value="prodigiosin")
+    assert 0 < get_count(filtered) < found
+
+
 def test_clusters_by_compoundseq():
     assert get_count(clusters.clusters_by_compoundseq('ASFGE')) == 1
 

@@ -5,13 +5,15 @@ This is used for the web UI in order to create additional filtering options
 
 from functools import partial
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 from api.models import (
     db,
+    BgcType,
     Candidate,
     ClusterblastHit,
     ComparippsonHit,
+    Protocluster,
     RegulatorConfidence,
 )
 
@@ -23,6 +25,16 @@ from .helpers import (
     TextFilter,
     sanitise_string,
 )
+
+
+def _filter_candidate_kind_by_type(query, name: str = None, value: float = None):
+    assert name == "bgctype"
+    assert value is not None
+    condition = or_(BgcType.term == value, BgcType.description.ilike(f'%{value}%'))
+    subquery = db.session.query(Candidate.candidate_id).join(Candidate.protoclusters).join(BgcType).filter(condition)
+    query = query.filter(Candidate.candidate_id.in_(subquery))
+    return query
+
 
 def _filter_candidate_kind_by_count(query, name: str = None, operator: str = None, value: float = None):
     assert name == "numprotoclusters"
@@ -54,6 +66,7 @@ def _filter_tfbs_quality(query, name: str = None, operator: str = None, value: f
 # these keys must match search categories
 AVAILABLE_FILTERS: dict[str, Filter] = {
     "candidatekind": [
+        TextFilter("bgctype", _filter_candidate_kind_by_type),
         NumericFilter("numprotoclusters", _filter_candidate_kind_by_count),
     ],
     "comparippsonmibig": [
