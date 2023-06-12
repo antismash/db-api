@@ -1,4 +1,5 @@
 import pytest
+from api.search import filters
 from api.search_parser import (
     Query,
     QueryTerm,
@@ -215,6 +216,57 @@ def test_query_term_from_string():
     with pytest.raises(ValueError):
         string = "( ripp"
         term = QueryTerm.from_string(string)
+
+
+def test_query_text_filters():
+    string = "[candidatekind]neighbouring WITH [bgctype](hgle-ks) WITH [bgctype](spaced term)"
+    term = QueryTerm.from_string(string)
+    assert term.kind == "expression"
+    assert term.category == "candidatekind"
+    assert term.term == "neighbouring"
+    expected_options = [
+        {"name": "bgctype", "value": "hgle-ks"},
+        {"name": "bgctype", "value": "spaced term"},
+    ]
+    all_options = []
+    for filter_instance, options in term.filters:
+        assert isinstance(filter_instance, filters.TextFilter)
+        all_options.append(options)
+    assert all_options == expected_options
+    # and then the whole thing needs to rebuild
+    assert str(term) == string
+
+
+def test_query_numeric_filters():
+    string = "[tfbs]reg WITH [quality](>= 20)"
+    term = QueryTerm.from_string(string)
+    assert term.kind == "expression"
+    assert term.category == "tfbs"
+    assert term.term == "reg"
+    assert len(term.filters) == 1
+    filter_instance, options = term.filters[0]
+    assert isinstance(filter_instance, filters.QualitativeFilter)
+    assert options == {"name": "quality", "operator": ">=", "value": 20}
+    # and then the whole thing needs to rebuild
+    assert str(term) == string
+
+
+def test_invalid_query_filters():
+    # don't allow filters to work when the main term is missing the category
+    with pytest.raises(ValueError):
+        QueryTerm.from_string("nrps WITH [bgctype](hgle-ks)")
+    # missing a filter category
+    with pytest.raises(ValueError):
+        QueryTerm.from_string("[candidatekind]neighbouring WITH [](hgle-ks)")
+    # missing any value
+    with pytest.raises(ValueError):
+        QueryTerm.from_string("[candidatekind]neighbouring WITH [bgctype]()")
+    # missing a numeric value
+    with pytest.raises(ValueError):
+        QueryTerm.from_string("[tfbs]reg WITH [quality](>=)")
+    # missing an operator
+    with pytest.raises(ValueError):
+        QueryTerm.from_string("[tfbs]reg WITH [quality](20)")
 
 
 def test_query_term__generate_tokens():

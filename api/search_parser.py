@@ -3,8 +3,17 @@
 import re
 from typing import Any
 
-from .search.helpers import Filter, NumericFilter, ensure_operator_valid
-from .search.filters import available_filters_by_category
+from .search.helpers import (
+    ensure_operator_valid,
+    Filter,
+    UnknownOperatorError,
+)
+from .search.filters import (
+    NumericFilter,
+    QualitativeFilter,
+    TextFilter,
+    available_filters_by_category,
+)
 
 
 def process_filter(data: dict[str, Any], category: str) -> list[tuple[Filter, dict[str, Any]]]:
@@ -82,6 +91,18 @@ class Query(object):
         return cls(terms, search_type=search_type, return_type=return_type, verbose=verbose)
 
 
+def split_term_and_category(text: str, term_requires_parens: bool = False) -> tuple[str, str]:
+    assert text.startswith("["), text
+    end = text.find("]")
+    if end < 0:
+        raise ValueError(f"Unterminated category in expression: {text}")
+    category = text[1:end]
+    term = text[end + 1:]
+    if term_requires_parens:
+        assert term.startswith("(") and term.endswith(")")
+    return category, term
+
+
 class QueryTerm(object):
     '''A term in a Query'''
     KEYWORDS = set(['AND', 'OR', 'EXCEPT'])
@@ -124,7 +145,8 @@ class QueryTerm(object):
 
     def __str__(self):
         if self.kind == 'expression':
-            return '[{s.category}]{s.term}'.format(s=self)
+            filters = " WITH ".join([f"[{f['name']}]({(f['operator'] + ' ') if 'operator' in f else ''}{f['value']})" for _, f in self.filters])
+            return f"[{self.category}]{self.term}{' WITH ' if filters else ''}{filters}"
         if self.kind == 'operation':
             return '( {l} {o} {r} )'.format(l=self.left, o=self.operation.upper(), r=self.right)
 
@@ -206,11 +228,68 @@ class QueryTerm(object):
         term = raw_expr
 
         if raw_expr.startswith('['):
-            end = raw_expr.find(']')
-            if end > -1:
-                category = raw_expr[1:end]
-                term = raw_expr[end + 1:]
-        return QueryTerm('expression', category=category, term=term)
+            category, term = split_term_and_category(raw_expr)
+
+        filters = []
+        while token_list[0] == "WITH":
+            del token_list[0]
+            filters.append(cls.parse_filter(category, token_list))
+
+        return QueryTerm('expression', category=category, term=term, filters=filters)
+
+    @staticmethod
+    def parse_filter(parent_category: str, token_list: list[str]):
+        if parent_category == "unknown":
+            raise ValueError(f"Cannot use filters without defining category: {parent_category!r}")
+        category, term = split_term_and_category(token_list[0])
+        del token_list[0]
+        value_parts = []
+        if not token_list or token_list[0] != "(":
+            raise ValueError("Malformed filter value for category: {parent_category!r}")
+        del token_list[0]
+        while token_list and token_list[0] != ")":
+            value_parts.append(token_list[0])
+            del token_list[0]
+        if not token_list or not value_parts:
+            raise ValueError("Malformed filter value for category: {parent_category!r}")
+        assert token_list[0] == ")"
+        assert value_parts
+        del token_list[0]
+
+        possible_filters = available_filters_by_category(parent_category, as_json=False)
+        matching_filter = None
+        for filt in possible_filters:
+            if category == filt.name:
+                matching_filter = filt
+                break
+        if not matching_filter:
+            raise ValueError(f"Invalid filter category for {parent_category!r}: {category!r}")
+
+        if isinstance(matching_filter, NumericFilter) or isinstance(matching_filter, QualitativeFilter):
+            if len(value_parts) != 2:
+                raise ValueError(f"Invalid numeric filter format: {' '.join(value_parts)}")
+            try:
+                ensure_operator_valid(value_parts[0])
+            except UnknownOperatorError:
+                raise ValueError(f"Invalid or missing comparison operator for {parent_category!r} in {category!r}")
+            operator = value_parts[0]
+            value = float(value_parts[1])
+            # reduce to ints where equivalent, for simplicity in rebuilding text
+            if value == int(value):
+                value = int(value)
+            return {
+                "name": filt.name,
+                "operator": operator,
+                "value": value,
+            }
+        elif isinstance(matching_filter, TextFilter):
+            value = " ".join(value_parts)
+            return {
+                "name": filt.name,
+                "value": value,
+            }
+        else:
+            raise NotImplementedError(f"unknown filter type: '{type(matching_filter)}'")
 
     @staticmethod
     def _generate_tokens(string):
