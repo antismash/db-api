@@ -101,6 +101,41 @@ def test_clusters_by_candidate():
     assert 0 < get_count(filtered) < found
 
 
+def base_test_clusters_by_clustercompare(query, target):
+    matches = query.all()
+    assert len(matches) == 1
+    hit = matches[0]
+    assert hit.accession == "NC_003888"
+    assert hit.location == "[3524827:3603907]"
+
+    # then with filters
+    matching_cc_hit = [h for h in hit.cluster_compare_hits if h.reference_accession == target][0]
+    for field in filters.CLUSTERCOMPARE_FIELDS:
+        value = getattr(matching_cc_hit, field)
+        # singly
+        assert get_count(filters._filter_clustercompare_by_field(query, operator=">=", value=value * 0.99, field=field)) == 1
+        assert get_count(filters._filter_clustercompare_by_field(query, operator="<", value=value * 0.5, field=field)) == 0
+        # in combination
+        filtered = filters._filter_clustercompare_by_field(query, operator="<", value=value * 1.01, field=field)
+        filtered = filters._filter_clustercompare_by_field(filtered, operator=">", value=value * 0.99, field=field)
+        assert get_count(filtered) == 1
+        filtered = filters._filter_clustercompare_by_field(query, operator="<", value=0.0, field=field)
+        assert get_count(filtered) == 0
+    return True
+
+
+def test_clusters_by_cluster_compare_protoclusters():
+    target = "BGC0000315"
+    query = clusters.clusters_by_clustercompareprotocluster(target)
+    assert base_test_clusters_by_clustercompare(query, target)
+
+
+def test_clusters_by_cluster_compare_regions():
+    target = "BGC0000315"
+    query = clusters.clusters_by_clustercompareregion(target)
+    assert base_test_clusters_by_clustercompare(query, target)
+
+
 def test_clusters_by_compoundseq():
     assert get_count(clusters.clusters_by_compoundseq('ASFGE')) == 1
 

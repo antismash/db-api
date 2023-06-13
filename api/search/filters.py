@@ -12,6 +12,7 @@ from api.models import (
     BgcType,
     Candidate,
     ClusterblastHit,
+    ClusterCompareHit,
     ComparippsonHit,
     Module,
     Monomer,
@@ -29,6 +30,8 @@ from .helpers import (
     TextFilter,
     sanitise_string,
 )
+
+CLUSTERCOMPARE_FIELDS = ["score", "identity_metric", "order_metric", "components_metric"]
 
 
 def _filter_candidate_kind_by_type(query, name: str = None, value: str = None):
@@ -53,6 +56,14 @@ def _filter_candidate_kind_by_count(query, name: str = None, operator: str = Non
 def _filter_clusterblast(query, name: str = None, operator: str = None, value: float = None):
     assert name and operator in COMPARISON_OPERATORS and value is not None
     return query.filter(eval(f"ClusterblastHit.{name} {operator} {float(value)}"))
+
+
+def _filter_clustercompare_by_field(query, name: str = None, operator: str = None, value: float = None, field: str = None):
+    assert field in CLUSTERCOMPARE_FIELDS, field
+    assert operator in COMPARISON_OPERATORS
+    assert value is not None
+    condition = eval(f"ClusterCompareHit.{field} {operator} {float(value)}")
+    return query.filter(condition)
 
 
 def _filter_comparippson_numeric(query, name: str = None, operator: str = None, value: float = None):
@@ -81,12 +92,19 @@ def _filter_tfbs_quality(query, name: str = None, operator: str = None, value: f
     return query.join(RegulatorConfidence).filter(eval(f"RegulatorConfidence.strength {operator} {float(value)}"))
 
 
+_CLUSTER_COMPARE_FILTERS = [
+    NumericFilter(field.replace("_", " "), partial(_filter_clustercompare_by_field, field=field))
+    for field in CLUSTERCOMPARE_FIELDS
+]
+
 # these keys must match search categories
 AVAILABLE_FILTERS: dict[str, Filter] = {
     "candidatekind": [
         TextFilter("bgctype", _filter_candidate_kind_by_type),
         NumericFilter("numprotoclusters", _filter_candidate_kind_by_count),
     ],
+    "clustercompareprotocluster": _CLUSTER_COMPARE_FILTERS,
+    "clustercompareregion": _CLUSTER_COMPARE_FILTERS,
     "comparippsonmibig": [
         NumericFilter("similarity", partial(_filter_comparippson_numeric, name="similarity")),
     ],

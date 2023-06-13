@@ -24,6 +24,7 @@ from api.models import (
     CandidateType,
     ClusterblastAlgorithm,
     ClusterblastHit,
+    ClusterCompareHit,
     Cds,
     ComparippsonHit,
     ComparippsonMibigReference,
@@ -320,6 +321,26 @@ def clusters_by_compoundseq(term):
 def clusters_by_compoundclass(term):
     '''Return a query for a bgc by compound class'''
     return Region.query.join(Protocluster).join(Ripp).filter(Ripp.subclass.ilike(term))
+
+
+@register_handler(CLUSTERS)
+def clusters_by_clustercompareprotocluster(term):
+    """Returns a query for protoclusters with ClusterCompare hits to the matching accession"""
+    query = Region.query.join(Protocluster).join(ClusterCompareHit).filter(
+        ClusterCompareHit.reference_accession.ilike(f"%{term}%")
+    )
+    # restrict to the set of results specific to protoclusters
+    return query.filter(ClusterCompareHit.protocluster_id != None)
+
+
+@register_handler(CLUSTERS)
+def clusters_by_clustercompareregion(term):
+    """Returns a query for regions with ClusterCompare hits to the matching accession"""
+    query = Region.query.join(ClusterCompareHit).filter(
+        ClusterCompareHit.reference_accession.ilike(f"%{term}%")
+    )
+    # restrict to the set of results specific to regions
+    return query.filter(ClusterCompareHit.region_id != None)
 
 
 @register_handler(CLUSTERS)

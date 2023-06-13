@@ -30,6 +30,12 @@ def test_available_term_by_category_taxonomy():
 def test_available_term_by_category():
     tests = [
         (('acc', 'nc_003888'), [{'val': 'NC_003888', 'desc': None}]),
+        (("clustercompare", "BGC000031"), [
+            {"val": "BGC0000310", "desc": "bacitracin"},
+            {"val": "BGC0000313", "desc": "beauvericin"},
+            {"val": "BGC0000315", "desc": "CDA1b, CDA2a, CDA2b, CDA3a, CDA3b, CDA4a, CDA4b"},
+            {"val": "BGC0000319", "desc": "cephamycin C"},
+        ]),
         (('compoundseq', 'a'), [{'val': 'ASFGEGTFTSPSSYAIGTRCPICC', 'desc': None}]),
         (('compoundclass', 'c'), [{'val': 'Class %s' % c, 'desc': None} for c in ['I', 'II', 'III']]),
         (('monomer', 'ala'), [

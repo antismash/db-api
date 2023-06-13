@@ -21,6 +21,7 @@ from api.models import (
     CandidateType,
     ClusterblastAlgorithm,
     ClusterblastHit,
+    ClusterCompareHit,
     DnaSequence,
     GeneOntology,
     Genome,
@@ -169,6 +170,16 @@ def available_compoundclass(term):
     return db.session.query(distinct(Ripp.subclass), null()) \
              .filter(Ripp.subclass.ilike('{}%'.format(term))) \
              .order_by(Ripp.subclass)
+
+
+@register_handler(AVAILABLE)
+def available_clustercompare(term):
+    '''Generate query for available ClusterCompare reference regions'''
+    return db.session.query(distinct(ClusterCompareHit.reference_accession), ClusterCompareHit.description) \
+             .filter(or_(
+                ClusterCompareHit.reference_accession.ilike('{}%'.format(term)),
+                ClusterCompareHit.description.ilike('%{}%'.format(term)))
+              ).order_by(ClusterCompareHit.reference_accession)
 
 
 @register_handler(AVAILABLE)
