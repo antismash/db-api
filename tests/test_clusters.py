@@ -262,6 +262,19 @@ def test_clusters_by_modules():
             raise
 
 
+def test_clusters_by_module_filters():
+    assert get_count(clusters.clusters_by_substrate('ala')) == 2
+    base = clusters.clusters_by_modulequery("L=AMP-binding")
+    base_count = get_count(base)
+    assert 1 < base_count
+    with_substrate = filters._filter_module_by_substrate(base, value="leu")
+    substrate_count = get_count(with_substrate)
+    assert 1 < substrate_count < base_count
+    with_monomer = filters._filter_module_by_monomer(with_substrate, value="d-leu")
+    monomer_count = get_count(with_monomer)
+    assert 1 <= monomer_count < substrate_count
+
+
 def test_clusters_by_crosscds_module():
     # GCF_000590515.1, NZ_JABQ01000025:1-41,346, Z951_RS18340 and Z951_RS18345
     get_count(clusters.clusters_by_crosscdsmodule()) == 1

@@ -13,8 +13,12 @@ from api.models import (
     Candidate,
     ClusterblastHit,
     ComparippsonHit,
+    Module,
+    Monomer,
     Protocluster,
     RegulatorConfidence,
+    RelModulesMonomer,
+    Substrate,
 )
 
 from .helpers import (
@@ -27,7 +31,7 @@ from .helpers import (
 )
 
 
-def _filter_candidate_kind_by_type(query, name: str = None, value: float = None):
+def _filter_candidate_kind_by_type(query, name: str = None, value: str = None):
     assert name == "bgctype"
     assert value is not None
     condition = or_(BgcType.term == value, BgcType.description.ilike(f'%{value}%'))
@@ -56,6 +60,20 @@ def _filter_comparippson_numeric(query, name: str = None, operator: str = None, 
     return query.filter(eval(f"ComparippsonHit.{name} {operator} {float(value)}"))
 
 
+def _filter_module_by_monomer(query, name: str = None, value: str = None):
+    assert value is not None
+    condition = or_(Monomer.name == value.lower(), Monomer.description.ilike(f'%{value}%'))
+    subquery = db.session.query(RelModulesMonomer.module_id).join(Monomer).filter(condition).subquery()
+    return query.filter(Module.module_id.in_(subquery))
+
+
+def _filter_module_by_substrate(query, name: str = None, value: str = None):
+    assert value is not None
+    condition = or_(Substrate.name == value.lower(), Substrate.description.ilike(f'%{value}%'))
+    subquery = db.session.query(RelModulesMonomer.module_id).join(Substrate).filter(condition).subquery()
+    return query.filter(Module.module_id.in_(subquery))
+
+
 def _filter_tfbs_quality(query, name: str = None, operator: str = None, value: float = None):
     assert name == "quality"
     assert operator in COMPARISON_OPERATORS
@@ -74,6 +92,10 @@ AVAILABLE_FILTERS: dict[str, Filter] = {
     ],
     "comparippsonasdb": [
         NumericFilter("similarity", partial(_filter_comparippson_numeric, name="similarity")),
+    ],
+    "modulequery": [
+        TextFilter("substrate", _filter_module_by_substrate),
+        TextFilter("monomer", _filter_module_by_monomer),
     ],
     "tfbs": [
         QualitativeFilter("quality", _filter_tfbs_quality, {"strong": 30, "medium": 20, "weak": 10}),

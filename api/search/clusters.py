@@ -447,7 +447,6 @@ def clusters_by_t2pkselongation(term):
 def clusters_by_modulequery(term):
     '''Return a query for a region containing a module with specific construction'''
     # TODO: handle PKS subtypes
-    # TODO: handle substrates
     # TODO: handle aggregate domains
 
 
