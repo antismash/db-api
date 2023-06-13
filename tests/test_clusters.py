@@ -78,6 +78,9 @@ def test_clusters_by_superkingdom():
 
 def test_clusters_by_monomer():
     assert get_count(clusters.clusters_by_substrate('ala')) == 2
+    # and that shared substrate ends up as two monomers
+    assert get_count(clusters.clusters_by_monomer('ala')) == 1
+    assert get_count(clusters.clusters_by_monomer('d-ala')) == 1
 
 
 def test_clusters_by_acc():
