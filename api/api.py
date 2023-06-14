@@ -36,7 +36,12 @@ from .search import (
 from .search.filters import (
     available_filters_by_category,
 )
-from .search.helpers import InvalidQueryError, UnknownQueryError
+from .search.helpers import (
+    InvalidQueryError,
+    TextFilter,
+    UnknownQueryError,
+    sanitise_string,
+)
 from .search_parser import Query
 from .models import (
     db,
@@ -676,3 +681,15 @@ def list_available_categories():
 def list_available_filters(category):
     """List available filters for a given category"""
     return jsonify(available_filters_by_category(category))
+
+
+@app.route('/api/v1.0/available_filter_values/<category>/<filter_name>/<term>')
+def list_available_filter_values(category, filter_name, term):
+    """List available values for a particular filter"""
+    filters = available_filters_by_category(sanitise_string(category), as_json=False)
+    filter_name = sanitise_string(filter_name)
+    matching = [f for f in filters if f.name == filter_name]
+    if not matching or not isinstance(matching[0], TextFilter):
+        return jsonify([])
+    query = matching[0].available(sanitise_string(term)).limit(50)
+    return jsonify(list(map(lambda x: {'val': x[0], 'desc': x[1]}, query.all())))

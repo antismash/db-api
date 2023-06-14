@@ -316,3 +316,16 @@ def test_available(client):
     results = client.get(url_for('list_available', category='species', term="coe"))
     assert results.status_code == 200
     assert results.json == expected
+
+
+def test_available_filter_values(client):
+    """ Test /api/v1.0/available_filter_values/<category>/<filter_name>/<term> """
+    expected = [
+        {"val": "cdps", "desc": "tRNA-dependent cyclodipeptide synthases"},
+        {"val": "transat-pks", "desc": "Trans-AT polyketide"},
+        {"val": "transat-pks-like", "desc": "transAT-PKS-like fragments"},
+        {"val": "tropodithietic-acid", "desc": "tropodithietic acid like cluster"},
+    ]
+    results = client.get(url_for("list_available_filter_values", category="candidatekind", filter_name="bgctype", term="tr"))
+    assert results.status_code == 200
+    assert results.json == expected
