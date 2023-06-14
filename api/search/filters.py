@@ -21,6 +21,7 @@ from api.models import (
     RelModulesMonomer,
     Substrate,
 )
+from api.search import available as available_endpoints
 
 from .helpers import (
     COMPARISON_OPERATORS,
@@ -100,7 +101,7 @@ _CLUSTER_COMPARE_FILTERS = [
 # these keys must match search categories
 AVAILABLE_FILTERS: dict[str, Filter] = {
     "candidatekind": [
-        TextFilter("bgctype", _filter_candidate_kind_by_type),
+        TextFilter("bgctype", _filter_candidate_kind_by_type, available_endpoints.available_type),
         NumericFilter("numprotoclusters", _filter_candidate_kind_by_count),
     ],
     "clustercompareprotocluster": _CLUSTER_COMPARE_FILTERS,
@@ -112,8 +113,8 @@ AVAILABLE_FILTERS: dict[str, Filter] = {
         NumericFilter("similarity", partial(_filter_comparippson_numeric, name="similarity")),
     ],
     "modulequery": [
-        TextFilter("substrate", _filter_module_by_substrate),
-        TextFilter("monomer", _filter_module_by_monomer),
+        TextFilter("substrate", _filter_module_by_substrate, available_endpoints.available_substrate),
+        TextFilter("monomer", _filter_module_by_monomer, available_endpoints.available_monomer),
     ],
     "tfbs": [
         QualitativeFilter("quality", _filter_tfbs_quality, {"strong": 30, "medium": 20, "weak": 10}),

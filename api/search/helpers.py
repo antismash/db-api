@@ -100,6 +100,9 @@ class TextFilter(Filter):
     def available(self, search_string: str):
         return self._available(sanitise_string(search_string))
 
+    def available(self, search_string: str):
+        return self._available(sanitise_string(search_string))
+
 
 def register_handler(handler):
     '''Decorator to register a function as a handler'''
