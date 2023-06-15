@@ -343,3 +343,13 @@ def test_clusters_by_comparippsonmibig():
     assert get_count(query) == 2
     filtered = filters._filter_comparippson_numeric(query, "similarity", ">=", 0.3)
     assert get_count(filtered) == 1
+
+
+def test_cluster_query_count():
+    # only two entries of the above have a proline monomer prediction
+    # NZ_JABQ01000048:0-79694 has four proline modules
+    # NZ_JABQ01000073:100-54745 has a single proline module
+    term = QueryTerm("expression", term="pro", category="monomer", count=1)
+    assert get_count(clusters.cluster_query_from_term(term)) == 2
+    term = QueryTerm("expression", term="pro", category="monomer", count=2)
+    assert get_count(clusters.cluster_query_from_term(term)) == 1

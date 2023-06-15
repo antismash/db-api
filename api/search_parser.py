@@ -108,6 +108,7 @@ class QueryTerm(object):
     KEYWORDS = set(['AND', 'OR', 'EXCEPT'])
 
     BOOL_CATEGORIES = set(['contigedge'])
+    COUNT_GUARD = -1
 
     def __init__(self, kind, **kwargs):
         '''Initialize a term, either an operation or an expression
@@ -117,6 +118,7 @@ class QueryTerm(object):
         Expressions need 'category' and 'term'.
         '''
         self.kind = kind
+        self.count = int(kwargs.get("count", self.COUNT_GUARD))
         if kind == 'operation':
             if not set(['operation', 'left', 'right']).issubset(kwargs.keys()):
                 raise ValueError("For operations, you need to specify 'operation', 'left' and 'right'")
@@ -170,8 +172,8 @@ class QueryTerm(object):
         if term['term_type'] == 'expr':
             if not set(['category', 'term']).issubset(term.keys()):
                 raise ValueError("For expressions, you need to specify 'category' and 'term'")
-
-            return cls('expression', category=term['category'], term=term['term'], filters=term.get('filters', []))
+            count = term.get("count", cls.COUNT_GUARD)
+            return cls('expression', count=count, category=term['category'], term=term['term'], filters=term.get('filters', []))
 
         elif term['term_type'] == 'op':
             if not set(['operation', 'left', 'right']).issubset(term.keys()):
@@ -210,6 +212,12 @@ class QueryTerm(object):
 
     @classmethod
     def get_expression(cls, token_list):
+        count = cls.COUNT_GUARD
+        if len(token_list) >= 2 and token_list[0].isdigit() and token_list[1] == "*":
+            count = int(token_list[0])
+            del token_list[0]
+            cls._get_token(token_list, "*")
+
         if cls._get_token(token_list, '('):
             term = cls.get_term(token_list)
             if not cls._get_token(token_list, ')'):
@@ -235,7 +243,7 @@ class QueryTerm(object):
             del token_list[0]
             filters.append(cls.parse_filter(category, token_list))
 
-        return QueryTerm('expression', category=category, term=term, filters=filters)
+        return QueryTerm('expression', count=count, category=category, term=term, filters=filters)
 
     @staticmethod
     def parse_filter(parent_category: str, token_list: list[str]):

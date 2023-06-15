@@ -39,12 +39,19 @@ def test_query_from_string():
     assert query.search_type == 'cluster'
     assert query.return_type == 'json'
     assert isinstance(query.terms, QueryTerm)
+    assert query.terms.count == query.terms.COUNT_GUARD == -1
 
     string = "[type]ripp"
     query = Query.from_string(string, return_type='csv')
     assert query.search_type == 'cluster'
     assert query.return_type == 'csv'
     assert isinstance(query.terms, QueryTerm)
+
+    string = "3 * [type]ripp"
+    query = Query.from_string(string)
+    assert query.terms.count == 3
+    assert query.terms.category == "type"
+    assert query.terms.term == "ripp"
 
 
 def test_query_term_init_expression():

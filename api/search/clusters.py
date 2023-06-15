@@ -1,15 +1,18 @@
 '''Cluster-related search options'''
 
+from functools import partial
+
 from flask import g
 
 from sqlalchemy import (
+    func,
     or_,
     sql,
 )
 from sqlalchemy.orm import joinedload
 from .helpers import (
     break_lines,
-    register_handler,
+    register_handler as _register_handler,
     UnknownQueryError,
 )
 from api.location import location_from_string
@@ -70,6 +73,20 @@ CLUSTER_FORMATTERS = {}
 
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql.expression import Executable, ClauseElement, _literal_as_text
+
+
+def _generic_count_by_region_id(query, minimum: int):
+    """ Groups query results by region id and filters to those groups with at
+        least the given number of matches
+    """
+    if minimum < 0:
+        return query
+    return query.group_by(Region.region_id).having(func.count(Region.region_id) >= minimum)
+
+
+register_handler = _register_handler
+register_countable_handler = partial(_register_handler, countable=True, counter=_generic_count_by_region_id)
+
 
 class explain(Executable, ClauseElement):
     def __init__(self, stmt, analyse=False):
@@ -187,9 +204,11 @@ def cluster_query_from_term(term):
         if term.category == 'unknown':
             term.category = guess_cluster_category(term)
         if term.category in CLUSTERS:
-            query = CLUSTERS[term.category](term.term)
+            handler = CLUSTERS[term.category]
+            query = handler(term.term)
             for query_filter, data in term.filters:
                 query = query_filter.run(query, data)
+            query = handler.add_count_restriction(query, term.count)
             return query
         else:
             raise UnknownQueryError()
@@ -220,7 +239,7 @@ def guess_cluster_category(term):
     return term.category
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_type(term):
     '''Return a query for a bgc by type or type description search'''
     query = db.session.query(Region).join(t_rel_regions_types).join(BgcType)
@@ -234,7 +253,7 @@ def clusters_by_type(term):
     return query
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_typecategory(term):
     '''Return a query for a BGC by type category or category description'''
     core = db.session.query(BgcCategory.category)
@@ -244,7 +263,7 @@ def clusters_by_typecategory(term):
     return Region.query.join(t_rel_regions_types).join(BgcType).filter(BgcType.category.in_(match_query.subquery()))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_candidatekind(term):
     '''Return a query for a bgc by type or type description search'''
     return Candidate.query.join(Region).join(CandidateType).filter(CandidateType.description.ilike(f"%{term}%"))
@@ -304,13 +323,13 @@ def clusters_by_superkingdom(term):
     return Region.query.join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.superkingdom.ilike('%{}%'.format(term)))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_monomer(term):
     '''Return a query for a bgc by monomer or monomer description search'''
     return Region.query.join(Module).join(RelModulesMonomer).join(Monomer).filter(Monomer.name.ilike(term.lower()))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_substrate(term):
     '''Return a query for a bgc by substrate or substrate description search'''
     return Region.query.join(Module).join(RelModulesMonomer).join(Substrate).filter(Substrate.name.ilike(term.lower()))
@@ -328,7 +347,7 @@ def clusters_by_assembly(term):
     return Region.query.join(DnaSequence).join(Genome).filter(Genome.assembly_id.ilike('%{}%'.format(term)))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_compoundseq(term):
     '''Return a query for a bgc by compound sequence search'''
     return Region.query.join(Protocluster).join(Ripp).filter(Ripp.peptide_sequence.ilike('%{}%'.format(term)))
@@ -340,7 +359,7 @@ def clusters_by_compoundclass(term):
     return Region.query.join(Protocluster).join(Ripp).filter(Ripp.subclass.ilike(term))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_clustercompareprotocluster(term):
     """Returns a query for protoclusters with ClusterCompare hits to the matching accession"""
     query = Region.query.join(Protocluster).join(ClusterCompareHit).filter(
@@ -360,7 +379,7 @@ def clusters_by_clustercompareregion(term):
     return query.filter(ClusterCompareHit.region_id != None)
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_profile(term):
     '''Return a query for a bgc by profile name'''
     return Region.query.join(Cds) \
@@ -368,7 +387,7 @@ def clusters_by_profile(term):
                  .filter(Profile.name.ilike('%{}%'.format(term)))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_smcog(term):
     '''Return a query for a bgc by smcog'''
     return Region.query.join(Cds) \
@@ -376,7 +395,7 @@ def clusters_by_smcog(term):
                  .filter(Smcog.name.ilike('%{}%'.format(term)))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_asdomain(term):
     '''Return a query for a bgc by asdomain name'''
     return Region.query.join(Cds, Region.region_id == Cds.region_id) \
@@ -384,7 +403,7 @@ def clusters_by_asdomain(term):
                  .filter(AsDomainProfile.name.ilike(term))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_asdomainsubtype(term):
     '''Return a query for a BGC by aSDomain subtype'''
     all_subtypes = AsDomainSubtype.query \
@@ -425,14 +444,14 @@ def clusters_by_subcluster(term):
     return clusters_by_x_clusterblast(term, 'subclusterblast')
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_resfam(term):
     '''Return a query for a region by Resfam hit'''
     search = "%{}%".format(term)
     return Region.query.join(Cds).join(ResfamDomain).join(Resfam).filter(or_(Resfam.accession.ilike(search), Resfam.name.ilike(search), Resfam.description.ilike(search)))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_pfam(term):
     '''Return a query for a region by Pfam hit'''
     search = "%{}%".format(term)
@@ -442,7 +461,7 @@ def clusters_by_pfam(term):
     return query.filter(or_(Pfam.pfam_id.ilike(search), Pfam.name.ilike(search), Pfam.description.ilike(search)))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_tigrfam(term):
     '''Return a query for a region by Pfam hit'''
     search = "%{}%".format(term)
@@ -452,7 +471,7 @@ def clusters_by_tigrfam(term):
     return query.filter(or_(Tigrfam.tigrfam_id.ilike(search), Tigrfam.name.ilike(search), Tigrfam.description.ilike(search)))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_tfbs(term):
     """Returns a query for regions containing a match for the given TFBS regulator name"""
     search = "%{}%".format(term)
@@ -460,28 +479,28 @@ def clusters_by_tfbs(term):
                  .filter(or_(Regulator.name.ilike(term), Regulator.name.ilike(term)))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_t2pksclass(term):
     '''Return a query for a region with a t2pks of specific product class'''
     search = "%{}%".format(term)
     return Region.query.join(Protocluster).join(T2pk).join(T2pksProductClass).filter(T2pksProductClass.product_class.ilike(search))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_t2pksstarter(term):
     '''Return a query for a region with a t2pks of specific starter'''
     search = "%{}%".format(term)
     return Region.query.join(Protocluster).join(T2pk).join(T2pksStarter).filter(T2pksStarter.name.ilike(search))
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_t2pkselongation(term):
     '''Return a query for a region with a t2pks of specific elongation'''
     search = "%d" % term
     return Region.query.join(Protocluster).join(T2pk).join(T2pksStarter).join(T2pksStarterElongation).filter(T2pksStarterElongation.elongation == search)
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_modulequery(term):
     '''Return a query for a region containing a module with specific construction'''
     # TODO: handle PKS subtypes
@@ -628,7 +647,7 @@ def clusters_by_modulequery(term):
     return Region.query.join(Module).filter(Module.module_id.in_(matching_modules)).distinct(Region.region_id)
 
 
-@register_handler(CLUSTERS)
+@register_countable_handler(CLUSTERS)
 def clusters_by_crosscdsmodule(term=""):
     """Return a query for regions containing a cross-CDS module"""
     return Region.query.join(Module).filter(Module.multi_gene == True)
