@@ -26,6 +26,7 @@ from api.search import available as available_endpoints
 from .helpers import (
     COMPARISON_OPERATORS,
     Filter,
+    BooleanFilter,
     NumericFilter,
     QualitativeFilter,
     TextFilter,
@@ -79,6 +80,10 @@ def _filter_module_by_monomer(query, name: str = None, value: str = None):
     return query.filter(Module.module_id.in_(subquery))
 
 
+def _filter_module_by_multigene(query):
+    return query.filter(Module.multi_gene == True)
+
+
 def _filter_module_by_substrate(query, name: str = None, value: str = None):
     assert value is not None
     condition = or_(Substrate.name == value.lower(), Substrate.description.ilike(f'%{value}%'))
@@ -115,6 +120,7 @@ AVAILABLE_FILTERS: dict[str, Filter] = {
     "modulequery": [
         TextFilter("substrate", _filter_module_by_substrate, available_endpoints.available_substrate),
         TextFilter("monomer", _filter_module_by_monomer, available_endpoints.available_monomer),
+        BooleanFilter("multigene", _filter_module_by_multigene),
     ],
     "tfbs": [
         QualitativeFilter("quality", _filter_tfbs_quality, {"strong": 30, "medium": 20, "weak": 10}),

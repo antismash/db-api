@@ -319,6 +319,20 @@ def test_clusters_by_module_filters():
     monomer_count = get_count(with_monomer)
     assert 1 <= monomer_count < substrate_count
 
+    # GCF_000590515.1, NZ_JABQ01000025:1-41,346 has both a cross-CDS and normal module
+    for base in [
+        clusters.clusters_by_modulequery("L=PKS_AT"),
+        clusters.clusters_by_substrate("mal"),
+    ]:
+        count = get_count(base)
+        assert count >= 1
+        filters._filter_module_by_multigene(base).all()
+        with_multi_gene = get_count(filters._filter_module_by_multigene(base))
+        without_multi_gene = get_count(base.except_(filters._filter_module_by_multigene(base)))
+        assert with_multi_gene > 0
+        assert without_multi_gene > 0
+        assert count == with_multi_gene + without_multi_gene
+
 
 def test_clusters_by_crosscds_module():
     # GCF_000590515.1, NZ_JABQ01000025:1-41,346, Z951_RS18340 and Z951_RS18345
