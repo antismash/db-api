@@ -18,6 +18,7 @@ from api.models import (
     AsDomain,
     AsDomainProfile,
     AsDomainSubtype,
+    BgcCategory,
     BgcType,
     BindingSite,
     Candidate,
@@ -222,9 +223,25 @@ def guess_cluster_category(term):
 @register_handler(CLUSTERS)
 def clusters_by_type(term):
     '''Return a query for a bgc by type or type description search'''
-    all_subtypes = db.session.query(BgcType).filter(or_(BgcType.term == term, BgcType.description.ilike('%{}%'.format(term)))).cte(recursive=True)
-    all_subtypes = all_subtypes.union(db.session.query(BgcType).filter(BgcType.parent_id == all_subtypes.c.bgc_type_id))
-    return db.session.query(Region).join(t_rel_regions_types).join(all_subtypes)
+    query = db.session.query(Region).join(t_rel_regions_types).join(BgcType)
+
+    exact_match = BgcType.query.filter(BgcType.term == term).all()
+    if exact_match:
+        query = query.filter(BgcType.term == term)
+    else:
+        query = query.filter(BgcType.description.ilike(f"%{term}%"))
+
+    return query
+
+
+@register_handler(CLUSTERS)
+def clusters_by_typecategory(term):
+    '''Return a query for a BGC by type category or category description'''
+    core = db.session.query(BgcCategory.category)
+    match_query = core.filter(BgcCategory.category == term)
+    if not match_query.all():
+        match_query = core.filter(BgcCategory.description.ilike(f"%{term}%"))
+    return Region.query.join(t_rel_regions_types).join(BgcType).filter(BgcType.category.in_(match_query.subquery()))
 
 
 @register_handler(CLUSTERS)

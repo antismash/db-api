@@ -60,6 +60,15 @@ class AsDomain(db.Model):
 
 
 
+class BgcCategory(db.Model):
+    __tablename__ = 'bgc_categories'
+    __table_args__ = {'schema': 'antismash'}
+
+    category = db.Column(db.Text, primary_key=True)
+    description = db.Column(db.Text, nullable=False, unique=True)
+
+
+
 class BgcRule(db.Model):
     __tablename__ = 'bgc_rules'
     __table_args__ = {'schema': 'antismash'}
@@ -77,11 +86,11 @@ class BgcType(db.Model):
     __table_args__ = {'schema': 'antismash'}
 
     bgc_type_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
-    term = db.Column(db.Text, unique=True)
-    description = db.Column(db.Text)
-    parent_id = db.Column(db.ForeignKey('antismash.bgc_types.bgc_type_id'))
+    term = db.Column(db.Text, nullable=False, unique=True)
+    description = db.Column(db.Text, nullable=False)
+    category = db.Column(db.ForeignKey('antismash.bgc_categories.category'), nullable=False)
 
-    parent = db.relationship('BgcType', remote_side=[bgc_type_id], primaryjoin='BgcType.parent_id == BgcType.bgc_type_id', backref='bgc_types')
+    bgc_category = db.relationship('BgcCategory', primaryjoin='BgcType.category == BgcCategory.category', backref='bgc_types')
     regions = db.relationship('Region', secondary='antismash.rel_regions_types', backref='bgc_types')
     candidates = db.relationship('Candidate', secondary='antismash.rel_candidates_types', backref='bgc_types')
 

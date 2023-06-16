@@ -90,6 +90,16 @@ def test_clusters_by_acc():
     assert get_count(clusters.clusters_by_acc('NC_003888')) == 26
 
 
+def test_clusters_by_types_and_categories():
+    type_count = get_count(clusters.clusters_by_type("nrps"))
+    category_count = get_count(clusters.clusters_by_typecategory("nrps"))
+    # the category must have at least as many hits as the subtype, probably more
+    assert type_count < category_count
+    # but the exact counts might shift with rule changes
+    assert type_count == 23
+    assert category_count == 30
+
+
 def test_clusters_by_candidate():
     base_query = clusters.clusters_by_candidatekind("chemical hybrid")
     base = get_count(base_query)

@@ -30,14 +30,14 @@ def test_stats(client):
         'top_secmet_taxon': 1,  # arbitrary, values depend on when this taxon was inserted
         'clusters': [
             {'name': 't1pks', 'count': 59, 'description': 'Type I polyketide'},
-            {'name': 't1nrps', 'count': 23, 'description': 'non-ribosomal peptide synthase'},
+            {'name': 'nrps', 'count': 23, 'description': 'Non-ribosomal peptide synthase'},
             {'name': 'terpene', 'count': 14, 'description': 'Terpene'},
             {'name': 'nrps-like', 'count': 8, 'description': 'NRPS-like fragments'},
             {'name': 'ni-siderophore', 'count': 6, 'description': 'NRPS-independent IucA/IucC-like siderophores'},
             {'name': 't3pks', 'count': 6, 'description': 'Type III polyketide'},
             {'name': 'butyrolactone', 'count': 5, 'description': 'Butyrolactone'},
             {'name': 'lanthipeptide-class-i', 'count': 3, 'description': 'Class I Lanthipeptide'},
-            {'name': 'other', 'count': 3, 'description': 'Other'},
+            {'name': 'other', 'count': 3, 'description': 'Other, non-categorised secondary metabolites'},
             {'name': 'ripp-like', 'count': 3, 'description': 'Fallback rule containing known RiPP-related profiles'},
             {'name': 't2pks', 'count': 3, 'description': 'Type II polyketide'},
             {'name': 'arylpolyene', 'count': 2, 'description': 'Aryl polyene'},

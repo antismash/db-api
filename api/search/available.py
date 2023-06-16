@@ -17,6 +17,7 @@ from .helpers import (
 from api.models import (
     db,
     AsDomainProfile,
+    BgcCategory,
     BgcType,
     CandidateType,
     ClusterblastAlgorithm,
@@ -204,6 +205,14 @@ def available_type(term):
     return db.session.query(distinct(BgcType.term), BgcType.description) \
              .filter(or_(BgcType.term.ilike('{}%'.format(term)), BgcType.description.ilike('{}%'.format(term)))) \
              .order_by(BgcType.term)
+
+
+@register_handler(AVAILABLE)
+def available_typecategory(term):
+    '''Generate query for available type'''
+    return db.session.query(BgcCategory.category, BgcCategory.description) \
+             .filter(or_(BgcCategory.category.ilike('{}%'.format(term)), BgcCategory.description.ilike('{}%'.format(term)))) \
+             .order_by(BgcCategory.category)
 
 
 @register_handler(AVAILABLE)
