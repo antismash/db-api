@@ -104,10 +104,10 @@ def test_clusters_by_candidate():
     base_query = clusters.clusters_by_candidatekind("chemical hybrid")
     base = get_count(base_query)
     assert base == 6
-    filtered = filters._filter_candidate_kind_by_type(base_query, name="bgctype", value="t1pks")
+    filtered = filters._filter_candidate_kind_by_type(base_query, value="t1pks")
     found = get_count(filtered)
     assert 1 < found < base
-    filtered = filters._filter_candidate_kind_by_type(filtered, name="bgctype", value="prodigiosin")
+    filtered = filters._filter_candidate_kind_by_type(filtered, value="prodigiosin")
     assert 0 < get_count(filtered) < found
 
 
@@ -355,7 +355,7 @@ def test_clusters_by_comparippsonmibig():
     # with filters
     query = clusters.clusters_by_comparippsonmibig("BGC")
     assert get_count(query) == 2
-    filtered = filters._filter_comparippson_numeric(query, "similarity", ">=", 0.3)
+    filtered = filters._filter_comparippson_numeric(query, ">=", 0.3, field="similarity")
     assert get_count(filtered) == 1
 
 

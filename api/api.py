@@ -688,10 +688,10 @@ def list_available_filters(category):
 @app.route('/api/v1.0/available_filter_values/<category>/<filter_name>/<term>')
 def list_available_filter_values(category, filter_name, term):
     """List available values for a particular filter"""
-    filters = available_filters_by_category(sanitise_string(category), as_json=False)
+    category = sanitise_string(category)
     filter_name = sanitise_string(filter_name)
-    matching = [f for f in filters if f.name == filter_name]
-    if not matching or not isinstance(matching[0], TextFilter):
+    matching = available_filters_by_category(category, as_json=False).get(filter_name)
+    if not matching or not isinstance(matching, TextFilter):
         return jsonify([])
-    query = matching[0].available(sanitise_string(term)).limit(50)
+    query = matching.available(sanitise_string(term)).limit(50)
     return jsonify(list(map(lambda x: {'val': x[0], 'desc': x[1]}, query.all())))

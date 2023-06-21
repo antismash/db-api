@@ -36,8 +36,7 @@ from .helpers import (
 CLUSTERCOMPARE_FIELDS = ["score", "identity_metric", "order_metric", "components_metric"]
 
 
-def _filter_candidate_kind_by_type(query, name: str = None, value: str = None):
-    assert name == "bgctype"
+def _filter_candidate_kind_by_type(query, value: str = None):
     assert value is not None
     condition = or_(BgcType.term == value, BgcType.description.ilike(f'%{value}%'))
     subquery = db.session.query(Candidate.candidate_id).join(Candidate.protoclusters).join(BgcType).filter(condition)
@@ -45,8 +44,7 @@ def _filter_candidate_kind_by_type(query, name: str = None, value: str = None):
     return query
 
 
-def _filter_candidate_kind_by_count(query, name: str = None, operator: str = None, value: float = None):
-    assert name == "numprotoclusters"
+def _filter_candidate_kind_by_count(query, operator: str = None, value: float = None):
     assert operator in COMPARISON_OPERATORS
     assert value is not None
 
@@ -55,12 +53,12 @@ def _filter_candidate_kind_by_count(query, name: str = None, operator: str = Non
     return query.filter(Candidate.candidate_id.in_(subquery))
 
 
-def _filter_clusterblast(query, name: str = None, operator: str = None, value: float = None):
-    assert name and operator in COMPARISON_OPERATORS and value is not None
-    return query.filter(eval(f"ClusterblastHit.{name} {operator} {float(value)}"))
+def _filter_clusterblast(query, operator: str = None, value: float = None, field: str = None):
+    assert field and operator in COMPARISON_OPERATORS and value is not None
+    return query.filter(eval(f"ClusterblastHit.{field} {operator} {float(value)}"))
 
 
-def _filter_clustercompare_by_field(query, name: str = None, operator: str = None, value: float = None, field: str = None):
+def _filter_clustercompare_by_field(query, operator: str = None, value: float = None, field: str = None):
     assert field in CLUSTERCOMPARE_FIELDS, field
     assert operator in COMPARISON_OPERATORS
     assert value is not None
@@ -68,12 +66,12 @@ def _filter_clustercompare_by_field(query, name: str = None, operator: str = Non
     return query.filter(condition)
 
 
-def _filter_comparippson_numeric(query, name: str = None, operator: str = None, value: float = None):
-    assert name and operator in COMPARISON_OPERATORS and value is not None
-    return query.filter(eval(f"ComparippsonHit.{name} {operator} {float(value)}"))
+def _filter_comparippson_numeric(query, operator: str = None, value: float = None, field: str = None):
+    assert field and operator in COMPARISON_OPERATORS and value is not None
+    return query.filter(eval(f"ComparippsonHit.{field} {operator} {float(value)}"))
 
 
-def _filter_module_by_monomer(query, name: str = None, value: str = None):
+def _filter_module_by_monomer(query, value: str = None):
     assert value is not None
     condition = or_(Monomer.name == value.lower(), Monomer.description.ilike(f'%{value}%'))
     subquery = db.session.query(RelModulesMonomer.module_id).join(Monomer).filter(condition).subquery()
@@ -84,62 +82,62 @@ def _filter_module_by_multigene(query):
     return query.filter(Module.multi_gene == True)
 
 
-def _filter_module_by_substrate(query, name: str = None, value: str = None):
+def _filter_module_by_substrate(query, value: str = None):
     assert value is not None
     condition = or_(Substrate.name == value.lower(), Substrate.description.ilike(f'%{value}%'))
     subquery = db.session.query(RelModulesMonomer.module_id).join(Substrate).filter(condition).subquery()
     return query.filter(Module.module_id.in_(subquery))
 
 
-def _filter_tfbs_quality(query, name: str = None, operator: str = None, value: float = None):
-    assert name == "quality"
+def _filter_tfbs_by_field(query, operator: str = None, value: float = None, field: str = None):
     assert operator in COMPARISON_OPERATORS
     assert value is not None
-    return query.join(RegulatorConfidence).filter(eval(f"RegulatorConfidence.strength {operator} {float(value)}"))
+    assert field
+    return query.join(RegulatorConfidence).filter(eval(f"RegulatorConfidence.{field} {operator} {float(value)}"))
 
 
-_CLUSTERBLAST_FILTERS = [
-    NumericFilter("similarity", partial(_filter_clusterblast, name="similarity")),
-]
-_CLUSTER_COMPARE_FILTERS = [
-    NumericFilter(field.replace("_", " "), partial(_filter_clustercompare_by_field, field=field))
+_CLUSTERBLAST_FILTERS = {
+    "similarity": NumericFilter("Similarity", partial(_filter_clusterblast, field="similarity")),
+}
+_CLUSTER_COMPARE_FILTERS = {
+    field: NumericFilter(field.title(), partial(_filter_clustercompare_by_field, field=field))
     for field in CLUSTERCOMPARE_FIELDS
-]
+}
+_COMPARIPPSON_SIMILARITY = NumericFilter("Similarity", partial(_filter_comparippson_numeric, field="similarity"))
 
 # these keys must match search categories
-AVAILABLE_FILTERS: dict[str, Filter] = {
-    "candidatekind": [
-        TextFilter("bgctype", _filter_candidate_kind_by_type, available_endpoints.available_type),
-        NumericFilter("numprotoclusters", _filter_candidate_kind_by_count),
-    ],
+AVAILABLE_FILTERS: dict[str, dict[str, Filter]] = {
+    "candidatekind": {
+        "bgctype": TextFilter("BGC Type", _filter_candidate_kind_by_type, available_endpoints.available_type),
+        "numprotoclusters": NumericFilter("Protocluster count", _filter_candidate_kind_by_count),
+    },
     "clusterblast": _CLUSTERBLAST_FILTERS,
     "clustercompareprotocluster": _CLUSTER_COMPARE_FILTERS,
     "clustercompareregion": _CLUSTER_COMPARE_FILTERS,
-    "comparippsonmibig": [
-        NumericFilter("similarity", partial(_filter_comparippson_numeric, name="similarity")),
-    ],
-    "comparippsonasdb": [
-        NumericFilter("similarity", partial(_filter_comparippson_numeric, name="similarity")),
-    ],
-    "modulequery": [
-        TextFilter("substrate", _filter_module_by_substrate, available_endpoints.available_substrate),
-        TextFilter("monomer", _filter_module_by_monomer, available_endpoints.available_monomer),
-        BooleanFilter("multigene", _filter_module_by_multigene),
-    ],
-    "tfbs": [
-        QualitativeFilter("quality", _filter_tfbs_quality, {"strong": 30, "medium": 20, "weak": 10}),
-        NumericFilter("score", _filter_tfbs_quality),
-    ],
+    "comparippsonmibig": {
+        "similarity": _COMPARIPPSON_SIMILARITY,
+    },
+    "comparippsonasdb": {
+        "similarity": _COMPARIPPSON_SIMILARITY,
+    },
+    "modulequery": {
+        "substrate": TextFilter("Substrate", _filter_module_by_substrate, available_endpoints.available_substrate),
+        "monomer": TextFilter("Monomer", _filter_module_by_monomer, available_endpoints.available_monomer),
+        "multigene": BooleanFilter("Multi-gene", _filter_module_by_multigene),
+    },
+    "tfbs": {
+        "quality": QualitativeFilter("Quality", partial(_filter_tfbs_by_field, field="strength"), {"strong": 30, "medium": 20, "weak": 10}),
+        "score": NumericFilter("Score", partial(_filter_tfbs_by_field, field="score")),
+    },
     "knowncluster": _CLUSTERBLAST_FILTERS,
     "subcluster": _CLUSTERBLAST_FILTERS,
 }
 
 
-def available_filters_by_category(category, as_json=True):
+def available_filters_by_category(category, as_json=True) -> dict:
     """List all available filters by category"""
     cleaned_category = sanitise_string(category)
-
-    if cleaned_category in AVAILABLE_FILTERS:
-        return [f.get_options() if as_json else f for f in AVAILABLE_FILTERS[cleaned_category]]
-
-    return []
+    filters = AVAILABLE_FILTERS.get(cleaned_category, {})
+    if as_json:
+        return [f.get_options(name) for name, f in filters.items()]
+    return dict(filters)

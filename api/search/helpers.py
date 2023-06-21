@@ -100,9 +100,6 @@ class TextFilter(Filter):
     def available(self, search_string: str):
         return self._available(sanitise_string(search_string))
 
-    def available(self, search_string: str):
-        return self._available(sanitise_string(search_string))
-
 
 class Handler:
     def __init__(self, core: Callable[[str], Any], countable: bool = False,

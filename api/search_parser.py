@@ -20,13 +20,11 @@ def process_filter(data: dict[str, Any], category: str) -> list[tuple[Filter, di
     """ Finds matching Filter instances for the filter described by JSON
         Returns a tuple of the filter and the data, ready to be run when a query is present
     """
-    available_filters = available_filters_by_category(category, as_json=False)
     if "name" not in data:
         raise ValueError(f"Missing filter type for category: '{category}'")
-    matching = [available for available in available_filters if available.name == data["name"]]
-    if len(matching) != 1:
+    match = available_filters_by_category(category, as_json=False).get(data["name"])
+    if match is None:
         raise ValueError(f"Invalid filter '{data['name']}' for category: '{category}'")
-    match = matching[0]
     return (match, data)
 
 
@@ -265,11 +263,7 @@ class QueryTerm(object):
         del token_list[0]
 
         possible_filters = available_filters_by_category(parent_category, as_json=False)
-        matching_filter = None
-        for filt in possible_filters:
-            if category == filt.name:
-                matching_filter = filt
-                break
+        matching_filter = possible_filters.get(category)
         if not matching_filter:
             raise ValueError(f"Invalid filter category for {parent_category!r}: {category!r}")
 
@@ -286,14 +280,14 @@ class QueryTerm(object):
             if value == int(value):
                 value = int(value)
             return {
-                "name": filt.name,
+                "name": category,
                 "operator": operator,
                 "value": value,
             }
         elif isinstance(matching_filter, TextFilter):
             value = " ".join(value_parts)
             return {
-                "name": filt.name,
+                "name": category,
                 "value": value,
             }
         else:

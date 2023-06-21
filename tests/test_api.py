@@ -69,14 +69,17 @@ def test_stats(client):
 
 def test_categories_have_filters():
     def check_filter(filt):
-        assert isinstance(filt["name"], str)
+        value = filt["value"]
+        assert isinstance(value, str)
+        assert " " not in value and value.lower() == value
+        assert isinstance(filt["label"], str)
         assert isinstance(filt["type"], str)
-        for key in filt.get("labels", {}):
+        for key in filt.get("choices", {}):
             assert isinstance(key, str)
 
     def check_option(option):
         assert len(set(option).intersection({"label", "value", "type"})) == 3
-        for filt in option.get("filters", []):
+        for filt in option.get("filters", {}):
             check_filter(filt)
 
     # categories is special, it doesn't use jsonify, so the payload needs to be
