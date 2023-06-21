@@ -98,6 +98,9 @@ def _filter_tfbs_quality(query, name: str = None, operator: str = None, value: f
     return query.join(RegulatorConfidence).filter(eval(f"RegulatorConfidence.strength {operator} {float(value)}"))
 
 
+_CLUSTERBLAST_FILTERS = [
+    NumericFilter("similarity", partial(_filter_clusterblast, name="similarity")),
+]
 _CLUSTER_COMPARE_FILTERS = [
     NumericFilter(field.replace("_", " "), partial(_filter_clustercompare_by_field, field=field))
     for field in CLUSTERCOMPARE_FIELDS
@@ -109,6 +112,7 @@ AVAILABLE_FILTERS: dict[str, Filter] = {
         TextFilter("bgctype", _filter_candidate_kind_by_type, available_endpoints.available_type),
         NumericFilter("numprotoclusters", _filter_candidate_kind_by_count),
     ],
+    "clusterblast": _CLUSTERBLAST_FILTERS,
     "clustercompareprotocluster": _CLUSTER_COMPARE_FILTERS,
     "clustercompareregion": _CLUSTER_COMPARE_FILTERS,
     "comparippsonmibig": [
@@ -126,9 +130,8 @@ AVAILABLE_FILTERS: dict[str, Filter] = {
         QualitativeFilter("quality", _filter_tfbs_quality, {"strong": 30, "medium": 20, "weak": 10}),
         NumericFilter("score", _filter_tfbs_quality),
     ],
-    "knowncluster": [
-        NumericFilter("similarity", partial(_filter_clusterblast, name="similarity")),
-    ],
+    "knowncluster": _CLUSTERBLAST_FILTERS,
+    "subcluster": _CLUSTERBLAST_FILTERS,
 }
 
 
