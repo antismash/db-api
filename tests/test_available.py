@@ -1,5 +1,7 @@
 from api.search import available
 
+SCO_STRAIN = "A3(2)"
+
 
 def test_available_term_by_category_invalid():
     assert available.available_term_by_category('foo', 'bar') == []
@@ -9,18 +11,16 @@ def test_available_term_by_category_taxonomy():
     tests = [
         (('superkingdom', 'b'), [{'val': 'Bacteria', 'desc': None}]),
         (('phylum', 'act'), [
-            {'val': 'Actinobacteria', 'desc': None},
             {'val': 'Actinomycetota', 'desc': None},
         ]),
         (('class', 'act'), [
-            {'val': 'Actinobacteria', 'desc': None},
             {'val': 'Actinomycetes', 'desc': None},
         ]),
-        (('order', 'streptom'), [{'val': 'Streptomycetales', 'desc': None}]),
+        (('order', 'Kitas'), [{'val': 'Kitasatosporales', 'desc': None}]),
         (('family', 'streptom'), [{'val': 'Streptomycetaceae', 'desc': None}]),
-        (('genus', 'streptom'), [{'val': 'Streptomonospora', 'desc': None}, {'val': 'Streptomyces', 'desc': None}]),
+        (('genus', 'streptom'), [{'val': 'Streptomyces', 'desc': None}]),
         (('species', 'coeli'), [{'val': 'coelicolor', 'desc': None}]),
-        (('strain', 'CFB_NBC_00'), [{'val': 'CFB_NBC_0001', 'desc': None}]),
+        (('strain', SCO_STRAIN[:3]), [{'val': SCO_STRAIN, 'desc': None}]),
     ]
 
     for args, expected in tests:
@@ -72,7 +72,7 @@ def test_available_term_by_category():
                                 {'val': 'SMCOG1060', 'desc': "4'-phosphopantetheinyl transferase"}
                            ]),
         # the following are less likely to exist
-        (('clusterblast', 'NZ_JOCE01000008'), [{'val': 'NZ_JOCE01000008_c8', 'desc': 'Streptomyces violaceoruber strain NRRL S-12 contig8.1, whole genome shotgun sequence'}]),
+        (('clusterblast', 'NZ_JABQ01000018'), [{'val': 'NZ_JABQ01000018_c93106-113862', 'desc': 'Streptomyces sp. PRh5 contig018, whole genome shotgun sequence'}]),
     ]
     for args, expected in tests:
         assert available.available_term_by_category(*args) == expected, args

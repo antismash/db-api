@@ -37,13 +37,15 @@ TOTAL_REGION_COUNT = 133
 SCO_REGION_COUNT = 28
 OTHER_REGION_COUNT = TOTAL_REGION_COUNT - SCO_REGION_COUNT
 
+SCO_TAXID_ID = 1  # not the actual TAXID, just the serial identifier that TAXID was given in the database
+SCO_STRAIN = "A3(2)"
 
 def test_clusters_by_taxid():
-    assert get_count(clusters.clusters_by_taxid(1950)) == SCO_REGION_COUNT
+    assert get_count(clusters.clusters_by_taxid(SCO_TAXID_ID)) == SCO_REGION_COUNT
 
 
 def test_clusters_by_strain():
-    assert get_count(clusters.clusters_by_strain('CFB_NBC_0001')) == SCO_REGION_COUNT
+    assert get_count(clusters.clusters_by_strain(SCO_STRAIN)) == SCO_REGION_COUNT
 
 
 def test_clusters_by_species():
@@ -59,15 +61,15 @@ def test_clusters_by_family():
 
 
 def test_clusters_by_order():
-    assert get_count(clusters.clusters_by_order('streptomycetales')) == SCO_REGION_COUNT
+    assert get_count(clusters.clusters_by_order('kitasatosporales')) == TOTAL_REGION_COUNT
 
 
 def test_clusters_by_class():
-    assert get_count(clusters.clusters_by_class('actinobacteria')) == SCO_REGION_COUNT
+    assert get_count(clusters.clusters_by_class('actinomycetes')) == TOTAL_REGION_COUNT
 
 
 def test_clusters_by_phylum():
-    assert get_count(clusters.clusters_by_phylum('actinobacteria')) == SCO_REGION_COUNT
+    assert get_count(clusters.clusters_by_phylum('actinomycetota')) == TOTAL_REGION_COUNT
 
 
 def test_clusters_by_superkingdom():
@@ -104,7 +106,7 @@ def test_clusters_by_asdomainsubtype():
 
 
 def test_clusters_by_clusterblast():
-    assert get_count(clusters.clusters_by_clusterblast('NZ_CP042324.1')) == 1
+    assert get_count(clusters.clusters_by_clusterblast('NC_003888')) == -1
 
 
 def test_clusters_by_knowncluster():

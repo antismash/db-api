@@ -2,6 +2,8 @@ import json
 from flask import url_for
 from api import taxtree
 
+from .test_clusters import SCO_STRAIN
+
 
 def test_version(client):
     '''Test /api/v1.0/version endpoint'''
@@ -22,10 +24,10 @@ def test_stats(client):
         'num_genomes': 2,
         'top_secmet_assembly_id': 'GCF_000203835.1',
         'num_clusters': 49,  # TODO *regions, should this be named differently
-        'top_secmet_species': 'Streptomyces coelicolor CFB_NBC_0001',
+        'top_secmet_species': f'Streptomyces coelicolor {SCO_STRAIN}',
         'top_secmet_taxon_count': 26,
-        'top_seq_taxon': 15948,
-        'top_secmet_taxon': 1950,
+        'top_seq_taxon': 2,  # arbitrary, values depend on when this taxon was inserted
+        'top_secmet_taxon': 1,  # arbitrary, values depend on when this taxon was inserted
         'clusters': [
             {'name': 't1pks', 'count': 59, 'description': 'Type I polyketide'},
             {'name': 't1nrps', 'count': 23, 'description': 'non-ribosomal peptide synthase'},
@@ -121,7 +123,7 @@ def test_search(client):
                 "genus": "Streptomyces",
                 "similarity": 100,
                 "species": "coelicolor",
-                "strain": "CFB_NBC_0001",
+                "strain": SCO_STRAIN,
                 "term": "butyrolactone - furan hybrid",
                 "version": 1
             }
@@ -134,7 +136,7 @@ def test_search(client):
                     1
                 ],
                 "labels": [
-                    "Actinobacteria"
+                    "Actinomycetota"
                 ]
             },
             "clusters_by_type": {
@@ -198,7 +200,7 @@ def test_export(client):
         "genus": "Streptomyces",
         "similarity": 100,
         "species": "coelicolor",
-        "strain": "CFB_NBC_0001",
+        "strain": SCO_STRAIN,
         "term": "butyrolactone - furan hybrid",
         "version": 1
     }]
@@ -266,7 +268,7 @@ def test_genome(client):
         "similarity": 2,
         "species": "coelicolor",
         "start_pos": 86636,
-        "strain": "CFB_NBC_0001",
+        "strain": SCO_STRAIN,
         "term": "hgle-ks - t1pks hybrid",
         "version": 3
     }
@@ -279,7 +281,7 @@ def test_genome(client):
 
 def test_available(client):
     '''Test /api/v1.0/available/<category>/<term> endpoint'''
-    expected = [{'val': 'Streptomonospora', 'desc': None}, {'val': 'Streptomyces', 'desc': None}]
-    results = client.get(url_for('list_available', category='genus', term='streptom'))
+    expected = [{'desc': None, 'val': 'coelicolor'}]
+    results = client.get(url_for('list_available', category='species', term="coe"))
     assert results.status_code == 200
     assert results.json == expected
