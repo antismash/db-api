@@ -104,14 +104,35 @@ class TextFilter(Filter):
         return self._available(sanitise_string(search_string))
 
 
-def register_handler(handler):
+class Handler:
+    def __init__(self, core: Callable[[str], Any], countable: bool = False,
+                 counter: Callable[[Any, int], Any] = None):
+        self._core = core
+        self._counter = counter
+        self.countable = countable
+        if self.countable and not self._counter:
+            raise ValueError("A countable handler must also supply a counter method")
+
+    def add_count_restriction(self, query, minimum: int):
+        if not self.countable or minimum < 0:
+            return query
+        return self._counter(query, minimum)
+
+    def __call__(self, term: str = None):  # for backwards compatible behaviour
+        # term will be None if it's a boolean presence query
+        if term is None:
+            return self._core()
+        return self._core(term)
+
+
+def register_handler(handler, countable: bool = False, counter: Callable = None):
     '''Decorator to register a function as a handler'''
     def real_decorator(function):
         name = function.__name__.split('_')[-1]
-        handler[name] = function
+        handler[name] = Handler(function, countable, counter)
 
         def inner(*args, **kwargs):
-            return function(*args, **kwargs)
+            return handler[name](*args, **kwargs)
         return inner
     return real_decorator
 
