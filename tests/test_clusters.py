@@ -168,7 +168,9 @@ def test_clusters_by_asdomainsubtype():
 
 
 def test_clusters_by_clusterblast():
-    assert get_count(clusters.clusters_by_clusterblast('NC_003888')) == -1
+    # this hits a lot, but each region can hit multiple times, once for each region in the reference
+    # e.g. NC_003888_c6881334-6951537 and NC_003888_c6430009-6475291 are distinct
+    assert get_count(clusters.clusters_by_clusterblast('NC_003888')) == 70
 
 
 def test_clusters_by_knowncluster():
