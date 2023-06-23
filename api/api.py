@@ -33,6 +33,7 @@ from .search import (
     region_stats,
     available_term_by_category,
 )
+from .search.clusters import CLUSTERS as CLUSTER_HANDLERS
 from .search.filters import (
     available_filters_by_category,
 )
@@ -664,6 +665,7 @@ def list_available_categories():
             "label": description,
             "value": category,
             "type": str(data_type),
+            "countable": CLUSTER_HANDLERS[category].countable,
         }
         filters = available_filters_by_category(category)
         if filters:
