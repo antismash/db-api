@@ -647,7 +647,6 @@ CATEGORIES = {
     "superkingdom": ("Superkingdom", CategoryType.TEXT, TAXONOMY_GROUP),
     "clusterblast": ("ClusterBlast hit", CategoryType.TEXT, COMPARISON_GROUP),
     "knowncluster": ("KnownClusterBlast hit", CategoryType.TEXT, COMPARISON_GROUP),
-    "knownclustersim": ("KnownClusterBlast similarity", CategoryType.NUMERIC, COMPARISON_GROUP),  # TODO remove
     "subcluster": ("SubClusterBlast hit", CategoryType.TEXT, COMPARISON_GROUP),
 }
 
