@@ -134,10 +134,16 @@ AVAILABLE_FILTERS: dict[str, dict[str, Filter]] = {
 }
 
 
-def available_filters_by_category(category, as_json=True) -> dict:
-    """List all available filters by category"""
+def available_filters_by_category(category: str, name: str = None, as_json=True) -> dict:
+    """ List all available filters by category
+        If name is supplied as well as category, then only that filter will be returned.
+    """
     cleaned_category = sanitise_string(category)
     filters = AVAILABLE_FILTERS.get(cleaned_category, {})
+    if name is not None:
+        if as_json:
+            return filters[name].get_options(name)
+        return filters[name]
     if as_json:
         return [f.get_options(name) for name, f in filters.items()]
     return dict(filters)
