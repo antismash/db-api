@@ -396,8 +396,8 @@ def clusters_by_asdomainsubtype(term):
 
 
 @register_handler(CLUSTERS)
-def clusters_by_contigedge(term):
-    return Region.query.filter(Region.contig_edge.is_(term))
+def clusters_by_contigedge(_term):
+    return Region.query.filter(Region.contig_edge.is_(True))
 
 
 def clusters_by_x_clusterblast(term, algorithm):
