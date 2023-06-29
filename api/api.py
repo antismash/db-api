@@ -102,11 +102,11 @@ def _common_stats():
     for cluster in ret:
         clusters.append({'name': cluster.term, 'description': cluster.description, 'count': cluster.count, 'category': cluster.category})
 
-    ret = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, func.count(DnaSequence.accession).label('tax_count')) \
+    ret = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, Taxa.strain, func.count(DnaSequence.accession).label('tax_count')) \
                     .join(Genome, Genome.tax_id == Taxa.tax_id).join(DnaSequence, DnaSequence.genome_id == Genome.genome_id) \
                     .group_by(Taxa.tax_id).order_by(sql_desc('tax_count')).limit(1).first()
     top_seq_taxon = ret.tax_id
-    top_seq_species = '{r.genus} {r.species}'.format(r=ret)
+    top_seq_species = f'{ret.genus} {ret.species} {ret.strain}'
     top_seq_taxon_count = ret.tax_count
 
     stats = {
