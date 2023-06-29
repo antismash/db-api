@@ -97,10 +97,10 @@ def _common_stats():
     clusters = []
     sub = db.session.query(t_rel_regions_types.c.bgc_type_id, func.count(1).label('count')) \
                     .group_by(t_rel_regions_types.c.bgc_type_id).subquery()
-    ret = db.session.query(BgcType.term, BgcType.description, sub.c.count).join(sub) \
-                    .order_by(sub.c.count.desc(), BgcType.term)
+    ret = db.session.query(BgcType.term, BgcType.description, BgcType.category, sub.c.count).join(sub) \
+                    .order_by(sub.c.count.desc(), BgcType.term, BgcType.category)
     for cluster in ret:
-        clusters.append({'name': cluster.term, 'description': cluster.description, 'count': cluster.count})
+        clusters.append({'name': cluster.term, 'description': cluster.description, 'count': cluster.count, 'category': cluster.category})
 
     ret = db.session.query(Taxa.tax_id, Taxa.genus, Taxa.species, func.count(DnaSequence.accession).label('tax_count')) \
                     .join(Genome, Genome.tax_id == Taxa.tax_id).join(DnaSequence, DnaSequence.genome_id == Genome.genome_id) \
