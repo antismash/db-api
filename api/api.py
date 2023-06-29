@@ -453,7 +453,7 @@ def export_get(search_type, return_type):
 @app.route('/api/v1.0/genome/<identifier>')
 def show_genome(identifier):
     '''show information for a genome by identifier'''
-    query = Query.from_string('[acc]{}'.format(identifier))
+    query = Query.from_string(f"{{[acc|{identifier}]}}")
     found_bgcs = format_results(query, core_search(query))
 
     return jsonify(found_bgcs)
@@ -462,7 +462,7 @@ def show_genome(identifier):
 @app.route('/api/v1.0/assembly/<identifier>')
 def show_assembly(identifier):
     """show information for an assembly by identifier"""
-    query = Query.from_string('[assembly]{}'.format(identifier))
+    query = Query.from_string(f"{{[assembly|{identifier}]}}")
     found_bgcs = format_results(query, core_search(query))
 
     return jsonify(found_bgcs)

@@ -202,12 +202,12 @@ def cluster_query_from_term(term):
     '''Recursively generate an SQL query from the search terms'''
     if term.kind == 'expression':
         if term.category == 'unknown':
-            term.category = guess_cluster_category(term)
+            raise ValueError("Unknown category in query")
         if term.category in CLUSTERS:
             handler = CLUSTERS[term.category]
             query = handler(term.term)
-            for query_filter, data in term.filters:
-                query = query_filter.run(query, data)
+            for query_filter in term.filters:
+                query = query_filter.runner.run(query, query_filter.get_options())
             query = handler.add_count_restriction(query, term.count)
             return query
         else:
@@ -215,28 +215,15 @@ def cluster_query_from_term(term):
     elif term.kind == 'operation':
         left_query = cluster_query_from_term(term.left)
         right_query = cluster_query_from_term(term.right)
-        if term.operation == 'except':
+        if term.operator == 'except':
             return left_query.except_(right_query)
-        elif term.operation == 'or':
+        elif term.operator == 'or':
             return left_query.union(right_query)
-        elif term.operation == 'and':
+        elif term.operator == 'and':
             return left_query.intersect(right_query)
+        raise UnknownQueryError()
 
     raise UnknownQueryError()
-
-
-def guess_cluster_category(term):
-    '''Guess cluster search category from term'''
-    if BgcType.query.filter(BgcType.term.ilike(f"{term.term}%")).count() > 0:
-        return 'type'
-    if DnaSequence.query.filter(DnaSequence.accession.ilike(term.term)).count() > 0:
-        return 'acc'
-    if Taxa.query.filter(Taxa.genus.ilike(term.term)).count() > 0:
-        return 'genus'
-    if Taxa.query.filter(Taxa.species.ilike(term.term)).count() > 0:
-        return 'species'
-
-    return term.category
 
 
 @register_countable_handler(CLUSTERS)

@@ -187,12 +187,12 @@ def test_search(client):
     }
 
     url = url_for('search').replace("v2", "v1")
-    results = client.post(url, data='{"search_string": "[type]furan"}', content_type="application/json")
+    results = client.post(url, data='{"search_string": "{[type|furan]}"}', content_type="application/json")
     assert results.status_code == 200
     assert results.json["clusters"][0].pop("bgc_id")
     assert results.json == expected
 
-    query = {'query': {'search': 'cluster', 'return_type': 'json', 'terms': {'term_type': 'expr', 'category': 'type', 'term': 'furan'}}}
+    query = {'query': {'search': 'cluster', 'return_type': 'json', 'terms': {'term_type': 'expr', 'category': 'type', 'value': 'furan'}}}
     results = client.post(url, data=json.dumps(query), content_type="application/json")
     assert results.status_code == 200
     assert results.json["clusters"][0].pop("bgc_id")
@@ -208,7 +208,7 @@ def test_search(client):
 
 
 def test_search_paginate(client):
-    query = {'query': {'search': 'cluster', 'return_type': 'json', 'terms': {'term_type': 'expr', 'category': 'genus', 'term': 'Streptomyces'}},
+    query = {'query': {'search': 'cluster', 'return_type': 'json', 'terms': {'term_type': 'expr', 'category': 'genus', 'value': 'Streptomyces'}},
              'paginate': 5}
     results = client.post(url_for('search'), data=json.dumps(query), content_type="application/json")
     assert results.status_code == 200
@@ -255,13 +255,13 @@ def test_export(client):
     ).format(**json_with_helpers).encode()
 
 
-    query = {'query': {'search': 'cluster', 'return_type': 'json', 'terms': {'term_type': 'expr', 'category': 'type', 'term': 'furan'}}}
+    query = {'query': {'search': 'cluster', 'return_type': 'json', 'terms': {'term_type': 'expr', 'category': 'type', 'value': 'furan'}}}
     results = client.post(url_for('export'), data=json.dumps(query), content_type="application/json")
     assert results.status_code == 200
     results.json[0].pop("bgc_id")  # arbitrary value, not useful for testing
     assert results.json == expected_json
 
-    results = client.post(url_for('export'), data='{"search_string": "[type]furan"}', content_type="application/json")
+    results = client.post(url_for('export'), data='{"search_string": "{[type|furan]}"}', content_type="application/json")
     assert results.status_code == 200
     assert results.data == expected_csv
 

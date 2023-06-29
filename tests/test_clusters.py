@@ -1,6 +1,6 @@
 'Tests for the cluster search logic'
 
-from api.search_parser import QueryTerm
+from api.search_parser import QueryOperand
 from api.search import (
     clusters,
     filters,
@@ -15,20 +15,6 @@ def get_count(query):
         function exists to prevent that from rearing its head (again).
     """
     return len(query.all())
-
-
-def test_guess_cluster_category():
-    tests = [
-        ('lanthipeptide', 'type'),
-        ('NC_003888', 'acc'),
-        ('Streptomyces', 'genus'),
-        ('coelicolor', 'species'),
-        ('not-in-database', 'unknown')
-    ]
-
-    for search_term, expected in tests:
-        term = QueryTerm.from_string(search_term)
-        assert clusters.guess_cluster_category(term) == expected, search_term
 
 
 # using GCF_000203835.1 (S.Coelicolor) and GCF_000590515.1 (S.sp.PRh5)as test
@@ -365,7 +351,7 @@ def test_cluster_query_count():
     # only two entries of the above have a proline monomer prediction
     # NZ_JABQ01000048:0-79694 has four proline modules
     # NZ_JABQ01000073:100-54745 has a single proline module
-    term = QueryTerm("expression", term="pro", category="monomer", count=1)
+    term = QueryOperand(value="pro", category="monomer", count=1)
     assert get_count(clusters.cluster_query_from_term(term)) == 2
-    term = QueryTerm("expression", term="pro", category="monomer", count=2)
+    term = QueryOperand(value="pro", category="monomer", count=2)
     assert get_count(clusters.cluster_query_from_term(term)) == 1

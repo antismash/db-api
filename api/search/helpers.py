@@ -73,9 +73,8 @@ class NumericFilter(Filter):
         super().__init__(name, DataType.NUMERIC, func, labels)
 
     def run(self, query, data: dict[str, Any]):
-        if list(data) != ["name", "operator", "value"]:
-            raise ValueError("badly formed numeric filter")
-        assert data["name"] == self.name
+        if set(data) != {"name", "operator", "value"}:
+            raise ValueError(f"badly formed numeric filter")
         ensure_operator_valid(data["operator"])
         value = float(data["value"])
         return self.func(query, operator=data["operator"], value=value)
@@ -111,6 +110,7 @@ class Handler:
             raise ValueError("A countable handler must also supply a counter method")
 
     def add_count_restriction(self, query, minimum: int):
+        assert minimum is not None
         if not self.countable or minimum < 0:
             return query
         return self._counter(query, minimum)

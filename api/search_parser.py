@@ -9,11 +9,245 @@ from .search.helpers import (
     UnknownOperatorError,
 )
 from .search.filters import (
+    BooleanFilter,
+    Filter,
     NumericFilter,
     QualitativeFilter,
     TextFilter,
     available_filters_by_category,
 )
+
+
+COUNT_GUARD = -1
+
+class QueryItem:
+    def __init__(self, kind: str):
+        self.kind = kind
+
+
+class QueryFilter(QueryItem):
+    def __init__(self, category: str, name: str, runner: Filter, value: str = None, operator: str = None):
+        if isinstance(runner, NumericFilter):
+            if value is None or operator is None:
+                raise ValueError("Numeric filters require both an operator and a value")
+            if isinstance(value, str) and "." in value:
+                value = float(value)
+            elif isinstance(value, str):
+                value = int(value)
+            ensure_operator_valid(operator)
+        elif isinstance(runner, TextFilter):
+            if value is None:
+                raise ValueError("Text filters require a value")
+            elif operator:
+                raise ValueError("Text filters cannot have an operator")
+        elif isinstance(runner, BooleanFilter):
+            if value is not None or operator:
+                raise ValueError("Boolean filters cannot have an operator or a value")
+
+        super().__init__("filter")
+        self.category = category
+        assert isinstance(name, str), name
+        self.name = name
+        self.value = value
+        self.operator = operator
+        self.runner = runner
+
+    def get_options(self) -> dict[str, Any]:
+        result = self.to_json()
+        return result
+
+    def to_json(self) -> dict[str, Any]:
+        result = {
+            "name": self.name,
+        }
+        if self.value is not None:
+            result["value"] = self.value
+        if self.operator is not None:
+            result["operator"] = self.operator
+        return result
+
+    @classmethod
+    def from_json(cls, category: str, data: dict[str, Any]) -> "QueryFilter":
+        name = data["name"]
+        runner = available_filters_by_category(category, name=name, as_json=False)
+        return cls(category, name, runner, data.get("value"), data.get("operator"))
+
+    def __str__(self) -> str:
+        chunks = [self.name]
+        if self.operator:
+            chunks.append(f"{self.operator}:{self.value}")
+        elif self.value is not None:
+            chunks.append(str(self.value))
+        return f" WITH [{'|'.join(chunks)}]"
+
+
+class QueryOperand(QueryItem):
+    BOOL_CATEGORIES = set(['contigedge'])
+
+    def __init__(self, category: str, value: str = "", count: int = None, filters: list[QueryFilter] = None):
+        super().__init__("expression")
+        self.category = category
+        self.term = value
+        self.filters = filters or []
+        self.count = count or -1
+        assert self.count is not None
+
+    def to_json(self) -> dict[str, Any]:
+        result = {
+            "termType": "expr",
+            "category": self.category,
+            "value": self.term,
+        }
+        if self.count > 1:
+            result["count"] = count
+        if self.filters:
+            result["filters"] = [f.to_json() for f in self.filters]
+        return result
+
+    @classmethod
+    def from_json(cls, data: dict[str, Any]) -> "QueryOperand":
+        if not data:
+            raise ValueError("Query elements cannot be empty")
+        if not set(["category", "value"]).issubset(data.keys()):
+            raise ValueError("For expressions, you need to specify 'category' and 'value'")
+        filters = [QueryFilter.from_json(data["category"], f) for f in data.get("filters", [])]
+        return cls(data["category"], value=data["value"], count=data.get("count"), filters=filters)
+
+    def __str__(self) -> str:
+        chunks = []
+        if self.count > 1:
+            chunks.extend([str(count), "*"])
+        chunks.append("{")
+        chunks.append(f"[{self.category}|{self.term}]")
+        chunks.extend(str(f) for f in self.filters)
+        chunks.append("}")
+        return "".join(chunks)
+
+
+class QueryOperator(QueryItem):
+    OPERATORS = {"OR", "AND", "EXCEPT"}
+    def __init__(self, operator: str, left: QueryOperand, right: QueryOperand):
+        super().__init__("operation")
+        if operator.upper() not in self.OPERATORS:
+            raise ValueError(f"Unknown operator: {operator}")
+        self.operator = operator.lower()
+        self.left = left
+        self.right = right
+
+    def to_json(self) -> dict[str, Any]:
+        return {
+            "termType": "op",
+            "operation": self.operator,
+            "left": self.left.to_json(),
+            "right": self.right.to_json(),
+        }
+
+    @classmethod
+    def from_json(cls, data: dict[str, Any]) -> "QueryOperator":
+        try:
+            return cls(data["operation"], QueryOperand.from_json(data["left"]), QueryOperand.from_json(data["right"]))
+        except KeyError as err:
+            raise ValueError(str(err))  # for the API to return things
+
+
+class QueryParser:
+    SPLITTER = "(\\" + "|\\".join("*{}[]()|") + ")"
+
+    def __init__(self, text: str):
+        self._index = 0
+        self._tokens = self._tokenise(text)
+        self.root: QueryItem = self._parse_operator() if self._peek() == "(" else self._parse_operand()
+        if self._index + 1 < len(self._tokens):
+            raise ValueError("Invalid query format")
+
+    def _tokenise(self, text: str) -> list[str]:
+        simple = text.split()
+        tokens = []
+        for token in simple:
+            tokens.extend(re.split(self.SPLITTER, token))
+        return [token for token in tokens if token]
+
+    def _next(self) -> str:
+        token = self._peek()
+        while not token:
+            self._index += 1
+            token = self._peek()
+        self._index += 1
+        return token
+
+    def _expect(self, expected: str) -> None:
+        found = self._next()
+        if found != expected:
+            raise ValueError(f"Expected '{expected}', found '{found}'")
+
+    def _peek(self) -> str:
+        if self._index >= len(self._tokens):
+            raise ValueError("Incomplete or badly formatted query")
+        return self._tokens[self._index]
+
+    def _parse_operator(self) -> QueryOperator:
+        self._expect("(")
+        if self._peek() == "(":
+            left = self._parse_operator()
+        else:
+            left = self._parse_operand()
+        operator = self._next()
+        if self._peek() == "(":
+            right = self._parse_operator()
+        else:
+            right = self._parse_operand()
+        self._expect(")")
+        return QueryOperator(operator, left, right)
+
+    def _get_category_components(self, start="[", end="]", separator="|") -> list[str]:
+        self._expect(start)
+        if self._peek().startswith(separator):
+            raise ValueError("Missing category name from query section")
+        base = []
+        while self._peek() != end:
+            base.append(self._next())
+        self._expect(end)
+        # single spaces may be meaningful here, so rebuild them
+        return [item.strip() for item in " ".join(base).split(separator) if item.strip()]
+
+    def _parse_operand(self) -> QueryOperand:
+        count = COUNT_GUARD
+        if self._peek().isdigit():
+            count = int(self._next())
+            self._expect("*")
+        self._expect("{")
+        query = self._get_category_components()
+        category = query[0]
+        if category in QueryOperand.BOOL_CATEGORIES:
+            assert len(query) == 1  # possibly values in {'true', 'yes', 't', 'y', '1'}, from old versions
+        filters = []
+        while self._peek() != "}":
+            self._expect("WITH")
+            filters.append(self._parse_filter(category))
+        self._expect("}")
+        return QueryOperand(*query, count=count, filters=filters)
+
+    def _parse_filter(self, category: str) -> QueryFilter:
+        components = self._get_category_components()
+        filter_name = components[0]
+        if not filter_name:
+            raise ValueError("Filter names are required")
+        matching_filter = available_filters_by_category(category, name=filter_name, as_json=False)
+        if matching_filter is None:
+            raise ValueError(f"Invalid filter '{filter_name}' for category: '{category}'")
+        if isinstance(matching_filter, TextFilter):
+            if len(components) != 2:
+                raise ValueError("Missing value for filter")
+            return QueryFilter(category, filter_name, matching_filter, value=components[1])
+        if isinstance(matching_filter, NumericFilter):
+            if len(components) != 2:
+                raise ValueError("Missing operation and/or value for filter")
+            op, value = components[-1].split(":")
+            return QueryFilter(category, filter_name, matching_filter, operator=op, value=value)
+        if isinstance(matching_filter, BooleanFilter):
+            assert len(components) == 1
+            return QueryFilter(category, filter_name, matching_filter)
+        raise NotImplementedError(f"Unknown filter type: '{type(matching_filter)}'")
 
 
 def process_filter(data: dict[str, Any], category: str) -> list[tuple[Filter, dict[str, Any]]]:
@@ -89,159 +323,66 @@ class Query(object):
         return cls(terms, search_type=search_type, return_type=return_type, verbose=verbose)
 
 
-def split_term_and_category(text: str, term_requires_parens: bool = False) -> tuple[str, str]:
+def split_term_and_category(text: str) -> tuple[str, str]:
     assert text.startswith("["), text
     end = text.find("]")
     if end < 0:
         raise ValueError(f"Unterminated category in expression: {text}")
     category = text[1:end]
     term = text[end + 1:]
-    if term_requires_parens:
-        assert term.startswith("(") and term.endswith(")")
-    return category, term
+    return category, [chunk for chunk in term.split("|") if chunk]
 
 
 class QueryTerm(object):
     '''A term in a Query'''
-    KEYWORDS = set(['AND', 'OR', 'EXCEPT'])
 
-    BOOL_CATEGORIES = set(['contigedge'])
-    COUNT_GUARD = -1
-
-    def __init__(self, kind, **kwargs):
+    def __init__(self, query_object: QueryItem):
         '''Initialize a term, either an operation or an expression
 
         Raise a ValueError if not all of the necessary kwargs are supplied.
         Operations need 'operation', 'left' and 'right'.
         Expressions need 'category' and 'term'.
         '''
-        self.kind = kind
-        self.count = int(kwargs.get("count", self.COUNT_GUARD))
-        if kind == 'operation':
-            if not set(['operation', 'left', 'right']).issubset(kwargs.keys()):
-                raise ValueError("For operations, you need to specify 'operation', 'left' and 'right'")
-            self.operation = kwargs['operation'].lower()
-            self.left = kwargs['left']
-            self.right = kwargs['right']
+        if not isinstance(query_object, QueryItem):
+            raise ValueError(f"bad query object: {query_object!r}")
+        self._object = query_object
 
-        elif kind == 'expression':
-            if not set(['category', 'term']).issubset(kwargs.keys()):
-                raise ValueError("For expressions, you need to specify 'category' and 'term'")
-            self.category = kwargs['category']
-            self.term = kwargs['term']
-            self.filters = [process_filter(f, self.category) for f in kwargs.get("filters", [])]
-            if self.category in self.BOOL_CATEGORIES and not isinstance(self.term, bool):
-                self.term = self.term.casefold() in {'true', 'yes', 't', 'y', '1'}
+    @property
+    def term(self) -> QueryItem:
+        return self._object
 
-        else:
-            raise ValueError('Invalid term type {!r}'.format(kind))
+    @property
+    def kind(self) -> str:
+        return self._object.kind
 
-    def __repr__(self):
-        if self.kind == 'expression':
-            return 'QueryTerm(category: {!r}, term: {!r})'.format(self.category, self.term)
-        if self.kind == 'operation':
-            return 'QueryTerm(operation: {!r},\n\tleft: {!r}\n\tright: {!r}\n)'.format(self.operation, self.left, self.right)
-
+    @property
+    def count(self) -> str:
+        assert isinstance(self._object, QueryOperand)
+        return self._object.count
 
     def __str__(self):
-        if self.kind == 'expression':
-            filters = " WITH ".join([f"[{f['name']}]({(f['operator'] + ' ') if 'operator' in f else ''}{f['value']})" for _, f in self.filters])
-            return f"[{self.category}]{self.term}{' WITH ' if filters else ''}{filters}"
-        if self.kind == 'operation':
-            return '( {l} {o} {r} )'.format(l=self.left, o=self.operation.upper(), r=self.right)
+        return str(self._object)
 
     def to_json(self):
-        if self.kind == 'expression':
-            return { 'term_type': 'expr', 'category': self.category, 'term': self.term }
-        if self.kind == 'operation':
-            return {
-                'term_type': 'op',
-                'operation': self.operation,
-                'left': self.left.to_json(),
-                'right': self.right.to_json(),
-            }
+        return self._object.to_json()
 
     @classmethod
     def from_json(cls, term):
         '''Recursively generate terms from a json data structure'''
-        if 'term_type' not in term:
+        term["termType"] = term.pop("term_type", term.get("termType"))
+        if 'termType' not in term:
             raise ValueError('Invalid term')
-
-        if term['term_type'] == 'expr':
-            if not set(['category', 'term']).issubset(term.keys()):
-                raise ValueError("For expressions, you need to specify 'category' and 'term'")
-            count = term.get("count", cls.COUNT_GUARD)
-            return cls('expression', count=count, category=term['category'], term=term['term'], filters=term.get('filters', []))
-
-        elif term['term_type'] == 'op':
-            if not set(['operation', 'left', 'right']).issubset(term.keys()):
-                raise ValueError("For operations, you need to specify 'operation', 'left' and 'right'")
-
-            left = cls.from_json(term['left'])
-            right = cls.from_json(term['right'])
-            return cls('operation', operation=term['operation'], left=left, right=right)
-
-        else:
-            raise ValueError('Invalid term_type {!r}'.format(term['term_type']))
+        try:
+            if term['termType'] == 'expr':
+                return QueryOperand.from_json(term)
+            return QueryOperator.from_json(term)
+        except KeyError as err:
+            raise ValueError(str(err))  # for the API to return correctly
 
     @classmethod
     def from_string(cls, string):
-        '''Gernerate terms from a string'''
-        tokens = cls._generate_tokens(string)
-
-        return cls.get_term(tokens)
-
-    @classmethod
-    def get_term(cls, token_list):
-        '''Recursively create a QueryTerm tree from the token_list'''
-        if len(token_list) < 2:
-            raise ValueError('Unexpected end of expression')
-
-        left = cls.get_expression(token_list)
-        next_token = token_list[0]
-        if next_token.upper() in cls.KEYWORDS:
-            del token_list[0]
-            right = cls.get_term(token_list)
-            return cls('operation', operation=next_token.lower(), left=left, right=right)
-        if next_token in ('END', ')'):
-            return left
-        right = cls.get_term(token_list)
-        return cls('operation', operation='and', left=left, right=right)
-
-    @classmethod
-    def get_expression(cls, token_list):
-        count = cls.COUNT_GUARD
-        if len(token_list) >= 2 and token_list[0].isdigit() and token_list[1] == "*":
-            count = int(token_list[0])
-            del token_list[0]
-            cls._get_token(token_list, "*")
-
-        if cls._get_token(token_list, '('):
-            term = cls.get_term(token_list)
-            if not cls._get_token(token_list, ')'):
-                raise ValueError('Invalid token {l[0]}'.format(l=token_list))
-            return term
-
-        raw_expr = token_list[0]
-        if raw_expr in cls.KEYWORDS:
-            raise ValueError('Invalid use of keyword {!r}'.format(raw_expr))
-        if raw_expr == 'END':
-            raise ValueError('Invalid use of keyword {!r}'.format(raw_expr))
-
-        del token_list[0]
-
-        category = 'unknown'
-        term = raw_expr
-
-        if raw_expr.startswith('['):
-            category, term = split_term_and_category(raw_expr)
-
-        filters = []
-        while token_list[0] == "WITH":
-            del token_list[0]
-            filters.append(cls.parse_filter(category, token_list))
-
-        return QueryTerm('expression', count=count, category=category, term=term, filters=filters)
+        '''Generate terms from a string'''
+        return QueryParser(string).root
 
     @staticmethod
     def parse_filter(parent_category: str, token_list: list[str]):
@@ -292,21 +433,3 @@ class QueryTerm(object):
             }
         else:
             raise NotImplementedError(f"unknown filter type: '{type(matching_filter)}'")
-
-    @staticmethod
-    def _generate_tokens(string):
-        tokens = string.split()
-        final_tokens = []
-        for token in tokens:
-            final_tokens.extend([t for t in re.split('(\(|\))', token) if t != ''])
-        final_tokens.append('END')
-
-        return final_tokens
-
-    @staticmethod
-    def _get_token(token_list, expected):
-        token = token_list[0]
-        if token == expected:
-            del token_list[0]
-            return True
-        return False

@@ -1,6 +1,6 @@
 import pytest
 from api import search
-from api.search_parser import QueryTerm
+from api.search_parser import QueryOperand, QueryOperator
 
 from .test_clusters import TOTAL_REGION_COUNT
 
@@ -18,15 +18,15 @@ def test_break_lines():
 
 
 def test_cluster_query_from_term_expression():
-    term = QueryTerm('expression', category='type', term='lanthipeptide')
+    term = QueryOperand(category='type', value='lanthipeptide')
     expected_count = 5
 
     ret = search.cluster_query_from_term(term)
     assert ret.count() == expected_count
 
     term.category = 'unknown'
-    ret = search.cluster_query_from_term(term)
-    assert ret.count() == expected_count
+    with pytest.raises(ValueError):
+        search.cluster_query_from_term(term)
 
     term.category = 'type'
     term.term = 'bogus'
@@ -42,9 +42,9 @@ def test_cluster_query_from_term_expression():
 
 
 def test_cluster_query_from_term_operation():
-    left = QueryTerm('expression', category='type', term='lanthipeptide')
-    right = QueryTerm('expression', category='genus', term='Streptomyces')
-    term = QueryTerm('operation', operation='and', left=left, right=right)
+    left = QueryOperand(category='type', value='lanthipeptide')
+    right = QueryOperand(category='genus', value='Streptomyces')
+    term = QueryOperator(operator='and', left=left, right=right)
 
     ret = search.cluster_query_from_term(term)
     assert ret.count() == 5
@@ -84,7 +84,7 @@ def test_cluster_query_from_term_operation():
 
 
 def test_cluster_query_from_term_invalid():
-    term = QueryTerm('expression', category='type', term='lanthipeptide')
+    term = QueryOperand(category='type', value='lanthipeptide')
     term.kind = 'bogus'
     try:
         search.cluster_query_from_term(term)
