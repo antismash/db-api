@@ -637,7 +637,7 @@ def clusters_by_modulequery(term):
 @register_countable_handler(CLUSTERS)
 def clusters_by_crosscdsmodule(term=""):
     """Return a query for regions containing a cross-CDS module"""
-    return Region.query.join(Module).filter(Module.multi_gene == True)
+    return Region.query.join(Module).filter(Module.multi_gene.is_(True))
 
 
 @register_handler(CLUSTERS)
