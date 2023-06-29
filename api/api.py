@@ -629,9 +629,21 @@ CATEGORIES = {
     "acc": ("NCBI RefSeq Accession", CategoryType.TEXT, None),
     "assembly": ("NCBI assembly ID", CategoryType.TEXT, None),
     "type": ("BGC type", CategoryType.TEXT, PREDICTION_GROUP),
+    "typecategory": ("BGC category", CategoryType.TEXT, PREDICTION_GROUP),
+    "candidatekind": ("Candidate cluster type", CategoryType.TEXT, PREDICTION_GROUP),
+    "substrate": ("Substrate", CategoryType.TEXT, PREDICTION_GROUP),
     "monomer": ("Monomer", CategoryType.TEXT, PREDICTION_GROUP),
     "profile": ("Biosynthetic profile", CategoryType.TEXT, PREDICTION_GROUP),
+    "resfam": ("ResFam profile", CategoryType.TEXT, PREDICTION_GROUP),
+    "pfam": ("Pfam profile", CategoryType.TEXT, PREDICTION_GROUP),
+    "tigrfam": ("TIGRFAM profile", CategoryType.TEXT, PREDICTION_GROUP),
     "asdomain": ("NRPS/PKS domain", CategoryType.TEXT, PREDICTION_GROUP),
+    "asdomainsubtype": ("NRPS/PKS domain subtype", CategoryType.TEXT, PREDICTION_GROUP),
+    "modulequery": ("NRPS/PKS module query", CategoryType.TEXT, PREDICTION_GROUP),
+    "crosscdsmodule": ("NRPS/PKS cross-CDS module", CategoryType.BOOL, PREDICTION_GROUP),
+    "t2pksclass": ("PKS Type II class", CategoryType.TEXT, PREDICTION_GROUP),
+    "t2pksstarter": ("PKS Type II starter moiety", CategoryType.TEXT, PREDICTION_GROUP),
+    "t2pkselongation": ("PKS Type II elongation", CategoryType.TEXT, PREDICTION_GROUP),
     "smcog": ("smCoG hit", CategoryType.TEXT, PREDICTION_GROUP),
     "tfbs": ("Binding site regulator", CategoryType.TEXT, PREDICTION_GROUP),
     "compoundseq": ("Compound sequence", CategoryType.TEXT, RIPP_GROUP),
@@ -645,6 +657,9 @@ CATEGORIES = {
     "class": ("Class", CategoryType.TEXT, TAXONOMY_GROUP),
     "phylum": ("Phylum", CategoryType.TEXT, TAXONOMY_GROUP),
     "superkingdom": ("Superkingdom", CategoryType.TEXT, TAXONOMY_GROUP),
+    "comparippsonmibig": ("CompaRiPPson MIBiG hit", CategoryType.TEXT, COMPARISON_GROUP),
+    "clustercompareregion": ("ClusterCompare by region", CategoryType.TEXT, COMPARISON_GROUP),
+    "clustercompareprotocluster": ("ClusterCompare by protocluster", CategoryType.TEXT, COMPARISON_GROUP),
     "clusterblast": ("ClusterBlast hit", CategoryType.TEXT, COMPARISON_GROUP),
     "knowncluster": ("KnownClusterBlast hit", CategoryType.TEXT, COMPARISON_GROUP),
     "subcluster": ("SubClusterBlast hit", CategoryType.TEXT, COMPARISON_GROUP),
@@ -658,13 +673,13 @@ def list_available_categories():
         "options": [],
         "groups": [{"header": group, "options": []} for group in CATEGORY_GROUPS],
     }
-    for category, values in CATEGORIES.items():
-        description, data_type, group = values
+    for category, handler in CLUSTER_HANDLERS.items():
+        description, data_type, group = CATEGORIES[category]
         option = {
             "label": description,
             "value": category,
             "type": str(data_type),
-            "countable": CLUSTER_HANDLERS[category].countable,
+            "countable": handler.countable,
         }
         filters = available_filters_by_category(category)
         if filters:
