@@ -257,12 +257,6 @@ def clusters_by_candidatekind(term):
 
 
 @register_handler(CLUSTERS)
-def clusters_by_taxid(term):
-    '''Return a query for a bgc by NCBI taxid'''
-    return Region.query.join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.tax_id == term)
-
-
-@register_handler(CLUSTERS)
 def clusters_by_strain(term):
     '''Return a query for a bgc by strain search'''
     return Region.query.join(DnaSequence).join(Genome).join(Taxa).filter(Taxa.strain.ilike('%{}%'.format(term)))

@@ -29,9 +29,6 @@ OTHER_REGION_COUNT = TOTAL_REGION_COUNT - SCO_REGION_COUNT
 SCO_TAXID_ID = 1  # not the actual TAXID, just the serial identifier that TAXID was given in the database
 SCO_STRAIN = "A3(2)"
 
-def test_clusters_by_taxid():
-    assert get_count(clusters.clusters_by_taxid(SCO_TAXID_ID)) == SCO_REGION_COUNT
-
 
 def test_clusters_by_strain():
     assert get_count(clusters.clusters_by_strain(SCO_STRAIN)) == SCO_REGION_COUNT
