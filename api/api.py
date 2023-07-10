@@ -738,12 +738,13 @@ def list_available_categories():
         "groups": [{"header": group, "options": []} for group in CATEGORY_GROUPS],
     }
     for category, handler in CLUSTER_HANDLERS.items():
-        description, data_type, group = CATEGORIES[category]
+        label, data_type, group = CATEGORIES[category]
         option = {
-            "label": description,
+            "label": label,
             "value": category,
             "type": str(data_type),
             "countable": handler.countable,
+            "description": handler.description,
         }
         filters = available_filters_by_category(category)
         if filters:

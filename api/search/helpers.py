@@ -102,10 +102,12 @@ class TextFilter(Filter):
 
 class Handler:
     def __init__(self, core: Callable[[str], Any], countable: bool = False,
-                 counter: Callable[[Any, int], Any] = None):
+                 counter: Callable[[Any, int], Any] = None,
+                 description: Optional[str] = None):
         self._core = core
         self._counter = counter
         self.countable = countable
+        self.description = description
         if self.countable and not self._counter:
             raise ValueError("A countable handler must also supply a counter method")
 
@@ -122,11 +124,11 @@ class Handler:
         return self._core(term)
 
 
-def register_handler(handler, countable: bool = False, counter: Callable = None):
+def register_handler(handler, countable: bool = False, counter: Callable = None, description: Optional[str] = None):
     '''Decorator to register a function as a handler'''
     def real_decorator(function):
         name = function.__name__.split('_')[-1]
-        handler[name] = Handler(function, countable, counter)
+        handler[name] = Handler(function, countable, counter, description)
 
         def inner(*args, **kwargs):
             return handler[name](*args, **kwargs)
