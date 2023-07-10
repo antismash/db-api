@@ -139,11 +139,13 @@ def clusters_to_json(clusters):
         if len(cluster.Region.bgc_types) == 1:
             json_cluster['description'] = cluster.Region.bgc_types[0].description
             json_cluster['term'] = term
+            json_cluster['category'] = cluster.Region.bgc_types[0].category
         else:
             descs = ' & '.join(sorted([t.description for t in cluster.Region.bgc_types],
                                       key=str.casefold))
             json_cluster['description'] = 'Hybrid region: {}'.format(descs)
             json_cluster['term'] = '{} hybrid'.format(term)
+            json_cluster['category'] = "hybrid"
 
         json_cluster['similarity'] = None
         json_cluster['cbh_description'] = None
