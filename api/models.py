@@ -135,9 +135,9 @@ class Candidate(db.Model):
 
     candidate_type = db.relationship('CandidateType', primaryjoin='Candidate.candidate_type_id == CandidateType.candidate_type_id', backref='candidates')
     region = db.relationship('Region', primaryjoin='Candidate.region_id == Region.region_id', backref='candidates')
-    protoclusters = db.relationship('Protocluster', secondary='antismash.rel_candidates_protoclusters', backref='candidates')
     modules = db.relationship('Module', secondary='antismash.rel_candidates_modules', backref='candidates')
     cdss = db.relationship('Cds', secondary='antismash.rel_cds_candidates', backref='candidates')
+    protoclusters = db.relationship('Protocluster', secondary='antismash.rel_candidates_protoclusters', backref='candidates')
 
 
 
@@ -342,6 +342,15 @@ class Isolate(db.Model):
     sample_id = db.Column(db.ForeignKey('antismash.samples.sample_id'))
 
     sample = db.relationship('Sample', primaryjoin='Isolate.sample_id == Sample.sample_id', backref='isolates')
+
+
+
+t_mibig_acc_desc = db.Table(
+    'mibig_acc_desc',
+    db.Column('reference_accession', db.Text),
+    db.Column('description', db.Text),
+    schema='antismash'
+)
 
 
 
