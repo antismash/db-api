@@ -22,7 +22,6 @@ from api.models import (
     CandidateType,
     ClusterblastAlgorithm,
     ClusterblastHit,
-    ClusterCompareHit,
     DnaSequence,
     GeneOntology,
     Genome,
@@ -36,6 +35,7 @@ from api.models import (
     T2pksProfile,
     T2pksStarter,
     Taxa,
+    t_mibig_acc_desc,
 )
 
 AVAILABLE = {}
@@ -173,14 +173,24 @@ def available_compoundclass(term):
              .order_by(Ripp.subclass)
 
 
-@register_handler(AVAILABLE)
 def available_clustercompare(term):
     '''Generate query for available ClusterCompare reference regions'''
-    return db.session.query(distinct(ClusterCompareHit.reference_accession), ClusterCompareHit.description) \
-             .filter(or_(
-                ClusterCompareHit.reference_accession.ilike('{}%'.format(term)),
-                ClusterCompareHit.description.ilike('%{}%'.format(term)))
-              ).order_by(ClusterCompareHit.reference_accession)
+    return db.session.query(t_mibig_acc_desc.c.reference_accession, t_mibig_acc_desc.c.description) \
+            .filter(or_(
+                t_mibig_acc_desc.c.reference_accession.ilike(f"{term}%"),
+                t_mibig_acc_desc.c.description.ilike(f"%{term}%")
+            )).order_by(t_mibig_acc_desc.c.reference_accession)
+
+@register_handler(AVAILABLE)
+def available_clustercompareregion(term):
+    '''Generate query for available ClusterCompare reference regions'''
+    return available_clustercompare(term)
+
+
+@register_handler(AVAILABLE)
+def available_clustercompareprotocluster(term):
+    '''Generate query for available ClusterCompare reference regions'''
+    return available_clustercompare(term)
 
 
 @register_handler(AVAILABLE)
