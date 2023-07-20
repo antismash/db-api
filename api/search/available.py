@@ -27,6 +27,7 @@ from api.models import (
     Genome,
     Monomer,
     Profile,
+    Regulator,
     Resfam,
     Ripp,
     Smcog,
@@ -330,3 +331,15 @@ def available_goterm(term):
                          GeneOntology.description.ilike("%" + search))
                      ) \
              .order_by(GeneOntology.identifier)
+
+
+@register_handler(AVAILABLE)
+def available_tfbs(term):
+    """Generate query for available TFBS regulator names"""
+    search = f"{term}%"
+    return db.session.query(Regulator.name, Regulator.description) \
+            .filter(or_(
+                Regulator.name.ilike(search),
+                Regulator.description.ilike(f"%{search}")
+            )) \
+            .order_by(Regulator.name)
