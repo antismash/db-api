@@ -89,11 +89,10 @@ def _filter_module_by_substrate(query, value: str = None):
     return query.filter(Module.module_id.in_(subquery))
 
 
-def _filter_tfbs_by_field(query, operator: str = None, value: float = None, field: str = None):
+def _filter_tfbs_by_field(query, operator: str = None, value: float = None):
     assert operator in COMPARISON_OPERATORS
     assert value is not None
-    assert field
-    return query.join(RegulatorConfidence).filter(eval(f"RegulatorConfidence.{field} {operator} {float(value)}"))
+    return query.join(RegulatorConfidence).filter(eval(f"RegulatorConfidence.strength {operator} {float(value)}"))
 
 
 _CLUSTERBLAST_FILTERS = {
@@ -126,8 +125,8 @@ AVAILABLE_FILTERS: dict[str, dict[str, Filter]] = {
         "multigene": BooleanFilter("Multi-gene", _filter_module_by_multigene),
     },
     "tfbs": {
-        "quality": QualitativeFilter("Quality", partial(_filter_tfbs_by_field, field="strength"), {"strong": 30, "medium": 20, "weak": 10}),
-        "score": NumericFilter("Score", partial(_filter_tfbs_by_field, field="score")),
+        "quality": QualitativeFilter("Quality", _filter_tfbs_by_field, {"strong": 30, "medium": 20, "weak": 10}),
+        "score": NumericFilter("Score", _filter_tfbs_by_field),
     },
     "knowncluster": _CLUSTERBLAST_FILTERS,
     "subcluster": _CLUSTERBLAST_FILTERS,
