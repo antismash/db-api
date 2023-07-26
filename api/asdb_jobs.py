@@ -27,7 +27,7 @@ class Job(db.Model):
     version = db.Column(db.Integer)
 
 
-def dispatchBlast(jobtype: JobType, name: str, sequence: str) -> str:
+def dispatchBlast(jobtype: JobType, name: str, sequence: str) -> Job:
     """Dispatch a blast-style job"""
     if jobtype not in (JobType.CLUSTERBLAST, JobType.COMPARIPPSON):
         raise ValueError(f"job type ${jobtype} not supported")
@@ -48,4 +48,4 @@ def dispatchBlast(jobtype: JobType, name: str, sequence: str) -> str:
     db.session.add(job)
     db.session.commit()
 
-    return job.id
+    return job

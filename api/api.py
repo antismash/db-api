@@ -601,6 +601,27 @@ def download_cluster(identifier, number):
     return redirect("{}.cluster{:03d}.gbk".format(url, number))
 
 
+def returnJobInfo(job: Job):
+    """Return all the relevant info for a job"""
+
+    job_json = {
+        "id": job.id,
+        "jobtype": job.jobtype,
+        "status": job.status,
+    }
+
+    if job.status == "error":
+        return jsonify(job_json)
+
+    if job.status in ("pending", "running"):
+        job_json["next"] = f"/api/v1.0/job/{job.id}"
+        return jsonify(job_json)
+
+    job_json["results"] = job.results
+
+    return jsonify(job_json)
+
+
 @app.route('/api/v1.0/comparippson', methods=["POST"])
 def submit_comparippson():
     """Submit a CompaRiPPson search"""
@@ -610,10 +631,8 @@ def submit_comparippson():
     name = request.json["name"]
     sequence = request.json["sequence"]
 
-    job_id= dispatchBlast(JobType.COMPARIPPSON, name, sequence)
-    return jsonify({
-        "next": f"/api/v1.0/job/{job_id}"
-    })
+    job = dispatchBlast(JobType.COMPARIPPSON, name, sequence)
+    return returnJobInfo(job)
 
 
 @app.route('/api/v1.0/clusterblast', methods=["POST"])
@@ -625,10 +644,8 @@ def submit_clusterblast():
     name = request.json["name"]
     sequence = request.json["sequence"]
 
-    job_id= dispatchBlast(JobType.CLUSTERBLAST, name, sequence)
-    return jsonify({
-        "next": f"/api/v1.0/job/{job_id}"
-    })
+    job = dispatchBlast(JobType.CLUSTERBLAST, name, sequence)
+    return returnJobInfo(job)
 
 
 @app.route('/api/v1.0/job/<job_id>')
@@ -637,22 +654,7 @@ def fetch_job(job_id: str):
     job = Job.query.filter(Job.id == job_id).one_or_none()
     if job is None:
         abort(404)
-
-    if job.status in ("pending", "running"):
-        return jsonify({
-            "next": f"/api/v1.0/job/{job_id}",
-            "status": job.status,
-        })
-
-    if job.status == "error":
-        return jsonify({
-            "status": job.status,
-        })
-
-    return jsonify({
-        "status": job.status,
-        "results": job.results,
-    })
+    return returnJobInfo(job)
 
 
 @app.route('/api/v1.0/convert')
