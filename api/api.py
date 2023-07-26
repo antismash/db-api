@@ -4,6 +4,8 @@ from distutils.util import strtobool
 from enum import auto, Enum, unique
 from io import BytesIO
 import json
+import re
+
 from flask import (
     abort,
     g,
@@ -15,7 +17,6 @@ from flask import (
     send_file,
     stream_with_context,
 )
-import re
 import sqlalchemy
 from sqlalchemy import (
     between,
@@ -26,6 +27,7 @@ from sqlalchemy import (
     func,
     or_,
 )
+
 from . import app, taxtree
 from .asdb_jobs import (
     dispatchBlast,
