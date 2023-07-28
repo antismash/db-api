@@ -608,6 +608,7 @@ def returnJobInfo(job: Job):
         "id": job.id,
         "jobtype": job.jobtype,
         "status": job.status,
+        "submitted": job.submitted_date,
     }
 
     if job.status == "error":

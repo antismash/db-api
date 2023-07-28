@@ -1,4 +1,5 @@
 """Handler for calls involving the background job runner"""
+from datetime import datetime
 import enum
 import uuid
 
@@ -22,6 +23,7 @@ class Job(db.Model):
     jobtype = db.Column(db.Text)
     status = db.Column(db.Text)
     runner = db.Column(db.Text)
+    submitted_date = db.Column(db.Date)
     data = db.Column(JSONB)
     results = db.Column(JSONB)
     version = db.Column(db.Integer)
@@ -42,6 +44,7 @@ def dispatchBlast(jobtype: JobType, name: str, sequence: str) -> Job:
         jobtype=jobtype.value,
         status="pending",
         data=job_data,
+        submitted_date=datetime.utcnow(),
         results={},
         version=1,
     )
