@@ -1,6 +1,6 @@
 import pytest
 from api import search
-from api.search_parser import QueryOperand, QueryOperator
+from api.search_parser import QueryOperand, QueryOperation
 
 from .test_clusters import TOTAL_REGION_COUNT
 
@@ -44,7 +44,7 @@ def test_cluster_query_from_term_expression():
 def test_cluster_query_from_term_operation():
     left = QueryOperand(category='type', value='lanthipeptide')
     right = QueryOperand(category='genus', value='Streptomyces')
-    term = QueryOperator(operator='and', left=left, right=right)
+    term = QueryOperation(operator='and', left=left, right=right)
 
     ret = search.cluster_query_from_term(term)
     assert ret.count() == 5

@@ -124,7 +124,7 @@ class QueryOperand(QueryItem):
         return "".join(chunks)
 
 
-class QueryOperator(QueryItem):
+class QueryOperation(QueryItem):
     OPERATORS = {"OR", "AND", "EXCEPT"}
     def __init__(self, operator: str, left: QueryOperand, right: QueryOperand):
         super().__init__("operation")
@@ -143,7 +143,7 @@ class QueryOperator(QueryItem):
         }
 
     @classmethod
-    def from_json(cls, data: dict[str, Any]) -> "QueryOperator":
+    def from_json(cls, data: dict[str, Any]) -> "QueryOperation":
         try:
             return cls(data["operation"], QueryOperand.from_json(data["left"]), QueryOperand.from_json(data["right"]))
         except KeyError as err:
@@ -185,7 +185,7 @@ class QueryParser:
             raise ValueError("Incomplete or badly formatted query")
         return self._tokens[self._index]
 
-    def _parse_operator(self) -> QueryOperator:
+    def _parse_operator(self) -> QueryOperation:
         self._expect("(")
         if self._peek() == "(":
             left = self._parse_operator()
@@ -197,7 +197,7 @@ class QueryParser:
         else:
             right = self._parse_operand()
         self._expect(")")
-        return QueryOperator(operator, left, right)
+        return QueryOperation(operator, left, right)
 
     def _get_category_components(self, start="[", end="]", separator="|") -> list[str]:
         self._expect(start)
@@ -375,7 +375,7 @@ class QueryTerm(object):
         try:
             if term['termType'] == 'expr':
                 return QueryOperand.from_json(term)
-            return QueryOperator.from_json(term)
+            return QueryOperation.from_json(term)
         except KeyError as err:
             raise ValueError(str(err))  # for the API to return correctly
 

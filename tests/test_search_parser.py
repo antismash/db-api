@@ -5,7 +5,7 @@ from api.search_parser import (
     QueryItem,
     QueryTerm,
     QueryOperand,
-    QueryOperator,
+    QueryOperation,
 )
 
 
@@ -93,7 +93,7 @@ def test_query_term_from_json():
     op['right'] = expr
     term = QueryTerm.from_json(op)
     assert term.kind == 'operation'
-    assert term.operation == 'or'
+    assert term.operator == 'or'
     assert isinstance(term.left, QueryOperand)
     assert isinstance(term.right, QueryOperand)
 
@@ -119,12 +119,12 @@ def test_query_term_from_string():
     assert term.category == 'contigedge'
 
     base = "({[type|nrps]} %s {[type|1234]})"
-    for operator in QueryOperator.OPERATORS:
+    for operator in QueryOperation.OPERATORS:
         for case in [operator.lower(), operator.upper()]:
             string = base % (case,)
             term = QueryTerm.from_string(string)
             assert term.kind == 'operation'
-            assert term.operation == operator.lower()
+            assert term.operator == operator.lower()
             assert term.left.term == 'nrps'
             assert term.right.term == '1234'
 
