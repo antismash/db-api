@@ -182,6 +182,30 @@ def test_query_real():
     assert filt.operator == ">="
 
 
+def test_round_trip_json_conversion():
+    def check(obj):
+        assert isinstance(obj, QueryOperation)
+        assert obj.operator == "and"
+        assert isinstance(obj.left, QueryOperand)
+        assert obj.left.category == "type"
+        assert obj.left.term == "nrps"
+        assert isinstance(obj.right, QueryOperation)
+        assert obj.right.operator == "and"
+        left = obj.right.left
+        right = obj.right.right
+        assert isinstance(left, QueryOperand)
+        assert isinstance(right, QueryOperand)
+        assert left.category == "asdomain"
+        assert left.term == "Epimerization"
+        assert right.category == "asdomain"
+        assert right.term == "Thioesterase"
+
+    term = QueryTerm.from_string("( {[type|nrps]} AND ( {[asdomain|Epimerization]} AND {[asdomain|Thioesterase]} ) )")
+    check(term)
+    result = QueryTerm.from_json(term.to_json())
+    check(result)
+
+
 def test_query_text_filters():
     string = "{[candidatekind|neighbouring] WITH [bgctype|hgle-ks] WITH [bgctype|spaced term]}"
     term = QueryTerm.from_string(string)

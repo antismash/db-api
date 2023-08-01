@@ -145,7 +145,7 @@ class QueryOperation(QueryItem):
     @classmethod
     def from_json(cls, data: dict[str, Any]) -> "QueryOperation":
         try:
-            return cls(data["operation"], QueryOperand.from_json(data["left"]), QueryOperand.from_json(data["right"]))
+            return cls(data["operation"], QueryTerm.from_json(data["left"]), QueryTerm.from_json(data["right"]))
         except KeyError as err:
             raise ValueError(str(err))  # for the API to return things
 
