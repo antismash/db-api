@@ -681,6 +681,7 @@ class CategoryType(Enum):
     TEXT = auto()
     BOOL = auto()
     NUMERIC = auto()
+    MODULEQUERY = auto()
 
     def __str__(self):
         return str(self.name).lower()
@@ -708,7 +709,7 @@ CATEGORIES = {
     "tigrfam": ("TIGRFAM profile", CategoryType.TEXT, PREDICTION_GROUP),
     "asdomain": ("NRPS/PKS domain", CategoryType.TEXT, PREDICTION_GROUP),
     "asdomainsubtype": ("NRPS/PKS domain subtype", CategoryType.TEXT, PREDICTION_GROUP),
-    "modulequery": ("NRPS/PKS module query", CategoryType.TEXT, PREDICTION_GROUP),
+    "modulequery": ("NRPS/PKS module query", CategoryType.MODULEQUERY, PREDICTION_GROUP),
     "crosscdsmodule": ("NRPS/PKS cross-CDS module", CategoryType.BOOL, PREDICTION_GROUP),
     "t2pksclass": ("PKS Type II class", CategoryType.TEXT, PREDICTION_GROUP),
     "t2pksstarter": ("PKS Type II starter moiety", CategoryType.TEXT, PREDICTION_GROUP),
