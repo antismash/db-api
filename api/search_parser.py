@@ -99,7 +99,7 @@ class QueryOperand(QueryItem):
             "value": self.term,
         }
         if self.count > 1:
-            result["count"] = count
+            result["count"] = self.count
         if self.filters:
             result["filters"] = [f.to_json() for f in self.filters]
         return result
@@ -116,7 +116,7 @@ class QueryOperand(QueryItem):
     def __str__(self) -> str:
         chunks = []
         if self.count > 1:
-            chunks.extend([str(count), "*"])
+            chunks.extend([str(self.count), "*"])
         chunks.append("{")
         chunks.append(f"[{self.category}|{self.term}]")
         chunks.extend(str(f) for f in self.filters)
