@@ -268,6 +268,8 @@ class Query(object):
         '''Set up a query with terms, optionally giving a search_type and return_type'''
         self.terms = terms
         self._search_type = search_type.lower()
+        if self._search_type == "region":
+            self._search_type = "cluster"
         self._return_type = return_type.lower()
         self._verbose = verbose
 

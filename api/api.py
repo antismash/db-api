@@ -327,7 +327,6 @@ def search_v1():
     return jsonify(result)
 
 
-@app.route('/api/search', methods=['POST'])
 @app.route('/api/v2.0/search', methods=['POST'])
 def search():
     query, results, offset, paginate = search_common()
@@ -348,6 +347,26 @@ def search():
 
     return jsonify(result)
 
+
+@app.route('/api/search', methods=['POST'])
+def search_regions():
+    query, results, offset, paginate = search_common()
+    total = len(results)
+    if paginate > 0:
+        end = min(offset + paginate, total)
+    else:
+        end = total
+    regions = format_results(query, results[offset:end])
+
+
+    result = {
+        'total': total,
+        'regions': regions,
+        'offset': offset,
+        'paginate': paginate,
+    }
+
+    return jsonify(result)
 
 @app.route('/api/v1.0/searchstats', methods=['POST'])
 def searchstats():
