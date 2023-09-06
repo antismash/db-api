@@ -502,6 +502,7 @@ def _canonical_assembly_id(identifier):
     abort(404)
 
 
+@app.route('/api/goto/<identifier>')
 @app.route('/api/v1.0/goto/<identifier>')
 @app.route('/go/<identifier>')
 def goto(identifier):
@@ -513,13 +514,22 @@ def goto(identifier):
 
 
 @app.route('/api/v1.0/goto/<identifier>/cluster/<int:number>')
-@app.route('/go/<identifier>/<int:number>')
 def goto_cluster(identifier, number):
     safe_id, is_v1 = _canonical_assembly_id(identifier)
     if is_v1:
         return redirect("https://antismash-dbv1.secondarymetabolites.org/output/{}/index.html#cluster-{}".format(safe_id, number))
 
     return redirect("/output/{}/index.html#cluster-{}".format(safe_id, number))
+
+
+@app.route('/api/goto/<identifier>/<region>')
+@app.route('/go/<identifier>/<region>')
+def goto_region(identifier, region):
+    safe_id, is_v1 = _canonical_assembly_id(identifier)
+    if is_v1:
+        return redirect("https://antismash-dbv1.secondarymetabolites.org/output/{}/index.html#cluster-{}".format(safe_id, region))
+
+    return redirect(f"/output/{safe_id}/index.html#{region}")
 
 
 @app.route('/api/v1.0/area/<record>.<int:version>/<int:start_pos>-<int:end_pos>')
