@@ -324,6 +324,7 @@ def search_v1():
     return jsonify(result)
 
 
+@app.route('/api/search', methods=['POST'])
 @app.route('/api/v2.0/search', methods=['POST'])
 def search():
     query, results, offset, paginate = search_common()
