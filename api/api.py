@@ -236,6 +236,7 @@ def _get_taxon_tree_node(tree_id):
     return tree
 
 
+@app.route('/api/tree/taxa')
 @app.route('/api/v1.0/tree/taxa')
 def get_taxon_tree():
     '''Get the jsTree structure for all taxa'''
