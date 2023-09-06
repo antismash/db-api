@@ -634,6 +634,7 @@ def returnJobInfo(job: Job):
     return jsonify(job_json)
 
 
+@app.route('/api/jobs/comparippson', methods=["POST"])
 @app.route('/api/v1.0/comparippson', methods=["POST"])
 def submit_comparippson():
     """Submit a CompaRiPPson search"""
@@ -647,6 +648,7 @@ def submit_comparippson():
     return returnJobInfo(job)
 
 
+@app.route('/api/jobs/clusterblast', methods=["POST"])
 @app.route('/api/v1.0/clusterblast', methods=["POST"])
 def submit_clusterblast():
     """Submit a ClusterBlast search"""
@@ -660,6 +662,7 @@ def submit_clusterblast():
     return returnJobInfo(job)
 
 
+@app.route('/api/job/<job_id>')
 @app.route('/api/v1.0/job/<job_id>')
 def fetch_job(job_id: str):
     """Fetch the results of a background job run"""
