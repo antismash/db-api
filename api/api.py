@@ -81,6 +81,7 @@ FASTA_LIMITS = {
 SAFE_IDENTIFIER_PATTERN = re.compile('[^A-Za-z0-9_.]+', re.UNICODE)
 
 
+@app.route('/api/version')
 @app.route('/api/v1.0/version')
 def get_version():
     '''display the API version'''
