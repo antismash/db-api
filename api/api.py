@@ -457,6 +457,7 @@ def export_get(search_type, return_type):
     return Response(stream_with_context(generate()), mimetype=mime_type)
 
 
+@app.route('/api/genome/<identifier>')
 @app.route('/api/v1.0/genome/<identifier>')
 def show_genome(identifier):
     '''show information for a genome by identifier'''
@@ -466,6 +467,7 @@ def show_genome(identifier):
     return jsonify(found_bgcs)
 
 
+@app.route('/api/assembly/<identifier>')
 @app.route('/api/v1.0/assembly/<identifier>')
 def show_assembly(identifier):
     """show information for an assembly by identifier"""
@@ -532,6 +534,7 @@ def goto_region(identifier, region):
     return redirect(f"/output/{safe_id}/index.html#{region}")
 
 
+@app.route('/api/area/<record>.<int:version>/<int:start_pos>-<int:end_pos>')
 @app.route('/api/v1.0/area/<record>.<int:version>/<int:start_pos>-<int:end_pos>')
 def area(record, version, start_pos, end_pos):
     safe_acc = SAFE_IDENTIFIER_PATTERN.sub('', record)
@@ -558,6 +561,7 @@ def area(record, version, start_pos, end_pos):
     return jsonify(result)
 
 
+@app.route('/api/area/<record>/<int:start_pos>-<int:end_pos>')
 @app.route('/api/v1.0/area/<record>/<int:start_pos>-<int:end_pos>')
 def area_without_version(record, start_pos, end_pos):
     safe_acc = SAFE_IDENTIFIER_PATTERN.sub('', record)
