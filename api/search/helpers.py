@@ -50,7 +50,7 @@ class Filter:
             "value": value,
         }
         if self.labels:
-            options["choices"] = dict(self.labels)
+            options["choices"] = [(key, val) for (key, val) in self.labels.items()]
         return options
 
     def run(self, query, data: dict[str, Any]):

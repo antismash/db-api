@@ -475,6 +475,7 @@ def show_assembly(identifier):
     return jsonify(found_bgcs)
 
 
+@app.route('/api/available/term/<category>/<term>')
 @app.route('/api/v1.0/available/<category>/<term>')
 def list_available(category, term):
     '''list available terms for a given category'''
@@ -736,6 +737,7 @@ CATEGORIES = {
 }
 
 
+@app.route("/api/available/categories")
 @app.route("/api/v1.0/available_categories")
 def list_available_categories():
     # type options: text, bool, numeric
@@ -764,12 +766,14 @@ def list_available_categories():
     return Response(json.dumps(result, sort_keys=False), mimetype="text/json")
 
 
+@app.route('/api/available/filters/<category>')
 @app.route('/api/v1.0/available_filters/<category>')
 def list_available_filters(category):
     """List available filters for a given category"""
     return jsonify(available_filters_by_category(category))
 
 
+@app.route('/api/available/filters/<category>/<filter_name>/<term>')
 @app.route('/api/v1.0/available_filter_values/<category>/<filter_name>/<term>')
 def list_available_filter_values(category, filter_name, term):
     """List available values for a particular filter"""
