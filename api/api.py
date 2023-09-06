@@ -659,6 +659,7 @@ def fetch_job(job_id: str):
     return returnJobInfo(job)
 
 
+@app.route('/api/convert')
 @app.route('/api/v1.0/convert')
 def convert():
     try:
