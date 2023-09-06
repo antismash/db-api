@@ -148,6 +148,7 @@ def get_stats_v1():
     return jsonify(stats)
 
 
+@app.route('/api/stats')
 @app.route('/api/v2.0/stats')
 def get_stats_v2():
     """contents for the stats page"""
