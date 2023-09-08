@@ -4,6 +4,7 @@ from distutils.util import strtobool
 from enum import auto, Enum, unique
 from io import BytesIO
 import json
+import os
 import re
 
 from flask import (
@@ -16,6 +17,7 @@ from flask import (
     Response,
     send_file,
     stream_with_context,
+    send_from_directory,
 )
 import sqlalchemy
 from sqlalchemy import (
@@ -825,3 +827,13 @@ def list_available_filter_values(category, filter_name, term):
         return jsonify([])
     query = matching.available(sanitise_string(term)).limit(50)
     return jsonify(list(map(lambda x: {'val': x[0], 'desc': x[1]}, query.all())))
+
+
+@app.route("/output/<path:filename>")
+def serve_ouput(filename: str):
+    """Serve the output files for development purposes"""
+    if "OUTPUT_FOLDER" not in app.config:
+        abort(404)
+
+    ret = send_from_directory(app.config["OUTPUT_FOLDER"], filename)
+    return ret
