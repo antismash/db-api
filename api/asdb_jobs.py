@@ -45,7 +45,7 @@ def dispatchBlast(jobtype: JobType, name: str, sequence: str) -> Job:
         status="pending",
         data=job_data,
         submitted_date=datetime.utcnow(),
-        results={},
+        results={ "hits": []},
         version=1,
     )
     db.session.add(job)
