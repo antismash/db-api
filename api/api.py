@@ -690,7 +690,7 @@ def returnJobInfo(job: Job):
         return jsonify(job_json)
 
     if job.status in ("pending", "running"):
-        job_json["next"] = f"/api/v1.0/job/{job.id}"
+        job_json["next"] = f"/api/job/{job.id}"
         return jsonify(job_json)
 
     job_json["results"] = job.results
