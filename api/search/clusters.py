@@ -153,10 +153,9 @@ def clusters_to_json(clusters):
 
         knownclusterblasts = [hit for hit in cluster.Region.clusterblast_hits if hit.algorithm.name == 'knownclusterblast' and hit.rank == 1]
         if len(knownclusterblasts) > 0:
-            json_cluster['similarity'] = knownclusterblasts[0].similarity
-            json_cluster['cbh_description'] = knownclusterblasts[0].description
-            json_cluster['cbh_acc'] = knownclusterblasts[0].acc
-            json_cluster['cbh_rank'] = knownclusterblasts[0].rank
+            json_cluster['best_mibig_hit_similarity'] = knownclusterblasts[0].similarity
+            json_cluster['best_mibig_hit_description'] = knownclusterblasts[0].description
+            json_cluster['best_mibig_hit_acc'] = knownclusterblasts[0].acc
 
         json_cluster['contig_edge'] = cluster.Region.contig_edge
 
@@ -593,7 +592,7 @@ def clusters_by_modulequery(term):
             op = None
 
             for i, value in enumerate(alternative):
-                # don't continue looking if everything is already excluded 
+                # don't continue looking if everything is already excluded
                 if section_modules is not None and not section_modules:
                     break
                 if i % 2:
