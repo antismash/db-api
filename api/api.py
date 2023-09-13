@@ -33,6 +33,7 @@ from sqlalchemy import (
 from . import app, taxtree
 from .asdb_jobs import (
     dispatchBlast,
+    dispatchStoredQuery,
     Job,
     JobType,
 )
@@ -382,6 +383,40 @@ def searchstats():
 
     return jsonify(result)
 
+
+@app.route("/api/export", methods=["POST"])
+def export_v4():
+    """Export the search results as JSON, CSV, or FASTA file"""
+    try:
+        if 'query' not in request.json:
+            query = Query.from_string(request.json.get('search_string', ''), return_type='csv')
+        else:
+            query = Query.from_json(request.json['query'])
+    except ValueError:
+        abort(400)
+
+    return_type = query.return_type
+    search_type = query.search_type
+
+    if return_type not in ('json', 'csv', 'fasta', 'fastaa'):
+        abort(400)
+
+    try:
+        search_results = core_search(query)
+        if len(search_results) == 0:
+            abort(404)
+        if hasattr(search_results[0], "region_id"):
+            ids = list(map(lambda x: x.region_id, search_results))
+        elif hasattr(search_results[0], "cds_id"):
+            ids = list(map(lambda x: x.cds_id, search_results))
+        else:
+            ids = list(map(lambda x: x.domain_id, search_results))
+
+    except UnknownQueryError:
+        abort(400)
+
+    job = dispatchStoredQuery(ids, search_type, return_type)
+    return returnJobInfo(job)
 
 @app.route('/api/v1.0/export', methods=['POST'])
 def export():
