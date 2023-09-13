@@ -866,9 +866,19 @@ def list_available_filter_values(category, filter_name, term):
 
 @app.route("/output/<path:filename>")
 def serve_ouput(filename: str):
-    """Serve the output files for development purposes"""
+    """Serve the antiSMASH output files for development purposes"""
     if "OUTPUT_FOLDER" not in app.config:
         abort(404)
 
     ret = send_from_directory(app.config["OUTPUT_FOLDER"], filename)
+    return ret
+
+@app.route("/jobs/<path:filename>")
+def serve_jobs(filename: str):
+    """Serve the job output files for development purposes"""
+    if "JOBS_FOLDER" not in app.config:
+        print("nope")
+        abort(404)
+
+    ret = send_from_directory(app.config["JOBS_FOLDER"], filename)
     return ret
