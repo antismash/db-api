@@ -405,13 +405,14 @@ def export_v4():
         search_results = core_search(query)
         if len(search_results) == 0:
             abort(404)
-        if hasattr(search_results[0], "region_id"):
+        if search_type == "region":
             ids = list(map(lambda x: x.region_id, search_results))
-        elif hasattr(search_results[0], "cds_id"):
+        elif search_type == "gene":
             ids = list(map(lambda x: x.cds_id, search_results))
+        elif search_type == "domain":
+            ids = list(map(lambda x: x.as_domain_id, search_results))
         else:
-            ids = list(map(lambda x: x.domain_id, search_results))
-
+            abort(400)
     except UnknownQueryError:
         abort(400)
 
