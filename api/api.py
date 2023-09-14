@@ -399,6 +399,7 @@ def export_v4():
     search_type = query.search_type
 
     if return_type not in ('json', 'csv', 'fasta', 'fastaa'):
+        app.logger.error("invalid return_type %s", return_type)
         abort(400)
 
     try:
@@ -412,8 +413,10 @@ def export_v4():
         elif search_type == "domain":
             ids = list(map(lambda x: x.as_domain_id, search_results))
         else:
+            app.logger.error("invalid search_type %s", search_type)
             abort(400)
-    except UnknownQueryError:
+    except UnknownQueryError as err:
+        app.logger.error("unknown query error: %s", err)
         abort(400)
 
     job = dispatchStoredQuery(ids, search_type, return_type)
