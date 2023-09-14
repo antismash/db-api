@@ -405,7 +405,7 @@ def export_v4():
         search_results = core_search(query)
         if len(search_results) == 0:
             abort(404)
-        if search_type == "region":
+        if search_type in {"region", "cluster"}:
             ids = list(map(lambda x: x.region_id, search_results))
         elif search_type == "gene":
             ids = list(map(lambda x: x.cds_id, search_results))
