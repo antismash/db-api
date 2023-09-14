@@ -616,7 +616,7 @@ def area(record, version, start_pos, end_pos):
     clusters = format_results(dummy, res)
 
     result = {
-        "clusters": clusters
+        "regions": clusters
     }
 
     return jsonify(result)
@@ -643,7 +643,7 @@ def area_without_version(record, start_pos, end_pos):
     clusters = format_results(dummy, res)
 
     result = {
-        "clusters": clusters
+        "regions": clusters
     }
 
     return jsonify(result)
