@@ -198,7 +198,7 @@ def available_clustercompareprotocluster(term):
 def available_substrate(term):
     '''Generate query for available substrates'''
     return db.session.query(distinct(Substrate.name), Substrate.description) \
-             .filter(or_(Substrate.name.ilike('{}%'.format(term)), Substrate.description.ilike('{}%'.format(term)))) \
+             .filter(or_(Substrate.name.ilike('{}%'.format(term)), Substrate.description.ilike('%{}%'.format(term)))) \
              .order_by(Substrate.name)
 
 
@@ -206,7 +206,7 @@ def available_substrate(term):
 def available_monomer(term):
     '''Generate query for available monomers'''
     return db.session.query(distinct(Monomer.name), Monomer.description).join(Substrate) \
-             .filter(or_(Monomer.name.ilike('{}%'.format(term)), Substrate.description.ilike('{}%'.format(term)))) \
+             .filter(or_(Monomer.name.ilike('{}%'.format(term)), Substrate.description.ilike('%{}%'.format(term)))) \
              .order_by(Monomer.name)
 
 
@@ -214,7 +214,7 @@ def available_monomer(term):
 def available_type(term):
     '''Generate query for available type'''
     return db.session.query(distinct(BgcType.term), BgcType.description) \
-             .filter(or_(BgcType.term.ilike('{}%'.format(term)), BgcType.description.ilike('{}%'.format(term)))) \
+             .filter(or_(BgcType.term.ilike('%{}%'.format(term)), BgcType.description.ilike('%{}%'.format(term)))) \
              .order_by(BgcType.term)
 
 
@@ -222,7 +222,7 @@ def available_type(term):
 def available_typecategory(term):
     '''Generate query for available type'''
     return db.session.query(BgcCategory.category, BgcCategory.description) \
-             .filter(or_(BgcCategory.category.ilike('{}%'.format(term)), BgcCategory.description.ilike('{}%'.format(term)))) \
+             .filter(or_(BgcCategory.category.ilike('{}%'.format(term)), BgcCategory.description.ilike('%{}%'.format(term)))) \
              .order_by(BgcCategory.category)
 
 
