@@ -87,13 +87,14 @@ class QualitativeFilter(NumericFilter):
 
 class TextFilter(Filter):
     def __init__(self, name: str, func: Callable, available: Callable[[str], Any]):
-        super().__init__(name, DataType.TEXT, func)
+        super().__init__(name.lower(), DataType.TEXT, func)
         self._available = available
 
     def run(self, query, data: dict[str, Any]):
+        assert not data.pop("operator", None)
         if list(data) != ["name", "value"]:
             raise ValueError("badly formed text filter")
-        assert data["name"] == self.name
+        assert data["name"] == self.name, (data, self.name)
         return self.func(query, value=sanitise_string(data["value"]))
 
     def available(self, search_string: str):
