@@ -812,6 +812,7 @@ CATEGORIES = {
     "class": ("Class", CategoryType.TEXT, TAXONOMY_GROUP),
     "phylum": ("Phylum", CategoryType.TEXT, TAXONOMY_GROUP),
     "superkingdom": ("Superkingdom", CategoryType.TEXT, TAXONOMY_GROUP),
+    "taxid": ("NCBI taxid", CategoryType.TEXT, TAXONOMY_GROUP),
     "comparippsonmibig": ("CompaRiPPson MIBiG hit", CategoryType.TEXT, COMPARISON_GROUP),
     "clustercompareregion": ("ClusterCompare by region", CategoryType.TEXT, COMPARISON_GROUP),
     "clustercompareprotocluster": ("ClusterCompare by protocluster", CategoryType.TEXT, COMPARISON_GROUP),
