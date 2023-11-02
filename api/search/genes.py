@@ -1,8 +1,11 @@
 '''Gene-related search functions'''
 
+from functools import partial
+
 from flask import g
 
 from sqlalchemy import (
+    func,
     or_,
     sql,
 )
@@ -24,10 +27,14 @@ from api.models import (
     DnaSequence,
     Cds,
     Genome,
+    Module,
     Monomer,
+    Pfam,
+    PfamDomain,
     Profile,
     ProfileHit,
     Region,
+    RelModulesMonomer,
     Resfam,
     ResfamDomain,
     Ripp,
@@ -39,6 +46,17 @@ from api.models import (
 
 GENE_QUERIES = {}
 GENE_FORMATTERS = {}
+
+def _generic_count_by_cds_id(query, minimum: int):
+    """ Groups query results by CDS id and filters to those groups with at
+        least the given number of matches
+    """
+    if minimum < 0:
+        return query
+    return query.group_by(Cds.cds_id).having(func.count(Cds.cds_id) >= minimum)
+
+
+register_countable_handler = partial(register_handler, countable=True, counter=_generic_count_by_cds_id)
 
 
 def gene_query_from_term(term):
@@ -134,10 +152,10 @@ def query_type(term):
                     .filter(or_(BgcType.term.ilike('%{}%'.format(term)), BgcType.description.ilike('%{}%'.format(term))))
 
 
-@register_handler(GENE_QUERIES)
+@register_countable_handler(GENE_QUERIES)
 def query_monomer(term):
     '''Generate Gene query by monomer'''
-    return Cds.query.join(AsDomain).join(RelAsDomainsMonomer).join(Monomer) \
+    return Cds.query.join(AsDomain).join(Module).join(RelModulesMonomer).join(Monomer) \
                     .filter(Monomer.name.ilike(term))
 
 
@@ -160,6 +178,16 @@ def query_profile(term):
                     .filter(Profile.name.ilike(term))
 
 
+@register_countable_handler(GENE_QUERIES, description="Genes containing a hit to the given PFAM ID")
+def query_pfam(term):
+    """Return a query for a gene by Pfam hit"""
+    search = "%{}%".format(term)
+    query = Cds.query.join(PfamDomain).join(Pfam)
+    if term.lower().startswith("pfam"):
+        return query.filter(Pfam.pfam_id.ilike(search))
+    return query.filter(or_(Pfam.pfam_id.ilike(search), Pfam.name.ilike(search), Pfam.description.ilike(search)))
+
+
 @register_handler(GENE_QUERIES)
 def query_smcog(term):
     '''Generate Gene query by smCoG hit'''
@@ -168,7 +196,7 @@ def query_smcog(term):
                     .filter(Smcog.name.ilike(term))
 
 
-@register_handler(GENE_QUERIES)
+@register_countable_handler(GENE_QUERIES)
 def query_asdomain(term):
     '''Generate Gene query by AsDomain'''
     return Cds.query.join(AsDomain).join(AsDomainProfile) \
