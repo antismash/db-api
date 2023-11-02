@@ -44,6 +44,8 @@ from .search import (
     available_term_by_category,
 )
 from .search.clusters import CLUSTERS as CLUSTER_HANDLERS
+from .search.genes import GENE_QUERIES as GENE_HANDLERS
+from .search.domains import DOMAIN_QUERIES as DOMAIN_HANDLERS
 from .search.filters import (
     available_filters_by_category,
 )
@@ -819,15 +821,13 @@ CATEGORIES = {
 }
 
 
-@app.route("/api/available/categories")
-@app.route("/api/v1.0/available_categories")
-def list_available_categories():
+def list_available_categories(search_type):
     # type options: text, bool, numeric
     result = {
         "options": [],
         "groups": [{"header": group, "options": []} for group in CATEGORY_GROUPS],
     }
-    for category, handler in CLUSTER_HANDLERS.items():
+    for category, handler in search_type.items():
         label, data_type, group = CATEGORIES[category]
         option = {
             "label": label,
@@ -844,8 +844,18 @@ def list_available_categories():
         else:
             index = CATEGORY_GROUPS.index(group)
             result["groups"][index]["options"].append(option)
-    # don't use jsonify, it'll sort by key and ruin filter options and the like
-    return Response(json.dumps(result, sort_keys=False), mimetype="text/json")
+    return result
+
+
+@app.route("/api/available/categories")
+def list_available_categories_by_group():
+    targets = {
+        "region": CLUSTER_HANDLERS,
+        "gene": GENE_HANDLERS,
+        "domain": DOMAIN_HANDLERS,
+    }
+    packed = {name: list_available_categories(data) for name, data in targets.items()}
+    return Response(json.dumps(packed, sort_keys=False), mimetype="text/json")
 
 
 @app.route('/api/available/filters/<category>')
