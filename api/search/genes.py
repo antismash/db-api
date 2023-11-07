@@ -63,7 +63,12 @@ def gene_query_from_term(term):
     '''Recursively generate an SQL query from the search terms'''
     if term.kind == 'expression':
         if term.category in GENE_QUERIES:
-            return GENE_QUERIES[term.category](term.term)
+            handler = GENE_QUERIES[term.category]
+            query = handler(term.term)
+            for query_filter in term.filters:
+                query = query_filter.runner.run(query, query_filter.get_options())
+            query = handler.add_count_restriction(query, term.count)
+            return query
         else:
             raise UnknownQueryError()
     elif term.kind == 'operation':
