@@ -253,8 +253,8 @@ def test_export(client):
         "#Genus\tSpecies\tStrain\tNCBI accession\tFrom\tTo\tBGC type\tOn contig edge"
         "\tMost similar known cluster\tSimilarity in %\tMIBiG BGC-ID\tResults URL\tDownload URL\n"
         "{genus}\t{species}\t{strain}\t{acc}.{version}\t{start_pos}\t{end_pos}\t{term}\t{contig_edge}"
-        "\t{cbh_description}\t{similarity}\t{cbh_acc}\t{url}/go/{acc}.{version}/{start_pos}-{end_pos}"
-        "\t{url}/api/v1.0/download/genbank/{assembly_id}/{acc}/{version}/{start_pos}/{end_pos}\n"
+        "\t{cbh_description}\t{similarity}\t{cbh_acc}\t{url}/area?accession={acc}.{version}&start={start_pos}&end={end_pos}"
+        "\t{url}/api/download/genbank/{assembly_id}/{acc}.{version}.region{region_number:03d}\n"
     ).format(**json_with_helpers).encode()
 
     expected_fasta = (
