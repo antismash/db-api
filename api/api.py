@@ -667,7 +667,7 @@ def _get_base_url(identifier):
 @app.route('/api/v1.0/download/genbank/<identifier>')
 def download_genbank(identifier):
     url = _get_base_url(identifier)
-    return redirect("{}.final.gbk".format(url))
+    return redirect("{}.gbk".format(url))
 
 
 @app.route('/api/v1.0/download/table/<identifier>')
