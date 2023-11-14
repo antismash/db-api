@@ -670,6 +670,13 @@ def download_genbank(identifier):
     return redirect("{}.gbk".format(url))
 
 
+@app.route('/api/download/genbank/<assembly>/<accession>/region/<int:number>')
+def download_cluster(assembly, accession, number):
+    url = _get_base_url(assembly).rsplit("/", 1)[0]  # trim off the duplicate base name
+    complete = f"{url}/{accession}.region{number:03d}.gbk"
+    return redirect(complete)
+
+
 def returnJobInfo(job: Job):
     """Return all the relevant info for a job"""
 
