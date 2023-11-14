@@ -2,6 +2,8 @@ import json
 from flask import url_for
 from api import api, taxtree
 
+from api.search.clusters import CLUSTERS as REGION_HANDLERS
+
 from .test_clusters import SCO_STRAIN
 
 
@@ -74,8 +76,14 @@ def test_categories_have_filters():
         assert " " not in value and value.lower() == value
         assert isinstance(filt["label"], str)
         assert isinstance(filt["type"], str)
-        for key in filt.get("choices", {}):
-            assert isinstance(key, str)
+        # quality filters are different to the rest, they have tuples of information
+        if filt.get("value") == "quality":
+            for name, value in filt.get("choices", []):
+                assert isinstance(name, str)
+                assert isinstance(value, (int, float))
+        else:
+            for key in filt.get("choices", {}):
+                assert isinstance(key, str)
 
     def check_option(option):
         assert len(set(option).intersection({"label", "value", "type"})) == 3
@@ -84,7 +92,7 @@ def test_categories_have_filters():
 
     # categories is special, it doesn't use jsonify, so the payload needs to be
     # manually checked instead of just using .json
-    data = json.loads(api.list_available_categories().data.decode())
+    data = api.list_available_categories(REGION_HANDLERS)
 
     for key in ["options", "groups"]:
         assert data[key]
