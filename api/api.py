@@ -670,18 +670,6 @@ def download_genbank(identifier):
     return redirect("{}.gbk".format(url))
 
 
-@app.route('/api/v1.0/download/table/<identifier>')
-def download_table(identifier):
-    url = _get_base_url(identifier)
-    return redirect("{}.geneclusters.xls".format(url))
-
-
-@app.route('/api/v1.0/download/genbank/<identifier>/cluster/<int:number>')
-def download_cluster(identifier, number):
-    url = _get_base_url(identifier)
-    return redirect("{}.cluster{:03d}.gbk".format(url, number))
-
-
 def returnJobInfo(job: Job):
     """Return all the relevant info for a job"""
 
