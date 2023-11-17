@@ -883,7 +883,7 @@ def serve_ouput(filename: str):
     ret = send_from_directory(app.config["OUTPUT_FOLDER"], filename)
     return ret
 
-@app.route("/jobs/<path:filename>")
+@app.route("/job_downloads/<path:filename>")
 def serve_jobs(filename: str):
     """Serve the job output files for development purposes"""
     if "JOBS_FOLDER" not in app.config:
