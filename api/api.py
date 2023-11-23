@@ -400,7 +400,7 @@ def export_v4():
     return_type = query.return_type
     search_type = query.search_type
 
-    if return_type not in ('json', 'csv', 'fasta', 'fastaa'):
+    if return_type not in ('json', 'csv', 'fasta', 'fastaa', 'genbank'):
         app.logger.error("invalid return_type %s", return_type)
         abort(400)
 
