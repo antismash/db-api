@@ -732,9 +732,20 @@ def submit_clusterblast():
 def fetch_job(job_id: str):
     """Fetch the results of a background job run"""
     job = Job.query.filter(Job.id == job_id).one_or_none()
-    if job is None:
+    if job is None or job.status == "delete":
         abort(404)
     return returnJobInfo(job)
+
+@app.route('/api/job/<job_id>', methods=["DELETE"])
+def delete_job(job_id: str):
+    """Flag a background job for deletion"""
+    job = Job.query.filter(Job.id == job_id).one_or_none()
+    if job is None:
+        abort(404)
+    job.status = "delete"
+    db.session.add(job)
+    db.session.commit()
+    return '', 204
 
 
 @app.route('/api/convert')
