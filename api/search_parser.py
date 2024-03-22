@@ -1,7 +1,8 @@
 '''Parser for search strings to Query data structure'''
 
+from abc import abstractmethod
 import re
-from typing import Any
+from typing import Any, Protocol
 
 from .search.helpers import (
     ensure_operator_valid,
@@ -23,6 +24,14 @@ COUNT_GUARD = -1
 class QueryItem:
     def __init__(self, kind: str):
         self.kind = kind
+
+
+class QueryComponent(Protocol):
+    kind: str
+
+    @abstractmethod
+    def to_json(self) -> dict[str, Any]:
+        raise NotImplementedError
 
 
 class QueryFilter(QueryItem):
@@ -126,7 +135,7 @@ class QueryOperand(QueryItem):
 
 class QueryOperation(QueryItem):
     OPERATORS = {"OR", "AND", "EXCEPT"}
-    def __init__(self, operator: str, left: QueryOperand, right: QueryOperand):
+    def __init__(self, operator: str, left: QueryComponent, right: QueryComponent):
         super().__init__("operation")
         if operator.upper() not in self.OPERATORS:
             raise ValueError(f"Unknown operator: {operator}")

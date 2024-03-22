@@ -44,6 +44,12 @@ from api.models import (
     t_rel_regions_types,
 )
 
+from api.search_parser import (
+    QueryComponent,
+    QueryOperand,
+    QueryOperation,
+)
+
 GENE_QUERIES = {}
 GENE_FORMATTERS = {}
 
@@ -59,9 +65,9 @@ def _generic_count_by_cds_id(query, minimum: int):
 register_countable_handler = partial(register_handler, countable=True, counter=_generic_count_by_cds_id)
 
 
-def gene_query_from_term(term):
+def gene_query_from_term(term: QueryComponent):
     '''Recursively generate an SQL query from the search terms'''
-    if term.kind == 'expression':
+    if isinstance(term, QueryOperand):
         if term.category in GENE_QUERIES:
             handler = GENE_QUERIES[term.category]
             query = handler(term.term)
@@ -71,14 +77,14 @@ def gene_query_from_term(term):
             return query
         else:
             raise UnknownQueryError()
-    elif term.kind == 'operation':
+    elif isinstance(term, QueryOperation):
         left_query = gene_query_from_term(term.left)
         right_query = gene_query_from_term(term.right)
-        if term.operation == 'except':
+        if term.operator == 'except':
             return left_query.except_(right_query)
-        elif term.operation == 'or':
+        elif term.operator == 'or':
             return left_query.union(right_query)
-        elif term.operation == 'and':
+        elif term.operator == 'and':
             return left_query.intersect(right_query)
 
     raise UnknownQueryError()

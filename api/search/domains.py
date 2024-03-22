@@ -33,25 +33,27 @@ from api.models import (
     t_rel_regions_types,
 )
 
+from api.search_parser import QueryComponent, QueryOperand, QueryOperation
+
 DOMAIN_QUERIES = {}
 DOMAIN_FORMATTERS = {}
 
 
-def domain_query_from_term(term):
+def domain_query_from_term(term: QueryComponent):
     '''Recursively generate an SQL query from the search terms'''
-    if term.kind == 'expression':
+    if isinstance(term, QueryOperand):
         if term.category in DOMAIN_QUERIES:
             return DOMAIN_QUERIES[term.category](term.term)
         else:
             raise UnknownQueryError()
-    elif term.kind == 'operation':
+    elif isinstance(term, QueryOperation):
         left_query = domain_query_from_term(term.left)
         right_query = domain_query_from_term(term.right)
-        if term.operation == 'except':
+        if term.operator == 'except':
             return left_query.except_(right_query)
-        elif term.operation == 'or':
+        elif term.operator == 'or':
             return left_query.union(right_query)
-        elif term.operation == 'and':
+        elif term.operator == 'and':
             return left_query.intersect(right_query)
 
     raise UnknownQueryError()
