@@ -3,7 +3,7 @@ import time
 from flask import Flask, g, request
 from flask_cors import CORS
 
-SQLALCHEMY_DATABASE_URI = os.getenv('AS_DB_URI', 'postgres://postgres:secret@localhost:5432/antismash')
+SQLALCHEMY_DATABASE_URI = os.getenv('AS_DB_URI', 'postgresql://postgres:secret@localhost:5432/antismash')
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 app = Flask(__name__)

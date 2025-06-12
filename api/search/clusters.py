@@ -72,7 +72,7 @@ CLUSTERS = {}
 CLUSTER_FORMATTERS = {}
 
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.sql.expression import Executable, ClauseElement, _literal_as_text
+from sqlalchemy.sql.expression import Executable, ClauseElement
 
 
 def _generic_count_by_region_id(query, minimum: int):
@@ -89,10 +89,11 @@ register_countable_handler = partial(_register_handler, countable=True, counter=
 
 
 class explain(Executable, ClauseElement):
-    def __init__(self, stmt, analyse=False):
-        self.statement = _literal_as_text(stmt)
-        self.analyse = analyse
-        self.inline = getattr(stmt, 'inline', None)
+    inherit_cache = False
+
+    def __init__(self, stmt, analyze=False):
+        self.statement = stmt
+        self.analyze = analyze
 
 
 @compiles(explain, 'postgresql')

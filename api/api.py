@@ -1,6 +1,5 @@
 '''The API calls'''
 
-from distutils.util import strtobool
 from enum import auto, Enum, unique
 from io import BytesIO
 import json
@@ -759,7 +758,7 @@ def convert():
         if 'return_type' in request.args:
             args['return_type'] = request.args['return_type']
         if 'verbose' in request.args:
-            args['verbose'] = bool(strtobool(request.args['verbose']))
+            abort(500)
         query = Query.from_string(**args)
     except ValueError:
         abort(400)
