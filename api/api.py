@@ -281,8 +281,8 @@ def search_common():
             query = Query.from_string(request.json.get('search_string', ''))
         else:
             query = Query.from_json(request.json['query'])
-    except ValueError:
-        abort(400)
+    except ValueError as err:
+        abort(make_response({"message": str(err)}, 400))
 
     if query.return_type != 'json':
         abort(400)
