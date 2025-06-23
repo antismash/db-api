@@ -72,7 +72,7 @@ CLUSTERS = {}
 CLUSTER_FORMATTERS = {}
 
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.sql.expression import Executable, ClauseElement
+from sqlalchemy.sql.expression import Executable, ClauseElement, and_
 
 
 def _generic_count_by_region_id(query, minimum: int):

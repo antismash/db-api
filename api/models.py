@@ -258,8 +258,6 @@ class DnaSequence(db.Model):
     __tablename__ = 'dna_sequences'
     __table_args__ = {'schema': 'antismash'}
 
-    dna = db.Column(db.Text)
-    md5 = db.Column(db.Text)
     accession = db.Column(db.Text, primary_key=True)
     definition = db.Column(db.Text)
     contig_type = db.Column(db.Integer)
@@ -326,24 +324,9 @@ class Genome(db.Model):
     tax_id = db.Column(db.ForeignKey('antismash.taxa.tax_id', ondelete='CASCADE'))
     bio_project = db.Column(db.Text)
     bio_sample = db.Column(db.Text)
-    isolate_id = db.Column(db.ForeignKey('antismash.isolates.isolate_id', ondelete='CASCADE'))
     assembly_id = db.Column(db.Text)
 
-    isolate = db.relationship('Isolate', primaryjoin='Genome.isolate_id == Isolate.isolate_id', backref='genomes')
     tax = db.relationship('Taxa', primaryjoin='Genome.tax_id == Taxa.tax_id', backref='genomes')
-
-
-
-class Isolate(db.Model):
-    __tablename__ = 'isolates'
-    __table_args__ = {'schema': 'antismash'}
-
-    isolate_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
-    sample_id = db.Column(db.ForeignKey('antismash.samples.sample_id'))
-
-    sample = db.relationship('Sample', primaryjoin='Isolate.sample_id == Sample.sample_id', backref='isolates')
-
-
 
 t_mibig_acc_desc = db.Table(
     'mibig_acc_desc',
