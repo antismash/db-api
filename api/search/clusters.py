@@ -401,6 +401,10 @@ def clusters_by_asdomainsubtype(term):
 def clusters_by_contigedge(_term):
     return Region.query.filter(Region.contig_edge.is_(True))
 
+@register_handler(CLUSTERS, description="Regions crossing origin")
+def clusters_by_crossorigin(_term):
+    return Region.query.filter(Region.start_pos > Region.end_pos)
+
 
 def clusters_by_x_clusterblast(term, algorithm):
     '''Generic query for XClusterBlast hits'''

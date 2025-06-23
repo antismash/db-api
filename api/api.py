@@ -28,6 +28,7 @@ from sqlalchemy import (
     func,
     or_,
 )
+from sqlalchemy.sql.expression import and_
 
 from . import app, taxtree
 from .asdb_jobs import (
@@ -606,12 +607,7 @@ def area(record, version, start_pos, end_pos):
 
     query = Region.query.join(DnaSequence, Region.dna_sequence).join(Genome, DnaSequence.genome)
     query = query.filter(DnaSequence.accession == safe_acc).filter(DnaSequence.version == version)
-    query = query.filter(or_(
-        Region.start_pos.between(start_pos, end_pos),
-        Region.end_pos.between(start_pos, end_pos),
-        between(start_pos, Region.start_pos, Region.end_pos),
-        between(end_pos, Region.start_pos, Region.end_pos),
-    ))
+    query = _overlap_check(query, start_pos, end_pos)
     res = query.all()
 
     # Right now format_results needs a Query object
@@ -626,6 +622,32 @@ def area(record, version, start_pos, end_pos):
     return jsonify(result)
 
 
+def _overlap_check(query, start_pos, end_pos):
+    if end_pos < start_pos:
+        query = query.filter(or_(
+            Region.start_pos >= start_pos,
+            Region.end_pos > start_pos,
+            Region.start_pos <= end_pos,
+            Region.end_pos < end_pos,
+            Region.start_pos > Region.end_pos,
+        ))
+    else:
+        query = query.filter(or_(
+            Region.start_pos.between(start_pos, end_pos),
+            Region.end_pos.between(start_pos, end_pos),
+            between(start_pos, Region.start_pos, Region.end_pos),
+            between(end_pos, Region.start_pos, Region.end_pos),
+            and_(
+                Region.start_pos > Region.end_pos,
+                or_(
+                    Region.end_pos >= end_pos,
+                    Region.start_pos <= start_pos,
+                )
+            )
+        ))
+    return query
+
+
 @app.route('/api/area/<record>/<int:start_pos>-<int:end_pos>')
 @app.route('/api/v1.0/area/<record>/<int:start_pos>-<int:end_pos>')
 def area_without_version(record, start_pos, end_pos):
@@ -633,12 +655,7 @@ def area_without_version(record, start_pos, end_pos):
 
     query = Region.query.join(DnaSequence, Region.dna_sequence).join(Genome, DnaSequence.genome)
     query = query.filter(DnaSequence.accession == safe_acc)
-    query = query.filter(or_(
-        Region.start_pos.between(start_pos, end_pos),
-        Region.end_pos.between(start_pos, end_pos),
-        between(start_pos, Region.start_pos, Region.end_pos),
-        between(end_pos, Region.start_pos, Region.end_pos),
-    ))
+    query = _overlap_check(query, start_pos, end_pos)
     res = query.all()
 
     # Right now format_results needs a Query object
@@ -806,6 +823,7 @@ CATEGORIES = {
     "t2pkselongation": ("PKS Type II elongation", CategoryType.TEXT, PREDICTION_GROUP),
     "smcog": ("smCoG hit", CategoryType.TEXT, PREDICTION_GROUP),
     "tfbs": ("Binding site regulator", CategoryType.TEXT, PREDICTION_GROUP),
+    "crossorigin": ("Region crosses origin", CategoryType.BOOL, PREDICTION_GROUP),
     "compoundseq": ("Compound sequence", CategoryType.TEXT, RIPP_GROUP),
     "compoundclass": ("RiPP compound class", CategoryType.TEXT, RIPP_GROUP),
     "contigedge": ("Region on contig edge", CategoryType.BOOL, QUALITY_GROUP),
