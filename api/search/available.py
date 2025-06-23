@@ -16,7 +16,9 @@ from .helpers import (
 
 from api.models import (
     db,
+    AsDomain,
     AsDomainProfile,
+    AsDomainSubtype,
     BgcCategory,
     BgcType,
     CandidateType,
@@ -247,6 +249,12 @@ def available_asdomain(term):
              .filter(or_(AsDomainProfile.name.ilike('{}%'.format(term)), AsDomainProfile.description.ilike('%{}%'.format(term)))) \
              .order_by(AsDomainProfile.name)
 
+@register_handler(AVAILABLE)
+def available_asdomainsubtype(term):
+    '''Generate query for available asDomain subtype'''
+    return db.session.query(distinct(AsDomainSubtype.subtype), AsDomainSubtype.subtype) \
+                .filter(AsDomainSubtype.subtype.ilike('{}%'.format(term))) \
+                .order_by(AsDomainSubtype.subtype)
 
 @register_handler(AVAILABLE)
 def available_clusterblast(term):
