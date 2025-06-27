@@ -79,6 +79,10 @@ def available_contigedge(term):
     """Generate FakeBooleanQuery for available boolean contigedge options."""
     return FakeBooleanQuery(term, 'Cluster is on a contig edge', 'Cluster is not on a contig edge')
 
+@register_handler(AVAILABLE)
+def available_straincollection(term):
+    """Generate FakeBooleanQuery for available boolean strain collection options."""
+    return FakeBooleanQuery(term, 'Strain is in a collection', 'Strain is not in a collection')
 
 @register_handler(AVAILABLE)
 def available_superkingdom(term):

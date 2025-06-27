@@ -34,9 +34,12 @@ from api.models import (
     ComparippsonMibigReference,
     Genome,
     DnaSequence,
+    DsmzCollection,
     Module,
     ModuleDomainFunction,
     Monomer,
+    NbcCollection,
+    NpdcCollection,
     Pfam,
     PfamDomain,
     Profile,
@@ -159,6 +162,12 @@ def clusters_to_json(clusters):
             json_cluster['best_mibig_hit_acc'] = knownclusterblasts[0].acc
 
         json_cluster['contig_edge'] = cluster.Region.contig_edge
+        json_cluster['cross_origin'] = cluster.Region.start_pos > cluster.Region.end_pos
+        json_cluster["strain_collection"] = {
+            "nbc": cluster.Region.dna_sequence.genome.nbc_collection.identifier if cluster.Region.dna_sequence.genome.nbc_collection else None,
+            "npdc": cluster.Region.dna_sequence.genome.npdc_collection.identifier if cluster.Region.dna_sequence.genome.npdc_collection else None,
+            "dsmz": cluster.Region.dna_sequence.genome.dsmz_collection.identifier if cluster.Region.dna_sequence.genome.dsmz_collection else None
+        }
 
         json_clusters.append(json_cluster)
     return json_clusters
@@ -401,9 +410,22 @@ def clusters_by_asdomainsubtype(term):
 def clusters_by_contigedge(_term):
     return Region.query.filter(Region.contig_edge.is_(True))
 
+
 @register_handler(CLUSTERS, description="Regions crossing origin")
 def clusters_by_crossorigin(_term):
     return Region.query.filter(Region.start_pos > Region.end_pos)
+
+
+@register_handler(CLUSTERS, description="Region is from a strain available in a strain collection")
+def clusters_by_straincollection(_term):
+    q = Region.query.join(DnaSequence).join(Genome).join(NbcCollection, isouter=True).join(NpdcCollection, isouter=True).join(DsmzCollection, isouter=True) \
+        .filter(or_(
+            NbcCollection.identifier.isnot(None),
+            NpdcCollection.identifier.isnot(None),
+            DsmzCollection.identifier.isnot(None),
+        ))
+    print("Strain collection query: {}".format(q))
+    return q
 
 
 def clusters_by_x_clusterblast(term, algorithm):

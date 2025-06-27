@@ -805,6 +805,7 @@ CATEGORY_GROUPS = [PREDICTION_GROUP, RIPP_GROUP, QUALITY_GROUP, TAXONOMY_GROUP, 
 CATEGORIES = {
     "acc": ("NCBI RefSeq Accession", CategoryType.TEXT, None),
     "assembly": ("NCBI assembly ID", CategoryType.TEXT, None),
+    "straincollection": ("Available in strain collection", CategoryType.BOOL, None),
     "type": ("BGC type", CategoryType.TEXT, PREDICTION_GROUP),
     "typecategory": ("BGC category", CategoryType.TEXT, PREDICTION_GROUP),
     "candidatekind": ("Candidate cluster type", CategoryType.TEXT, PREDICTION_GROUP),

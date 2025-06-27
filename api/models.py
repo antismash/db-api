@@ -269,6 +269,13 @@ class DnaSequence(db.Model):
     genome = db.relationship('Genome', primaryjoin='DnaSequence.genome_id == Genome.genome_id', backref='dna_sequences')
 
 
+class DsmzCollection(db.Model):
+    __tablename__ = 'dsmz_collection'
+    __table_args__ = {'schema': 'antismash'}
+
+    genome_id = db.Column(db.ForeignKey('antismash.genomes.genome_id', ondelete='CASCADE'), primary_key=True, nullable=False)
+    identifier = db.Column(db.Text, nullable=False, unique=True)
+
 
 class Filename(db.Model):
     __tablename__ = 'filenames'
@@ -327,6 +334,10 @@ class Genome(db.Model):
     assembly_id = db.Column(db.Text)
 
     tax = db.relationship('Taxa', primaryjoin='Genome.tax_id == Taxa.tax_id', backref='genomes')
+    nbc_collection = db.relationship('NbcCollection', uselist=False, backref='genome')
+    npdc_collection = db.relationship('NpdcCollection', uselist=False, backref='genome')
+    dsmz_collection = db.relationship('DsmzCollection', uselist=False, backref='genome')
+
 
 t_mibig_acc_desc = db.Table(
     'mibig_acc_desc',
@@ -374,6 +385,21 @@ class Monomer(db.Model):
 
     substrate = db.relationship('Substrate', primaryjoin='Monomer.substrate_id == Substrate.substrate_id', backref='monomers')
 
+
+class NbcCollection(db.Model):
+    __tablename__ = 'nbc_collection'
+    __table_args__ = {'schema': 'antismash'}
+
+    genome_id = db.Column(db.ForeignKey('antismash.genomes.genome_id', ondelete='CASCADE'), primary_key=True, nullable=False)
+    identifier = db.Column(db.Text, nullable=False, unique=True)
+
+
+class NpdcCollection(db.Model):
+    __tablename__ = 'npdc_collection'
+    __table_args__ = {'schema': 'antismash'}
+
+    genome_id = db.Column(db.ForeignKey('antismash.genomes.genome_id', ondelete='CASCADE'), primary_key=True, nullable=False)
+    identifier = db.Column(db.Text, nullable=False, unique=True)
 
 
 class PfamDomain(db.Model):
@@ -694,7 +720,6 @@ class Smcog(db.Model):
     functional_class_id = db.Column(db.ForeignKey('antismash.functional_classes.functional_class_id'))
 
     functional_class = db.relationship('FunctionalClass', primaryjoin='Smcog.functional_class_id == FunctionalClass.functional_class_id', backref='smcogs')
-
 
 
 class Substrate(db.Model):
