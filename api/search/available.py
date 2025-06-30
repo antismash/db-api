@@ -40,6 +40,7 @@ from api.models import (
     T2pksProfile,
     T2pksStarter,
     Taxa,
+    TerpeneDomain
 )
 
 AVAILABLE = {}
@@ -365,3 +366,12 @@ def available_tfbs(term):
                 Regulator.description.ilike(f"%{search}")
             )) \
             .order_by(Regulator.name)
+
+
+@register_handler(AVAILABLE)
+def available_terpenedomain(term):
+    """Generate query for available Terpene domains."""
+    search = term + "%"
+    return db.session.query(distinct(TerpeneDomain.name), TerpeneDomain.name) \
+             .filter(TerpeneDomain.name.ilike(search)) \
+             .order_by(TerpeneDomain.name)

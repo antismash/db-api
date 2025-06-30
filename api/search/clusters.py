@@ -62,6 +62,8 @@ from api.models import (
     T2pksStarter,
     T2pksStarterElongation,
     Taxa,
+    TerpeneDomain,
+    TerpeneHit,
     Tigrfam,
     TigrfamDomain,
     t_rel_as_domain_to_subtype,
@@ -682,3 +684,11 @@ def clusters_by_comparippsonmibig(term):
                 ComparippsonMibigReference.compound.ilike(search),
                 ComparippsonMibigReference.product.ilike(search),
             ))
+
+
+@register_countable_handler(CLUSTERS, description="Regions containing a Terpene hit against the given profile name")
+def clusters_by_terpenedomain(term):
+    """Return a query for regions containing a Terpene hit against the given profile name"""
+    search = f"%{term}%"
+    return Region.query.join(Cds).join(TerpeneHit).join(TerpeneDomain) \
+             .filter(TerpeneDomain.name.ilike(search) )

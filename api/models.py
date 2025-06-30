@@ -847,6 +847,23 @@ class Taxa(db.Model):
     name = db.Column(db.Text, nullable=False, unique=True)
 
 
+class TerpeneDomain(db.Model):
+    __tablename__ = 'terpene_domains'
+    __table_args__ = {'schema': 'antismash'}
+
+    terpene_domain_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
+    name = db.Column(db.Text, nullable=False)
+
+
+class TerpeneHit(db.Model):
+    __tablename__ = 'terpene_hits'
+    __table_args__ = {'schema': 'antismash'}
+
+    terpene_hit_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
+    terpene_domain_id = db.Column(db.ForeignKey('antismash.terpene_domains.terpene_domain_id', ondelete='CASCADE'), nullable=False)
+    cds_id = db.Column(db.ForeignKey('antismash.cdss.cds_id', ondelete='CASCADE'), index=True)
+    location = db.Column(db.Text, nullable=False)
+
 
 class TigrfamDomain(db.Model):
     __tablename__ = 'tigrfam_domains'

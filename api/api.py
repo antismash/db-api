@@ -824,6 +824,7 @@ CATEGORIES = {
     "t2pkselongation": ("PKS Type II elongation", CategoryType.TEXT, PREDICTION_GROUP),
     "smcog": ("smCoG hit", CategoryType.TEXT, PREDICTION_GROUP),
     "functionalclass": ("Functional class", CategoryType.TEXT, PREDICTION_GROUP),
+    "terpenedomain": ("Terpene domain", CategoryType.TEXT, PREDICTION_GROUP),
     "tfbs": ("Binding site regulator", CategoryType.TEXT, PREDICTION_GROUP),
     "crossorigin": ("Region crosses origin", CategoryType.BOOL, PREDICTION_GROUP),
     "compoundseq": ("Compound sequence", CategoryType.TEXT, RIPP_GROUP),
