@@ -32,6 +32,8 @@ from api.models import (
     Cds,
     ComparippsonHit,
     ComparippsonMibigReference,
+    FunctionalClass,
+    GeneFunction,
     Genome,
     DnaSequence,
     DsmzCollection,
@@ -385,6 +387,14 @@ def clusters_by_smcog(term):
     return Region.query.join(Cds) \
                  .join(SmcogHit).join(Smcog) \
                  .filter(Smcog.name.ilike('%{}%'.format(term)))
+
+
+@register_countable_handler(CLUSTERS, description="Regions containing a specific functional class")
+def clusters_by_functionalclass(term):
+    '''Return a query for a bgc by functional class'''
+    return Region.query.join(Cds) \
+                 .join(GeneFunction).join(FunctionalClass) \
+                 .filter(FunctionalClass.name == term.lower())
 
 
 @register_countable_handler(CLUSTERS, description="Regions containing a specific aSDomain by name")

@@ -322,6 +322,16 @@ class Gene(db.Model):
     region = db.relationship('Region', primaryjoin='Gene.region_id == Region.region_id', backref='genes')
 
 
+class GeneFunction(db.Model):
+    __tablename__ = 'gene_functions'
+    __table_args__ = {'schema': 'antismash'}
+
+    gene_function_id = db.Column(db.Integer, primary_key=True, server_default=db.FetchedValue())
+    cds_id = db.Column(db.ForeignKey('antismash.cdss.cds_id', ondelete='CASCADE'), nullable=False, index=True)
+    functional_class_id = db.Column(db.ForeignKey('antismash.functional_classes.functional_class_id', ondelete='CASCADE'), nullable=False, index=True)
+
+    cds = db.relationship('Cds', primaryjoin='GeneFunction.cds_id == Cds.cds_id', backref='gene_functions')
+
 
 class Genome(db.Model):
     __tablename__ = 'genomes'

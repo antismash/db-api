@@ -26,6 +26,7 @@ from api.models import (
     ClusterblastHit,
     ClusterCompareHit,
     DnaSequence,
+    FunctionalClass,
     GeneOntology,
     Genome,
     Monomer,
@@ -305,6 +306,15 @@ def available_resfam(term):
                          Resfam.description.ilike("%" + search))
                      ) \
              .order_by(Resfam.name)
+
+
+@register_handler(AVAILABLE)
+def available_functionalclass(term):
+    """Generate query for available functional classes."""
+    search = term + "%"
+    return db.session.query(distinct(FunctionalClass.name), FunctionalClass.name) \
+             .filter(FunctionalClass.name.ilike(search)) \
+             .order_by(FunctionalClass.name)
 
 
 @register_handler(AVAILABLE)
